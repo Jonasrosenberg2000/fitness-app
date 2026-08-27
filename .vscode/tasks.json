@@ -1,0 +1,285 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Fitness App Python Backend",
+			"type": "shell",
+			"command": "py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Fitness Backend On 8001",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; $env:PORT='8001'; $env:REDIRECT_URI='http://192.168.8.109:8001/api/provider/callback'; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Reload Fitness Backend Config",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Fitness Backend",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Fitness Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate App Changes",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Fitness Backend Final",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Withings Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Reload Withings API Config",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Withings Measure Fix",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Corrected Fitness Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Withings Stats",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Withings Stats Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Automatic Withings Sync",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Automatic Withings Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Withings Activity",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Withings Activity Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Activity Range Fix",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Activity Range Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Health Steps Bridge",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start Fitness App Server",
+			"type": "shell",
+			"command": "$env:PORT='8001'; $env:REDIRECT_URI='http://192.168.8.109:8001/api/provider/callback'; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start All In One Fitness",
+			"type": "shell",
+			"command": "$env:PORT='8001'; $env:REDIRECT_URI='http://192.168.8.109:8001/api/provider/callback'; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Multi User Withings",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Multi User Fitness Backend",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Test Multi User Backend Clean",
+			"type": "shell",
+			"command": "$env:PORT='8002'; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Clear Old Fitness Port",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,OwningProcess",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start Multi User Backend Clean",
+			"type": "shell",
+			"command": "Stop-Process -Id 35912 -Force; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check Fitness Server Process",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | Select-Object OwningProcess; Get-Process -Id (Get-NetTCPConnection -LocalPort 8001 -State Listen).OwningProcess | Select-Object Id,ProcessName,Path",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Final Multi User Backend",
+			"type": "shell",
+			"command": "Stop-Process -Id 18436 -Force; py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start Fitness App Again",
+			"type": "shell",
+			"command": "py -3 server.py",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Keep Fitness App Running",
+			"type": "shell",
+			"command": "$connection = Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue; if ($connection) { $connection | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } }; Start-Process -FilePath 'py' -ArgumentList '-3','server.py' -WorkingDirectory 'C:\\Users\\ejer\\OneDrive\\Billeder\\fitnes app' -WindowStyle Hidden",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check Background Fitness Server",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,OwningProcess",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Withings Profile Link",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Complete Withings Profile",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Withings Physique History",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate AI Physique Integration",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart AI Physique Backend",
+			"type": "shell",
+			"command": "$connection = Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue; if ($connection) { $connection | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } }; Start-Process -FilePath 'py' -ArgumentList '-3','server.py' -WorkingDirectory 'C:\\Users\\ejer\\OneDrive\\Billeder\\fitnes app' -WindowStyle Hidden",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Shared Local AI",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Public Deployment Prep",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate Railway Deployment",
+			"type": "shell",
+			"command": "py -3 -m py_compile server.py",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

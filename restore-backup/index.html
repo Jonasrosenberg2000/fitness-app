@@ -1,0 +1,83 @@
+﻿
+<!doctype html>
+<html lang="da">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="theme-color" content="#020711">
+	<link rel="manifest" href="manifest.json?v=1">
+	<title>All In One Fitness - Din trÃ¦ning, samlet</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="styles.css?v=neon3">
+	
+</head>
+<body>
+	<div class="app-shell">
+		<aside class="sidebar">
+			<a class="brand" href="#top" aria-label="All In One Fitness hjem"><b>AIO</b><strong>Fitness</strong></a>
+			<nav aria-label="Hovednavigation">
+				<a class="nav-link active" href="#top">/ <span>Oversigt</span></a>
+				<a class="nav-link" href="#workout">+ <span>TrÃ¦ning</span></a>
+				<a class="nav-link" href="#food">$ <span>Food Tracker</span></a>
+				<a class="nav-link" href="#weight">% <span>KropsvÃ¦gt</span></a>
+				<a class="nav-link" href="#progress">~ <span>Fremskridt</span></a>
+				<a class="nav-link" href="#library"># <span>Ã˜velsesbibliotek</span></a>
+			</nav>
+			<div class="sidebar-bottom"><div class="profile-card" id="sidebarProfileCard"><span id="sidebarInitial">+</span><span class="profile-card-fields"><input id="sidebarNameInput" type="text" placeholder="Dit navn" maxlength="40" aria-label="Dit navn"><small>Min profil</small></span></div></div>
+		</aside>
+
+		<main class="content" id="top">
+			<header class="topbar"><span id="todayDate">SÃ˜NDAG 23. AUGUST 2026</span><button type="button" aria-label="Notifikationer">o</button></header>
+			<section class="welcome"><div><p class="eyebrow">DIN UGE I BEVÃ†GELSE</p><h1 id="greetingText">Godmorgen.</h1><p>Du har allerede taget hul pÃ¥ en stÃ¦rk uge.</p></div><strong class="streak"><span id="streakCount">04</span><small>DAGE I TRÃ†K</small></strong></section>
+
+			<section class="hero-grid" id="workout">
+				<article class="workout-card"><div class="card-kicker">NÃ†STE TRÃ†NING</div><h2>Full body <em>foundation</em></h2><p>* 6 Ã¸velser &nbsp; + Begynder</p><button id="startWorkout" type="button">Start trÃ¦ning -&gt;</button><button id="sessionComplete" type="button" class="complete-session">âœ“ TrÃ¦ning klaret</button></article>
+				<article class="quote-card"><span>â€œ</span><p>SmÃ¥ skridt hver dag bliver til store forandringer.</p><small>- DIN FREMTIDIGE DIG</small></article>
+			</section>
+
+			<section class="section-heading"><div><p class="eyebrow">DENNE UGE</p><h2>Din rytme</h2></div><button id="viewProgress" type="button">Se fremskridt -&gt;</button></section>
+			<section class="stats-grid"><article class="stat-card">TRÃ†NINGER<strong id="overviewTrainingStat">0/3</strong><small id="overviewTrainingNote">I gang med ugen</small></article><article class="stat-card">AKTIV TID<strong id="overviewActiveTimeStat">0 min</strong><small id="overviewActiveTimeNote">Estimeret ud fra loggede sÃ¦t</small></article><article class="stat-card">ENERGI<strong id="overviewEnergyStat">0/10</strong><small id="overviewEnergyNote">Baseret pÃ¥ ugens fremgang</small></article><article class="stat-card" id="overviewFoodCard" style="cursor:pointer">MAD I DAG<strong id="overviewFoodStat">0 / 2.000 kcal</strong><small id="overviewFoodNote">Tryk for Mad Tracker -&gt;</small></article><article class="stat-card" id="overviewWeightCard" style="cursor:pointer">VÃ†GT<strong id="overviewWeightStat">-</strong><small id="overviewWeightNote">Tryk for at veje dig ind -&gt;</small></article></section>
+
+			<section class="food-section" id="food">
+				<div class="food-date-nav"><button type="button" id="foodDatePrev" aria-label="Forrige dag">â€¹</button><strong id="foodDateLabel">24. AUG</strong><button type="button" id="foodDateNext" aria-label="NÃ¦ste dag">â€º</button></div>
+				<div class="section-heading"><div><p class="eyebrow">MAD TRACKER</p><h2>Hvad har du spist?</h2><p>Vej maden i gram og fÃ¥ et mere prÃ¦cist kcal-estimat.</p></div><div class="kcal-summary"><div class="kcal-box"><small>DAGENS TOTAL</small><strong id="foodTotal">0 <small>kcal</small></strong></div><div class="kcal-box"><small>MÃ…L I DAG</small><strong id="foodTarget">2.000 kcal</strong></div></div></div>
+				<div class="kcal-remaining-banner"><small id="kcalRemainingLabel">KCAL TILBAGE (CUT)</small><strong id="kcalRemainingValue">2.000 kcal</strong></div>
+				<div class="macro-grid">
+					<article class="macro-card macro-protein"><span class="macro-label">PROTEIN</span><strong id="proteinProgressText">0/0 g</strong><div class="macro-bar"><i id="proteinProgressBar"></i></div></article>
+					<article class="macro-card macro-carbs"><span class="macro-label">KULHYDRAT</span><strong id="carbsProgressText">0/0 g</strong><div class="macro-bar"><i id="carbsProgressBar"></i></div></article>
+					<article class="macro-card macro-fat"><span class="macro-label">FEDT</span><strong id="fatProgressText">0/0 g</strong><div class="macro-bar"><i id="fatProgressBar"></i></div></article>
+				</div>
+				<div class="meal-quick-select"><button type="button" data-meal="Morgenmad">Morgenmad</button><button type="button" data-meal="Frokost">Frokost</button><button type="button" data-meal="Aftensmad">Aftensmad</button><button type="button" data-meal="Snack">Snack</button></div>
+				<div class="scanner-controls"><button id="startScanner" type="button">Ã…bn kamera</button><input id="barcodeInput" placeholder="Stregkode" aria-label="Manuel kode"><button id="useBarcode" type="button">Brug kode</button><video id="scannerVideo" hidden playsinline></video></div><p id="scannerStatus">Kamera krÃ¦ver HTTPS eller localhost pÃ¥ mobilen.</p>
+				<form id="foodForm" class="form-grid"><input type="hidden" id="mealInput" value="Morgenmad"><label>Mad eller drikke<input id="foodNameInput" placeholder="Scan stregkode eller skriv varen" required><small id="foodLookupStatus"></small></label><label>MÃ¦ngde (g)<input id="foodGramsInput" type="number" value="100" min="1" required></label><input id="foodKcalInput" type="hidden" value=""><input id="foodProteinInput" type="hidden" value="25"><input id="foodCarbsInput" type="hidden" value="0"><input id="foodFatInput" type="hidden" value="0"><button type="submit">TilfÃ¸j mad +</button></form>
+				<div id="foodList" class="food-list"></div>
+			</section>
+
+			<div id="mealOverviewModal" class="meal-overview-modal" hidden>
+				<div class="meal-overview-card">
+					<button type="button" id="mealOverviewClose" class="meal-overview-close" aria-label="Luk">Ã—</button>
+					<div class="meal-overview-header"><p class="eyebrow" id="mealOverviewTitle">SNACK</p><strong id="mealOverviewKcal">0 kcal</strong></div>
+					<div id="mealOverviewList" class="meal-overview-list"></div>
+					<button type="button" id="mealOverviewScan" class="meal-overview-scan-corner" aria-label="Scan stregkode eller QR">â–£ Scan</button>
+				</div>
+			</div>
+
+			<section class="section-header reveal" id="log"><div><p class="eyebrow">TRÃ†NINGSVÃ†RKTÃ˜JER</p><h2>Log &amp; beregn</h2></div><span>DATA GEMMES LOKALT</span></section>
+			<section class="tools-grid">
+				<article class="tool-card log-card"><div class="tool-heading"><span class="tool-symbol">+</span><div><h3>Log et sÃ¦t</h3><p>Hold styr pÃ¥ din styrke session for session.</p></div></div><form id="setForm" class="tool-form"><label>Ã˜velse<select id="exerciseInput"><option>Goblet squat</option><option>Push-up</option><option>Dead bug</option><option>Bench press</option><option>Deadlift</option></select></label><div id="searchPreview" class="search-preview" hidden><img id="searchPreviewImage" alt="Valgt Ã¸velse"><strong id="searchPreviewName">Goblet squat</strong></div><div class="input-row"><label>VÃ¦gt (kg)<input id="weightInput" type="number" min="0" step="0.5" value="20" required></label><label>Reps<input id="repsInput" type="number" min="1" value="10" required></label><label>SÃ¦t<input id="setInput" type="number" min="1" value="1" required></label><label>Dato<input id="workoutDateInput" type="date" value="" required></label></div><button class="dark-button" type="submit">Gem sÃ¦t <span>-&gt;</span></button></form><div class="logged-sets" id="loggedSets"><div class="empty-log">Ingen sÃ¦t logget endnu</div></div></article>
+				<div class="tool-stack"><article class="tool-card"><div class="tool-heading"><span class="tool-symbol">~</span><div><h3>Kcal beregner</h3><p>Estimer dit forbrug fra kropsvÃ¦gt og tid.</p></div></div><div class="form-grid"><label>KropsvÃ¦gt (kg)<input id="bodyWeightInput" type="number" value="70"></label><label>Tid (min)<input id="durationInput" type="number" value="38"></label></div><div>Estimeret forbrug <strong id="kcalResult">0 <small>kcal</small></strong></div></article><article class="tool-card"><div class="tool-heading"><span class="tool-symbol">1R</span><div><h3>One rep max</h3><p>Beregn 1RM for alle dine Ã¸velser.</p></div></div><label>Ã˜velse<input id="ormExerciseInput" value="Goblet squat"></label><div class="form-grid"><label>LÃ¸ftet vÃ¦gt (kg)<input id="ormWeightInput" type="number" value="40"></label><label>Reps<input id="ormRepsInput" type="number" value="8"></label></div><strong id="ormResult">0 <small>kg</small></strong><span id="ormExerciseLabel">Goblet squat</span></article></div>
+			</section>
+
+			<section class="profile-card profile-section"><div class="section-heading"><div><p class="eyebrow">DIN PROFIL</p><h2>Kcal-mÃ¥l</h2></div><button id="calculateGoals" type="button">Beregn mÃ¥l</button></div><div class="form-grid"><label>Navn<input id="profileName" type="text" placeholder="Dit navn" maxlength="40"></label><label>VÃ¦gt (kg)<input id="profileWeight" type="number" value="70"></label><label>VÃ¦gtmÃ¥l (kg)<input id="profileWeightGoal" type="number" step="0.1" placeholder="Fx 75"></label><label>HÃ¸jde (cm)<input id="profileHeight" type="number" value="175"></label><label>Alder<input id="profileAge" type="number" value="30"></label><label>KÃ¸n<select id="profileSex"><option value="male">Mand</option><option value="female">Kvinde</option></select></label><label>Steps<input id="exactStepsInput" type="number" value="6000"></label><input id="stepsInput" type="range" min="0" max="20000" value="6000"><label>Vedligeholdelse<input id="maintenanceInput" type="number" value="2000"></label><label>TrÃ¦ning om ugen<select id="trainingWeekSelect"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></label><label>Intensitet<select id="intensitySelect"><option value="low">Lavt alene</option><option value="moderate">Moderat alene</option><option value="moderateHigh">Moderat-Stor (blandet)</option><option value="high">HÃ¸jt alene</option><option value="failure">Failure</option></select></label></div><div id="goalTabs"><button type="button" data-goal="cut" class="active">Cut</button><button type="button" data-goal="maintain">Vedligehold</button><button type="button" data-goal="bulk">Bulk</button></div><h3 id="goalCalories">2.000 <small>kcal</small></h3><p id="goalChange"></p><p id="goalPros"></p><p id="goalCons"></p><p id="profileSummary"></p><span id="stepsValue">6.000</span><span id="stepKcalResult">0 <small>kcal</small></span><button id="syncHealth" type="button">Synkroniser sundhed</button><span id="healthStatus"></span><span id="healthSteps"></span></section>
+
+			<section id="progress"><div class="section-heading"><div><p class="eyebrow">FREMSKRIDT</p><h2>Din udvikling</h2></div><div id="progressViews"><button type="button" class="active" data-view="week">Uge</button><button type="button" data-view="day">Dag</button></div></div><div class="stats-grid"><article class="stat-card">VOLUMEN<strong id="volumeStat">1.080 kg</strong></article><article class="stat-card">BEDSTE 1RM<strong id="bestOrmStat">50,7 kg</strong></article><article class="stat-card">REPS<strong id="repsStat">27</strong></article><article class="stat-card">STATUS<strong id="progressStat">+8%</strong></article></div><div id="weekHistory"></div></section>
+			<section id="library"><div class="section-heading"><div><p class="eyebrow">MIT PROGRAM</p><h2>Ã˜velsesbibliotek</h2></div><span id="exerciseCount">3/30 Ã¸velser</span></div><div id="exerciseList" class="exercise-list"><article class="exercise-row"><span class="exercise-number">01</span><div class="exercise-visual"></div><div class="exercise-info"><h3>Goblet squat</h3><p>20 kg <span>â€¢</span> 10 reps <span>â€¢</span> 3 sÃ¦t</p></div><button class="complete-button" type="button">âœ“</button><button class="more-button" type="button">...</button></article><article class="exercise-row"><span class="exercise-number">02</span><div class="exercise-visual"></div><div class="exercise-info"><h3>Bench press</h3><p>40 kg <span>â€¢</span> 8 reps <span>â€¢</span> 3 sÃ¦t</p></div><button class="complete-button" type="button">âœ“</button><button class="more-button" type="button">...</button></article></div><div class="form-grid"><select id="newExerciseSelect"><option value="">VÃ¦lg ny Ã¸velse</option></select><button id="addExercise" type="button">TilfÃ¸j Ã¸velse +</button></div><div id="trainingPicker"><button type="button" data-days="1">1 dag/uge</button><button type="button" data-days="2">2 dage/uge</button><button type="button" data-days="3" class="selected">3 dage/uge</button><button type="button" data-days="4">4 dage/uge</button><button type="button" data-days="5">5 dage/uge</button><button type="button" data-days="6">6 dage/uge</button><button type="button" data-days="7">7 dage/uge</button></div><span id="trainingValue">3 trÃ¦ninger om ugen</span><p id="trainingTip">God balance mellem fremgang og restitution.</p><button id="programPreviousWeek" type="button">&lt;</button><span id="programWeekLabel">Uge 1</span><button id="programNextWeek" type="button">&gt;</button></section>
+		</main>
+	</div>
+	<div id="toast" role="status"></div>
+	<script src="app.js?v=20260824-restore-1"></script>
+</body>
+</html>
+

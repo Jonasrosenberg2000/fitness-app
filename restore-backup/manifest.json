@@ -1,0 +1,10 @@
+{
+  "name": "All In One Fitness",
+  "short_name": "All In One",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#020711",
+  "theme_color": "#020711",
+  "description": "Træning, kalorier og fremskridt samlet ét sted.",
+  "icons": []
+}

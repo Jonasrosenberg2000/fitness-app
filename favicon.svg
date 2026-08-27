@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="All In One Fitness icon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#122d4f"/>
+      <stop offset="55%" stop-color="#0a1728"/>
+      <stop offset="100%" stop-color="#020711"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#50d6ff"/>
+      <stop offset="100%" stop-color="#2cc8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="176" fill="none" stroke="url(#accent)" stroke-width="18" opacity="0.9"/>
+  <path d="M146 324V188h46c36 0 60 20 60 50 0 29-24 49-60 49h-46Zm46-57h19c15 0 25-8 25-20 0-12-10-20-25-20h-19v40Zm121 57V188h42l40 64 40-64h42v136h-38V259l-44 71h-1l-44-71v101h-39Z" fill="#dff8ff"/>
+  <path d="M163 370h186c15 0 27 12 27 27v3H136v-3c0-15 12-27 27-27Z" fill="#2cc8ff" opacity="0.88"/>
+</svg>
