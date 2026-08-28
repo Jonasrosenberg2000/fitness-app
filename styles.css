@@ -3181,6 +3181,24 @@ body .app-shell .workout-flow {
 	scroll-behavior: auto;
 }
 
+.app-page-back {
+	position: fixed;
+	z-index: 20;
+	top: 14px;
+	left: 248px;
+	border: 1px solid #24729a;
+	border-radius: 6px;
+	background: #0a2c36;
+	color: #d9f7e6;
+	padding: 9px 12px;
+	font: 600 12px 'Space Grotesk', sans-serif;
+	cursor: pointer;
+}
+
+.app-page-back:hover {
+	background: #104653;
+}
+
 body.app-single-page {
 	overflow: hidden;
 }
@@ -3355,6 +3373,11 @@ body.app-single-page::before {
 }
 
 @media (max-width: 700px) {
+	.app-page-back {
+		top: 12px;
+		left: 12px;
+	}
+
 	.content.app-pages-mode .welcome .streak {
 		top: 12px;
 		right: 14px;

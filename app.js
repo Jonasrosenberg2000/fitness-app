@@ -3169,10 +3169,18 @@ if (appContent) {
     appPageElements.set(pageName, elements);
   });
 
+    const backToOverviewButton = document.createElement('button');
+    backToOverviewButton.type = 'button';
+    backToOverviewButton.className = 'app-page-back';
+    backToOverviewButton.textContent = 'Tilbage til oversigt';
+    backToOverviewButton.hidden = true;
+    appContent.prepend(backToOverviewButton);
+
   const showAppPage = (pageName, updateHash = true) => {
     const selectedPage = appPageTargets[pageName] ? pageName : 'overview';
     appContent.dataset.activeAppPage = selectedPage;
     appContent.classList.add('app-pages-mode');
+      backToOverviewButton.hidden = selectedPage === 'overview';
     appContent.querySelectorAll('[data-app-page]').forEach((element) => {
       element.hidden = element.dataset.appPage !== selectedPage;
       if (element.dataset.appPage === selectedPage && element.parentElement === appContent) element.scrollTop = 0;
@@ -3183,6 +3191,8 @@ if (appContent) {
     if (updateHash) history.replaceState({}, '', selectedPage === 'overview' ? '#top' : `#${selectedPage}`);
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
+
+  backToOverviewButton.addEventListener('click', () => showAppPage('overview'));
 
   document.querySelectorAll('.nav-link[data-app-page-target]').forEach((link) => {
     link.addEventListener('click', (event) => {
