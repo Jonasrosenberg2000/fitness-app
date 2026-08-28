@@ -442,7 +442,7 @@ def fetch_withings_today_activity(user_id: str) -> dict:
         'action': 'getactivity',
         'startdateymd': start_date.isoformat(),
         'enddateymd': today.isoformat(),
-        'data_fields': 'steps,distance,calories,active_calories,totalcalories'
+        'data_fields': 'steps,distance,calories,totalcalories'
     }
     payload = request_withings_data(WITHINGS_MEASURE_URL, params, user_id)
 
@@ -460,7 +460,7 @@ def fetch_withings_today_activity(user_id: str) -> dict:
         'steps': int(activity.get('steps', 0) or 0),
         'distance_m': activity.get('distance', 0) or 0,
         'calories': activity.get('calories', 0) or 0,
-        'active_calories': activity.get('active_calories', 0) or 0,
+        'active_calories': activity.get('calories', 0) or 0,
         'total_calories': activity.get('totalcalories', 0) or 0,
         'provider': 'withings'
     }
