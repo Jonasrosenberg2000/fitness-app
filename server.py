@@ -90,9 +90,27 @@ def local_fallback_answer(question: str) -> str:
     )
 
 
-def call_openai(question: str, context: dict | None = None) -> str:
+def call_openai(question: str, context: dict | None = None, images: list[str] | None = None) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError('No OpenAI API key configured')
+
+    user_content = question
+    if images:
+        user_content = [{'type': 'text', 'text': question}]
+        for image in images[:3]:
+            image_value = str(image or '').strip()
+            if not image_value:
+                continue
+            if image_value.startswith('data:image/'):
+                image_url = image_value
+            else:
+                mime_type = 'image/jpeg'
+                if image_value.startswith('iVBOR'):
+                    mime_type = 'image/png'
+                elif image_value.startswith('UklGR'):
+                    mime_type = 'image/webp'
+                image_url = f'data:{mime_type};base64,{image_value}'
+            user_content.append({'type': 'image_url', 'image_url': {'url': image_url, 'detail': 'high'}})
 
     messages = [
         {
@@ -101,12 +119,14 @@ def call_openai(question: str, context: dict | None = None) -> str:
                 'Du er en lokal, hjælpsom dansk AI-assistent for alle brugere af All In One Fitness. '
                 'Svar på generelle spørgsmål, praktisk hjælp, viden, planlægning, træning, mad, vægt, søvn og restitution. '
                 'Brug kun brugerens medsendte appdata, når spørgsmålet handler om dem. Opfind aldrig personlige tal. '
+                'Ved kropsbilleder må du kun beskrive synlige muskelgrupper og træningsrelevante proportioner. '
+                'Gæt aldrig identitet, køn, etnicitet, sygdom eller præcis fedtprocent, og giv ikke medicinske diagnoser. '
                 'Svar kort, klart og brugbart på dansk.'
             )
         },
         {
             'role': 'user',
-            'content': question
+            'content': user_content
         }
     ]
 
@@ -197,7 +217,7 @@ def call_ollama(question: str, context: dict | None = None, images: list[str] | 
 def generate_answer(question: str, context: dict | None = None, images: list[str] | None = None) -> tuple[str, str]:
     if OPENAI_API_KEY:
         try:
-            return call_openai(question, context), 'openai'
+            return call_openai(question, context, images), 'openai'
         except Exception:
             pass
 

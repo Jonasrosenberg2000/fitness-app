@@ -258,7 +258,7 @@ function getExerciseCategory(exerciseName = '') {
 }
 const workoutFlow = document.createElement('div');
 workoutFlow.className = 'workout-flow';
-workoutFlow.innerHTML = '<div class="workout-flow-heading"><p class="eyebrow">WORKOUT FLOW</p><span>SESSION GUIDE</span></div><div class="workout-flow-steps"><button type="button" data-flow-target="#library"><b>01</b><strong>Vælg øvelse</strong><small>Find dagens bevægelse</small></button><button type="button" data-flow-target="#library"><b>02</b><strong>Log dit sæt</strong><small>Vægt · reps · sæt</small></button><button type="button" data-flow-target="#library"><b>03</b><strong>Hold pause</strong><small>Start rest-timeren</small></button><button type="button" data-flow-target="#library"><b>04</b><strong>Markér færdig</strong><small>Følg din progression</small></button></div>';
+workoutFlow.innerHTML = '<div class="workout-flow-heading"><p class="eyebrow">WORKOUT FLOW</p><span>SESSION GUIDE</span></div><div class="workout-flow-steps"><button type="button" data-flow-target="#library"><b>01</b><strong>Vælg øvelse</strong><small>Find dagens bevægelse</small></button><button type="button" data-flow-target="#library"><b>02</b><strong>Registrér træning</strong><small>Kg · reps pr. sæt · arbejdssæt</small></button><button type="button" data-flow-target="#library"><b>03</b><strong>Hold pause</strong><small>Start rest-timeren</small></button><button type="button" data-flow-target="#library"><b>04</b><strong>Markér færdig</strong><small>Følg din progression</small></button></div>';
 document.querySelector('#workout').after(workoutFlow);
 workoutFlow.querySelectorAll('[data-flow-target]').forEach((step) => step.addEventListener('click', () => document.querySelector(step.dataset.flowTarget).scrollIntoView({ behavior: 'smooth', block: 'start' })));
 const progressButton = document.querySelector('#viewProgress');
@@ -540,7 +540,49 @@ if (savedHealth.steps) {
 }
 const coachPanel = document.createElement('section');
 coachPanel.className = 'coach-panel';
-coachPanel.innerHTML = `<div class="coach-header"><div><p class="eyebrow">ALL IN ONE FITNESS COACH</p><h2>AI</h2><p>Din personlige trænings- og sundhedsassistent.</p></div><span class="coach-mark">AI</span></div><div id="coachStatus" class="coach-status">AI er klar</div><div id="aiProviderStatus" class="coach-provider-status">Kontrollerer AI-status...</div><div class="coach-chat-body"><div class="coach-message coach-message-ai"><span class="coach-message-label">AI</span><div id="coachAnswer" class="coach-answer">Hej${getUserName() ? ` ${getUserName()}` : ''}. Hvad vil du gerne have analyseret?</div></div></div><form id="coachForm" class="coach-form"><input id="coachQuestion" placeholder="Skriv et spørgsmål om din træning eller udvikling" autocomplete="off"><button type="submit">Send</button></form><div class="coach-settings"><label for="aiEndpointInput">AI-server</label><div class="coach-server-row"><input id="aiEndpointInput" type="url" value="" placeholder="https://din-backend.com eller http://localhost:8000"><button type="button" id="aiEndpointApply">Gem</button></div></div><div class="coach-suggestions"><button type="button" data-question="Hvor mange kcal har jeg tilbage i dag?">Kcal-status</button><button type="button" data-question="Hvordan udvikler min fysik sig?">Fysikudvikling</button><button type="button" data-question="Vurder min seneste fysikmåling med fordele og ulemper.">Vurder fysik</button><button type="button" data-question="Hvordan ligger mine steps i dag?">Stepstatus</button><button type="button" data-question="Hvad bør jeg træne i dag?">Dagens træning</button></div>`;
+coachPanel.innerHTML = `
+  <div class="coach-header">
+    <div>
+      <p class="eyebrow">ALL IN ONE FITNESS COACH</p>
+      <h2>Din AI-coach</h2>
+      <p>Personlige svar baseret på din træning, kost og udvikling.</p>
+    </div>
+    <span class="coach-mark" aria-hidden="true">AI</span>
+  </div>
+  <div class="coach-status-bar">
+    <div class="coach-status-indicator"><i aria-hidden="true"></i><span id="coachStatus" class="coach-status">AI er klar</span></div>
+    <div id="aiProviderStatus" class="coach-provider-status">Kontrollerer AI-status...</div>
+  </div>
+  <div class="coach-layout">
+    <div class="coach-conversation">
+      <div class="coach-conversation-heading"><span>SENESTE SVAR</span><small>Personlig analyse</small></div>
+      <div class="coach-chat-body">
+        <div class="coach-message coach-message-ai">
+          <span class="coach-message-label">AI</span>
+          <div id="coachAnswer" class="coach-answer">Hej${getUserName() ? ` ${getUserName()}` : ''}. Hvad vil du gerne have analyseret?</div>
+        </div>
+      </div>
+      <form id="coachForm" class="coach-form">
+        <input id="coachQuestion" aria-label="Spørg din AI-coach" placeholder="Spørg om træning, kost eller din udvikling" autocomplete="off">
+        <button type="submit">Send spørgsmål</button>
+      </form>
+    </div>
+    <aside class="coach-tools">
+      <div class="coach-tools-heading"><span>HURTIGE ANALYSER</span><strong>Vælg et fokus</strong></div>
+      <div class="coach-suggestions">
+        <button type="button" data-accent="orange" data-question="Hvor mange kcal har jeg tilbage i dag?"><span>KOST</span><strong>Kcal-status</strong></button>
+        <button type="button" data-accent="green" data-question="Hvordan udvikler min fysik sig?"><span>UDVIKLING</span><strong>Fysikudvikling</strong></button>
+        <button type="button" data-accent="coral" data-question="Vurder min seneste fysikmåling med fordele og ulemper."><span>VURDERING</span><strong>Vurder fysik</strong></button>
+        <button type="button" data-accent="blue" data-question="Hvordan ligger mine steps i dag?"><span>AKTIVITET</span><strong>Stepstatus</strong></button>
+        <button type="button" data-accent="green" data-question="Hvad bør jeg træne i dag?"><span>TRÆNING</span><strong>Dagens træning</strong></button>
+      </div>
+      <details class="coach-settings">
+        <summary>AI-forbindelse</summary>
+        <label for="aiEndpointInput">AI-server</label>
+        <div class="coach-server-row"><input id="aiEndpointInput" type="url" value="" placeholder="https://din-backend.com"><button type="button" id="aiEndpointApply">Gem</button></div>
+      </details>
+    </aside>
+  </div>`;
 document.querySelector('.welcome').after(coachPanel);
 
 const dailyFocusCard = document.createElement('section');
@@ -683,7 +725,7 @@ const overviewCategories = document.createElement('section');
 overviewCategories.className = 'overview-categories';
 overviewCategories.innerHTML = '<div class="overview-categories-heading"><p class="eyebrow">OVERSIGT</p><h2>Vælg en kategori</h2></div><div class="overview-category-grid"><button type="button" data-category-target="#workout"><strong>Træning</strong><span>Start session og markér øvelser</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="push"><strong>Push</strong><span>Bryst, skuldre og triceps</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="pull"><strong>Pull</strong><span>Ryg, biceps og træk</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="legs"><strong>Ben</strong><span>Lår, baller og lægge</span></button><button type="button" data-category-target="#food"><strong>Mad &amp; kcal</strong><span>Mad, makroer, steps og mål</span></button><button type="button" data-category-target="#weight"><strong>Krop</strong><span>Fysikudvikling, vægt og billeder</span></button><button type="button" data-category-target=".training-progress-panel"><strong>Progression</strong><span>Lineær udvikling i kg og 1RM</span></button><button type="button" data-category-target="#library"><strong>Øvelser</strong><span>Bibliotek, sessioner og log</span></button><button type="button" data-category-target=".coach-panel"><strong>AI-coach</strong><span>Vurdering, pros, cons og næste skridt</span></button></div>';
 const overviewCategoryGrid = overviewCategories.querySelector('.overview-category-grid');
-overviewCategoryGrid.insertAdjacentHTML('beforeend', '<button type="button" data-category-target="#profile"><strong>Kcal-beregner</strong><span>Personlige mål og kalorier</span></button><button type="button" data-category-target="#weight"><strong>Kropsvægt</strong><span>Vejninger og vægtudvikling</span></button><button type="button" data-category-target=".coach-panel"><strong>Coach</strong><span>AI-hjælp til hele din træning</span></button>');
+overviewCategoryGrid.insertAdjacentHTML('beforeend', '<button type="button" data-category-target="#profile"><strong>Kcal-beregner</strong><span>Personlige mål og kalorier</span></button><button type="button" data-category-target="#weight"><strong>Kropsvægt</strong><span>Vejninger og vægtudvikling</span></button><button type="button" data-category-target=".coach-panel"><strong>Coach</strong><span>AI-hjælp til hele din træning</span></button><button type="button" data-category-target="#physique-ai"><strong>Fysik vurdering AI</strong><span>Scan et billede og få en fysikvurdering</span></button>');
 const trainingCategoryGroup = document.createElement('div');
 trainingCategoryGroup.className = 'overview-training-category-group';
 trainingCategoryGroup.innerHTML = '<p class="eyebrow">TRÆNING OPDELT</p><h3>Vælg fokusområde</h3><div class="overview-training-grid"></div>';
@@ -837,7 +879,7 @@ coachPanel.querySelectorAll('.coach-suggestions button').forEach((button) => but
 
 const trainingProgressPanel = document.createElement('section');
 trainingProgressPanel.className = 'training-progress-panel';
-trainingProgressPanel.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">DIN PERFORMANCE</p><h2>Progression i træningen</h2><p>Vægt over sessioner, uger, måneder og år.</p></div><span class="progress-live">LIVE LOG</span></div><div class="training-tabs"><button type="button" class="active" data-muscle="push">Push</button><button type="button" data-muscle="pull">Pull</button><button type="button" data-muscle="legs">Ben</button></div><div class="training-progress-content"><div><h3 id="progressExerciseName">Bench press</h3><p id="progressExerciseMeta">Seneste sæt og udvikling</p><div id="progressChart" class="progress-chart"></div></div><div class="progress-callout"><strong id="progressChange">+0 kg</strong><span>øgning siden sidste session</span><small id="progressNext">Log dit næste sæt for at fortsætte grafen.</small></div></div>';
+trainingProgressPanel.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">DIN PERFORMANCE</p><h2>Progression i træningen</h2><p>Vægt over sessioner, uger, måneder og år.</p></div><span class="progress-live">LIVE LOG</span></div><div class="training-tabs"><button type="button" class="active" data-muscle="push">Push</button><button type="button" data-muscle="pull">Pull</button><button type="button" data-muscle="legs">Ben</button></div><div class="training-progress-content"><div><h3 id="progressExerciseName">Bench press</h3><p id="progressExerciseMeta">Seneste træningsblok og udvikling</p><div id="progressChart" class="progress-chart"></div></div><div class="progress-callout"><strong id="progressChange">+0 kg</strong><span>øgning siden sidste session</span><small id="progressNext">Registrér din næste træning for at fortsætte grafen.</small></div></div>';
 const librarySection = document.querySelector('#library');
 if (librarySection) {
   librarySection.after(trainingProgressPanel);
@@ -980,6 +1022,18 @@ function getExerciseProfile(exerciseName = '') {
   const reliability = machine ? 'Brug samme maskine og indstilling hver gang; maskin-kg kan ikke sammenlignes direkte med fri vægt.' : 'Sammenlign helst samme teknik, tempo og bevægeudslag hver gang.';
   return { type, equipment, reliability };
 }
+function getExerciseSetCount(entryOrValue) {
+  const value = typeof entryOrValue === 'object' ? entryOrValue?.setNumber : entryOrValue;
+  return Math.max(1, Number(value) || 1);
+}
+function getExerciseVolume(entry) {
+  return (Number(entry?.weight) || 0) * (Number(entry?.reps) || 0) * getExerciseSetCount(entry);
+}
+function formatExerciseLogSummary(weight, reps, sets, date = '') {
+  const setCount = getExerciseSetCount(sets);
+  const dateMarkup = date ? `<time>${date}</time>` : '';
+  return `<span class="exercise-latest-label">Senest registreret</span><span class="exercise-latest-values"><b>${Number(weight) || 0} kg</b><span>${Number(reps) || 0} reps pr. sæt</span><span>${setCount} arbejdssæt</span>${dateMarkup}</span>`;
+}
 function syncProgressExerciseOptions() {
   document.querySelectorAll('#exerciseList h3').forEach((heading) => {
     const name = heading.textContent.trim();
@@ -1102,8 +1156,8 @@ function renderTrainingProgress(muscle = 'push') {
   const changeLabel = progressRange === 'year' && progressDays < 360 ? `faktisk øgning siden start (${progressDays} dage)` : progressRange === 'month' ? `faktisk øgning i ${monthChangeName}` : `øgning på ${changeDays} dage`;
   trainingProgressPanel.querySelector('#progressExerciseName').textContent = exercise;
   const exerciseProfile = getExerciseProfile(exercise);
-  const latestSetInfo = latestEntry ? ` · seneste ${latestEntry.weight} kg × ${latestEntry.reps} reps × ${latestEntry.setNumber || 1} sæt · ca. 1RM ${estimateOneRepMax(latestEntry.weight, latestEntry.reps).toFixed(1)} kg` : '';
-  trainingProgressPanel.querySelector('#progressExerciseMeta').textContent = entries.length ? `${entries.length} loggede sæt · ${exerciseProfile.type} · ${exerciseProfile.equipment} · vist pr. ${rangeNames[progressRange]} · seneste ${latestEntryDate || 'ingen dato'}${latestSetInfo}` : `Ingen loggede sæt endnu · ${exerciseProfile.type} · ${exerciseProfile.equipment}`;
+  const latestSetInfo = latestEntry ? ` · senest ${getExerciseSetCount(latestEntry)} arbejdssæt med ${latestEntry.reps} reps og ${latestEntry.weight} kg · ca. 1RM ${estimateOneRepMax(latestEntry.weight, latestEntry.reps).toFixed(1)} kg` : '';
+  trainingProgressPanel.querySelector('#progressExerciseMeta').textContent = entries.length ? `${entries.length} registreringer · ${exerciseProfile.type} · ${exerciseProfile.equipment} · vist pr. ${rangeNames[progressRange]} · seneste ${latestEntryDate || 'ingen dato'}${latestSetInfo}` : `Ingen træning registreret endnu · ${exerciseProfile.type} · ${exerciseProfile.equipment}`;
   trainingProgressPanel.querySelector('#progressChange').textContent = `${change >= 0 ? '+' : ''}${change.toFixed(1)} kg (${changePercent.toFixed(1)}%)`;
   trainingProgressPanel.querySelector('.progress-callout span').textContent = changeLabel;
   trainingProgressPanel.querySelector('#progressNext').textContent = `Faktisk løft i perioden: ${last.toFixed(1)} kg · beregnet ud fra datoerne.`;
@@ -1140,8 +1194,8 @@ function renderTrainingProgress(muscle = 'push') {
     const rowChange = previous ? entry.weight - previous.weight : 0;
     const label = entry.date || (entry.session ? getBenchSessionDate(entry.session) : '');
     const profile = getExerciseProfile(exercise);
-    return `<div class="progress-history-row"><strong>${label}</strong><span>${entry.weight} kg × ${entry.reps} · 1RM ${estimateOneRepMax(entry.weight, entry.reps).toFixed(1)} kg · ${profile.type} · ${profile.equipment}</span><b>${rowChange ? `${rowChange >= 0 ? '+' : ''}${rowChange} kg` : '-'}</b><em>${entry.isPR ? 'PR' : ''}</em></div>`;
-  }).join('') : '<p>Ingen loggede sæt endnu</p>';
+    return `<div class="progress-history-row"><strong>${label}</strong><span>${getExerciseSetCount(entry)} arbejdssæt × ${entry.reps} reps med ${entry.weight} kg · volumen ${getExerciseVolume(entry).toLocaleString('da-DK')} kg · 1RM ${estimateOneRepMax(entry.weight, entry.reps).toFixed(1)} kg · ${profile.type} · ${profile.equipment}</span><b>${rowChange ? `${rowChange >= 0 ? '+' : ''}${rowChange} kg` : '-'}</b><em>${entry.isPR ? 'PR' : ''}</em></div>`;
+  }).join('') : '<p>Ingen træning registreret endnu</p>';
   progressChart.innerHTML = `<svg class="progress-line-chart" style="width:${chartWidth}px;min-width:${chartWidth}px" viewBox="0 0 ${chartWidth} ${chartHeight + 28}" role="img" aria-label="Progression over ${rangeNames[progressRange]}"><line x1="0" y1="138" x2="${chartWidth}" y2="138"></line><polyline points="${chartPoints}"></polyline>${points.map((point, index) => { const x = index * (chartWidth / Math.max(1, points.length - 1)); const labelX = Math.max(42, x); const y = chartHeight - (((point - minValue) / valueRange) * 112 + 12); const deltaText = chartChanges[index] ? `${chartChanges[index] >= 0 ? '+' : ''}${chartChanges[index].toFixed(1)} kg` : '0.0 kg'; const dateBelow = progressRange === 'session' && chartLabels[index] ? `<text class="chart-point-date" x="${labelX}" y="${chartHeight + 18}" text-anchor="middle">${chartLabels[index]}</text><text class="chart-point-date" x="${labelX}" y="${chartHeight + 30}" text-anchor="middle">${deltaText}</text>` : ''; return `<g class="chart-point"><circle cx="${x}" cy="${y}" r="4"><title>${chartFullLabels[index] || `${rangeNames[progressRange]} ${index + 1}`}: ${chartValueLabels[index]}, ændring ${chartChanges[index] || 0} kg</title></circle><text class="chart-point-label" x="${labelX}" y="${Math.max(11, y - 9)}" text-anchor="middle">${chartValueLabels[index]}</text>${dateBelow}</g>`; }).join('')}</svg><div class="chart-labels" style="width:${chartWidth}px;min-width:${chartWidth}px">${points.map((point, index) => { const entry = chartEntries[index] || {}; return `<small>${chartLabels[index] || `${rangeNames[progressRange]} ${index + 1}`} · ${chartValueLabels[index]} · ${entry.hasData === false ? '-' : `${chartChanges[index] >= 0 ? '+' : ''}${chartChanges[index] || 0} kg`}</small>`; }).join('')}</div><div class="progress-history"><div class="progress-history-heading"><strong>Historik</strong><span>dato · løft · ændring · PR</span></div>${historyRows}</div>`;
 }
 trainingProgressPanel.querySelectorAll('.training-tabs button').forEach((button) => button.addEventListener('click', () => {
@@ -1164,12 +1218,447 @@ localStorage.setItem('formlyWeightHistory', JSON.stringify(weightHistory));
 const weightTracker = document.createElement('section');
 weightTracker.className = 'weight-tracker-panel';
 weightTracker.id = 'weight';
-weightTracker.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">FYSIKUDVIKLING</p><h2>Fysikudvikling</h2><p>Første måling bliver din startvægt. Gem derefter en ny måling hver mandag.</p></div><span class="progress-live">UGENTLIG TRACKER</span></div><div class="weight-phase-switcher"><button id="weightPhasePrevious" type="button" aria-label="Forrige fase">←</button><strong id="weightPhaseLabel">Bulk</strong><button id="weightPhaseNext" type="button" aria-label="Næste fase">→</button></div><div class="fysik-goal"><h3>Dit vægtmål</h3><label>Startvægt (kg)<input id="fysikStartWeight" type="number" min="1" step="0.1" placeholder="Sættes ved første måling" aria-label="Startvægt"></label><button id="saveFysikStartWeight" type="button">Gem startvægt</button><label>Mål (kg)<input id="fysikTargetWeight" type="number" min="1" step="0.1" placeholder="Fx 80" aria-label="Mål for kropsvægt"></label><div id="fysikCurrentWeight"></div><div id="fysikGoalSummary"></div></div><form id="weightHistoryForm" class="weight-history-form"><label>Dato (mandag)<input id="weightDate" type="text" inputmode="numeric" placeholder="DD.MM.ÅÅÅÅ" aria-label="Dato for mandagsmåling" required></label><label>Vægt (kg)<input id="weightEntry" type="number" min="1" step="0.1" placeholder="Fx 82,4" required></label><label class="weight-photo-label">Choose file<input id="weightPhotoInput" type="file" accept="image/*" capture="environment"><span id="weightPhotoPreview" class="weight-photo-preview"></span></label><button type="submit">Gem måling</button></form><button id="weightWithingsConnect" class="weight-withings-button" type="button">Forbind Withings app</button><div id="weightChangeSummary" class="weight-change-summary"></div><div id="weightChart" class="weight-chart"></div><div id="weightHistoryList" class="weight-history-list"></div>';
+weightTracker.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">FYSIKUDVIKLING</p><h2>Din udvikling, uge for uge</h2><p class="weight-intro">Sæt dit mål, registrér din vægt og følg den samlede udvikling i et roligt tempo.</p></div><span class="progress-live">UGENTLIG STATUS</span></div><div class="weight-phase-switcher"><span class="tracker-control-label">Aktiv fase</span><button id="weightPhasePrevious" type="button" aria-label="Forrige fase">←</button><strong id="weightPhaseLabel">Bulk</strong><button id="weightPhaseNext" type="button" aria-label="Næste fase">→</button></div><div class="fysik-goal"><div class="fysik-goal-heading"><span class="fysik-step">01</span><div><p>MÅLSÆTNING</p><h3>Hvor vil du hen?</h3></div></div><label>Startvægt <span>kg</span><input id="fysikStartWeight" type="number" min="1" step="0.1" placeholder="Fx 82,4" aria-label="Startvægt"></label><button id="saveFysikStartWeight" type="button">Gem startpunkt</button><label>Målvægt <span>kg</span><input id="fysikTargetWeight" type="number" min="1" step="0.1" placeholder="Fx 78,0" aria-label="Mål for kropsvægt"></label><div id="fysikCurrentWeight"></div><div id="fysikGoalSummary"></div></div><div class="weight-entry-heading"><span class="fysik-step">02</span><div><p>UGENS MÅLING</p><h3>Registrér din status</h3></div></div><form id="weightHistoryForm" class="weight-history-form"><label>Dato<input id="weightDate" type="text" inputmode="numeric" placeholder="DD.MM.ÅÅÅÅ" aria-label="Dato for mandagsmåling" required></label><label>Vægt <span>kg</span><input id="weightEntry" type="number" min="1" step="0.1" placeholder="Fx 82,4" required></label><label class="weight-photo-label">Fysikfoto <span>valgfrit</span><input id="weightPhotoInput" type="file" accept="image/*" capture="environment"><span class="weight-photo-picker"><b>Vælg foto</b><small id="weightPhotoFileName">Intet foto valgt</small></span><span id="weightPhotoPreview" class="weight-photo-preview"></span></label><button type="submit">Gem ugens måling</button></form><button id="weightWithingsConnect" class="weight-withings-button" type="button">Hent vægt fra Withings</button><div id="weightChangeSummary" class="weight-change-summary"></div><div id="weightChart" class="weight-chart"></div><div id="weightHistoryList" class="weight-history-list"></div>';
 trainingProgressPanel.after(weightTracker);
+const physiqueAiPanel = document.createElement('section');
+physiqueAiPanel.className = 'physique-ai-panel';
+physiqueAiPanel.id = 'physique-ai';
+physiqueAiPanel.innerHTML = `
+  <div class="training-progress-header">
+    <div>
+      <p class="eyebrow">FYSIK VURDERING AI</p>
+      <h2>3-vinkels AI Body Scan</h2>
+      <p>Tilføj front, højre og venstre side. AI sammenligner vinklerne og bygger en målrettet muskelplan.</p>
+    </div>
+    <div class="physique-header-actions">
+      <button type="button" id="physiqueBackButton" class="physique-back-button">← Tilbage til oversigt</button>
+      <span class="progress-live">3 ANGLE SCAN</span>
+    </div>
+  </div>
+  <div id="physique3dStage" class="physique-3d-stage" role="img" aria-label="Tredimensionel visualisering af AI kropsscanning">
+    <canvas id="physique3dCanvas"></canvas>
+    <div class="physique-3d-hud"><span>AI MUSCLE MAP</span><strong id="physique3dStatus">AWAITING INPUT</strong></div>
+    <div class="physique-3d-angles" aria-hidden="true"><span>FRONT</span><span>RIGHT</span><span>LEFT</span></div>
+  </div>
+  <div class="physique-ai-grid">
+    <div class="physique-ai-card">
+      <div class="physique-scan-row">
+        <label>Højde (cm)<input id="physiqueHeight" type="number" min="120" max="230" value="178"></label>
+        <label>Vægt (kg)<input id="physiqueWeight" type="number" min="30" max="200" step="0.1" value="75"></label>
+        <label>Talje (cm)<input id="physiqueWaist" type="number" min="40" max="150" value="82"></label>
+      </div>
+      <div class="physique-scan-row">
+        <label>Skulderbredde (cm)<input id="physiqueShoulders" type="number" min="30" max="200" value="48"></label>
+        <label>Bryst (cm)<input id="physiqueChest" type="number" min="40" max="200" value="95"></label>
+        <label>Arm (cm)<input id="physiqueArm" type="number" min="15" max="80" value="36"></label>
+      </div>
+      <div class="physique-scan-console">
+        <label class="physique-angle-card" data-angle="front">
+          <input id="physiquePhotoInput" type="file" accept="image/*" capture="environment">
+          <span class="physique-angle-index">01</span>
+          <span class="physique-angle-copy"><strong>Front</strong><small>Hele kroppen forfra</small></span>
+          <span class="physique-angle-state">Tilføj foto</span>
+          <img id="physiquePreview" class="physique-angle-preview" alt="Frontfoto til fysik AI" hidden>
+        </label>
+        <label class="physique-angle-card" data-angle="right">
+          <input id="physiqueRightPhotoInput" type="file" accept="image/*" capture="environment">
+          <span class="physique-angle-index">02</span>
+          <span class="physique-angle-copy"><strong>Højre side</strong><small>Stå afslappet fra siden</small></span>
+          <span class="physique-angle-state">Tilføj foto</span>
+          <img id="physiqueRightPreview" class="physique-angle-preview" alt="Højre sidefoto til fysik AI" hidden>
+        </label>
+        <label class="physique-angle-card" data-angle="left">
+          <input id="physiqueLeftPhotoInput" type="file" accept="image/*" capture="environment">
+          <span class="physique-angle-index">03</span>
+          <span class="physique-angle-copy"><strong>Venstre side</strong><small>Samme afstand og lys</small></span>
+          <span class="physique-angle-state">Tilføj foto</span>
+          <img id="physiqueLeftPreview" class="physique-angle-preview" alt="Venstre sidefoto til fysik AI" hidden>
+        </label>
+      </div>
+      <div class="physique-scan-readiness"><i></i><span id="physiqueScanReadiness">0/3 VINKLER KLAR</span></div>
+      <div class="physique-actions">
+        <button id="physiqueAnalyzeBtn" type="button">Start AI body scan</button>
+      </div>
+      <p class="physique-photo-guidance">Ens lys, afstand og afslappet holdning giver den bedste sammenligning. AI vurderer kun synlige muskelgrupper.</p>
+    </div>
+    <div class="physique-ai-card physique-result-card">
+      <div class="score-ring">
+        <strong id="physiqueScore">0</strong>
+        <small>/100</small>
+      </div>
+      <h3 id="physiqueGrade">Venter på scan</h3>
+      <p id="physiqueSummary">Indtast dine mål eller upload et billede for at få en vurdering.</p>
+      <ul id="physiqueInsights" class="physique-insights"></ul>
+      <p id="physiqueAiStatus" class="physique-ai-status">BODY SCAN STANDBY</p>
+    </div>
+  </div>
+  <div id="physiqueMuscleAnalysis" class="physique-muscle-analysis" hidden>
+    <section class="physique-analysis-block physique-strength-block">
+      <div class="physique-analysis-heading"><span>01</span><div><small>STRENGTH MAP</small><h3>Stærkeste muskelgrupper</h3></div></div>
+      <ul id="physiqueStrengths"></ul>
+    </section>
+    <section class="physique-analysis-block physique-priority-block">
+      <div class="physique-analysis-heading"><span>02</span><div><small>PRIORITY MAP</small><h3>Muskelgrupper der skal bygges</h3></div></div>
+      <ul id="physiquePriorities"></ul>
+    </section>
+    <section class="physique-analysis-block physique-plan-block">
+      <div class="physique-analysis-heading"><span>03</span><div><small>AI PROGRAM</small><h3>Øvelser, sæt og reps</h3></div></div>
+      <div class="physique-plan-head"><span>Øvelse</span><span>Fokus</span><span>Sæt × reps</span><span>Pause</span><span>Pr. uge</span></div>
+      <div id="physiqueExercisePlan" class="physique-exercise-plan"></div>
+    </section>
+    <p id="physiqueAnalysisNote" class="physique-analysis-note"></p>
+  </div>
+`;
+trainingProgressPanel.after(physiqueAiPanel);
+physiqueAiPanel.querySelector('#physiqueBackButton').addEventListener('click', () => window.showAppPage?.('overview'));
+
+const physiqueHeightInput = physiqueAiPanel.querySelector('#physiqueHeight');
+const physiqueWeightInput = physiqueAiPanel.querySelector('#physiqueWeight');
+const physiqueWaistInput = physiqueAiPanel.querySelector('#physiqueWaist');
+const physiqueShouldersInput = physiqueAiPanel.querySelector('#physiqueShoulders');
+const physiqueChestInput = physiqueAiPanel.querySelector('#physiqueChest');
+const physiqueArmInput = physiqueAiPanel.querySelector('#physiqueArm');
+const physiquePhotoInput = physiqueAiPanel.querySelector('#physiquePhotoInput');
+const physiqueRightPhotoInput = physiqueAiPanel.querySelector('#physiqueRightPhotoInput');
+const physiqueLeftPhotoInput = physiqueAiPanel.querySelector('#physiqueLeftPhotoInput');
+const physiquePreview = physiqueAiPanel.querySelector('#physiquePreview');
+const physiqueRightPreview = physiqueAiPanel.querySelector('#physiqueRightPreview');
+const physiqueLeftPreview = physiqueAiPanel.querySelector('#physiqueLeftPreview');
+const physiqueAnalyzeBtn = physiqueAiPanel.querySelector('#physiqueAnalyzeBtn');
+const physiqueScoreEl = physiqueAiPanel.querySelector('#physiqueScore');
+const physiqueGradeEl = physiqueAiPanel.querySelector('#physiqueGrade');
+const physiqueSummaryEl = physiqueAiPanel.querySelector('#physiqueSummary');
+const physiqueInsightsEl = physiqueAiPanel.querySelector('#physiqueInsights');
+const physiqueScanReadiness = physiqueAiPanel.querySelector('#physiqueScanReadiness');
+const physiqueAiStatus = physiqueAiPanel.querySelector('#physiqueAiStatus');
+const physiqueMuscleAnalysis = physiqueAiPanel.querySelector('#physiqueMuscleAnalysis');
+const physiqueStrengths = physiqueAiPanel.querySelector('#physiqueStrengths');
+const physiquePriorities = physiqueAiPanel.querySelector('#physiquePriorities');
+const physiqueExercisePlan = physiqueAiPanel.querySelector('#physiqueExercisePlan');
+const physiqueAnalysisNote = physiqueAiPanel.querySelector('#physiqueAnalysisNote');
+
+function clampPhysiqueValue(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function calculatePhysiqueScore(profile) {
+  const { height, weight, waist, shoulders, chest, arm } = profile;
+  if (!height || !weight || !waist) return 0;
+  const bmi = weight / ((height / 100) ** 2);
+  const waistHeightRatio = waist / height;
+  const shoulderWaistRatio = shoulders > 0 ? shoulders / waist : 1.15;
+  const chestWaistRatio = chest > 0 ? chest / waist : 1.05;
+  const armRatio = arm > 0 ? arm / (height / 10) : 0.65;
+  let score = 100;
+  score -= Math.abs(bmi - 22) * 9;
+  score -= Math.max(0, waistHeightRatio - 0.5) * 180;
+  score -= Math.max(0, 1.1 - shoulderWaistRatio) * 120;
+  score -= Math.max(0, 1.0 - chestWaistRatio) * 95;
+  score -= Math.max(0, 0.7 - armRatio) * 90;
+  score += Math.max(0, shoulderWaistRatio - 1.2) * 30;
+  score += Math.max(0, chestWaistRatio - 1.05) * 35;
+  score += Math.max(0, armRatio - 0.7) * 25;
+  if (bmi > 30) score -= 15;
+  if (weight < 55) score -= 8;
+  return clampPhysiqueValue(Math.round(score), 0, 100);
+}
+
+function getPhysiqueGrade(score) {
+  if (score >= 85) return 'Elite fysik';
+  if (score >= 75) return 'Meget stærk fysik';
+  if (score >= 65) return 'God balance';
+  if (score >= 55) return 'Solid progression';
+  return 'Byg videre';
+}
+
+function getPhysiqueSummary(profile, score) {
+  const bmi = profile.weight / ((profile.height / 100) ** 2);
+  const waistHeightRatio = profile.waist / profile.height;
+  const bodyType = score >= 75 ? 'Du har et godt udgangspunkt for en præcis, atletisk kropsbygning.' : score >= 55 ? 'Din fysik er stabil og udviklingsbar med mere fokus på proportioner.' : 'Din struktur kan styrkes med mere belastning og bedre proportioner.';
+  return `${bodyType} BMI ${bmi.toFixed(1)} · talje/højde ${waistHeightRatio.toFixed(2)} · score ${score}/100.`;
+}
+
+function getPhysiqueProfile() {
+  return {
+    height: Number(physiqueHeightInput.value) || 0,
+    weight: Number(physiqueWeightInput.value) || 0,
+    waist: Number(physiqueWaistInput.value) || 0,
+    shoulders: Number(physiqueShouldersInput.value) || 0,
+    chest: Number(physiqueChestInput.value) || 0,
+    arm: Number(physiqueArmInput.value) || 0
+  };
+}
+
+function renderPhysiqueAssessment() {
+  const profile = getPhysiqueProfile();
+  const score = calculatePhysiqueScore(profile);
+  const grade = getPhysiqueGrade(score);
+  const summary = getPhysiqueSummary(profile, score);
+  const overviewPhysiqueStat = document.querySelector('#overviewPhysiqueStat');
+  if (overviewPhysiqueStat) overviewPhysiqueStat.textContent = `${score}/100`;
+  physiqueScoreEl.textContent = String(score);
+  physiqueGradeEl.textContent = grade;
+  physiqueSummaryEl.textContent = summary;
+  const insights = [];
+  const bmi = profile.weight / ((profile.height / 100) ** 2);
+  if (profile.height && profile.weight) insights.push(`BMI: ${bmi.toFixed(1)} – ${bmi < 18.5 ? 'undervægt' : bmi < 25 ? 'i mål' : bmi < 30 ? 'over mål' : 'høj BMI'}`);
+  if (profile.waist && profile.height) insights.push(`Talje/højde: ${(profile.waist / profile.height).toFixed(2)} – mål tæt på 0.50 eller lavere`);
+  if (profile.shoulders && profile.waist) insights.push(`Skulder/talje: ${(profile.shoulders / profile.waist).toFixed(2)} – jo tættere på 1.2, jo mere atletisk proportion (godt udviklede skuldre)`);
+  if (profile.chest && profile.waist) insights.push(`Bryst/talje: ${(profile.chest / profile.waist).toFixed(2)} – lavere end 1.0 betyder brystet trænger til mere fokus`);
+  if (profile.arm) insights.push(`Arm: ${profile.arm} cm – ${(profile.arm / (profile.height / 10)) < 0.7 ? 'arme trænger til mere volumen' : 'godt udviklet armstørrelse'}`);
+  const nextStep = score >= 75 ? 'Fortsæt med progressive belastninger og bevare den nuværende fedtprocent.' : score >= 55 ? 'Fokuser på skulder- og brystudvikling samt en mere præcis talje.' : 'Prioriter styrke, taljeproportioner og kontinuerlig vægtøgning i kvalitet.';
+  insights.push(nextStep);
+  physiqueInsightsEl.innerHTML = insights.map((item) => `<li>${item}</li>`).join('');
+  localStorage.setItem('formlyPhysiqueAi', JSON.stringify({ ...profile, score, grade, summary, updatedAt: new Date().toISOString() }));
+}
+
+const physiquePhotoAngles = [
+  { name: 'front', label: 'Front', key: 'formlyPhysiquePhoto', input: physiquePhotoInput, preview: physiquePreview },
+  { name: 'right', label: 'Højre side', key: 'formlyPhysiquePhotoRight', input: physiqueRightPhotoInput, preview: physiqueRightPreview },
+  { name: 'left', label: 'Venstre side', key: 'formlyPhysiquePhotoLeft', input: physiqueLeftPhotoInput, preview: physiqueLeftPreview }
+];
+
+function getPhysiquePhotos() {
+  return physiquePhotoAngles.map((angle) => ({ ...angle, data: localStorage.getItem(angle.key) || '' }));
+}
+
+function updatePhysiqueScanReadiness() {
+  const photos = getPhysiquePhotos();
+  const readyCount = photos.filter((photo) => photo.data).length;
+  photos.forEach((photo) => {
+    const card = photo.input.closest('.physique-angle-card');
+    const state = card.querySelector('.physique-angle-state');
+    card.classList.toggle('is-ready', Boolean(photo.data));
+    state.textContent = photo.data ? 'Klar · skift' : 'Tilføj foto';
+    if (photo.data) {
+      photo.preview.src = photo.data;
+      photo.preview.hidden = false;
+    }
+  });
+  physiqueScanReadiness.textContent = `${readyCount}/3 VINKLER KLAR`;
+  physiqueScanReadiness.parentElement.classList.toggle('is-ready', readyCount === 3);
+  physiqueAnalyzeBtn.disabled = readyCount < 3;
+  if (!physiqueAiStatus.dataset.source) {
+    physiqueAiStatus.textContent = readyCount === 3 ? 'BODY SCAN READY' : `MANGLER ${3 - readyCount} VINKEL${readyCount === 2 ? '' : 'ER'}`;
+  }
+  window.updatePhysique3DScan?.(readyCount);
+  return readyCount;
+}
+
+function compressPhysiquePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      const maxDimension = 1280;
+      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(objectUrl);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('invalid-image'));
+    };
+    image.src = objectUrl;
+  });
+}
+
+physiquePhotoAngles.forEach((angle) => angle.input.addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('Vælg en billedfil');
+    event.target.value = '';
+    return;
+  }
+  try {
+    const photoData = await compressPhysiquePhoto(file);
+    const duplicatePhoto = getPhysiquePhotos().some((photo) => photo.key !== angle.key && photo.data === photoData);
+    if (duplicatePhoto) {
+      showToast('Tag et forskelligt foto til hver vinkel');
+      event.target.value = '';
+      return;
+    }
+    localStorage.setItem(angle.key, photoData);
+    localStorage.removeItem('formlyPhysiqueMuscleAnalysis');
+    delete physiqueAiStatus.dataset.source;
+    physiqueMuscleAnalysis.hidden = true;
+    angle.preview.src = photoData;
+    angle.preview.hidden = false;
+    updatePhysiqueScanReadiness();
+    showToast(`${angle.label}-foto er klar`);
+  } catch (error) {
+    showToast(error.name === 'QuotaExceededError' ? 'Billederne fylder for meget' : 'Fotoet kunne ikke læses');
+  }
+  event.target.value = '';
+}));
+
+function getFallbackMuscleAnalysis(profile) {
+  const chestRatio = profile.waist ? profile.chest / profile.waist : 0;
+  const armRatio = profile.height ? profile.arm / profile.height : 0;
+  return {
+    summary: 'Vision-AI kunne ikke svare. Denne foreløbige plan bruger dine mål og træner hele kroppen med ekstra fokus på overkroppens balance.',
+    strengths: [
+      { muscle: armRatio >= 0.2 ? 'Arme' : 'Grundstyrke', reason: armRatio >= 0.2 ? 'Armmålet er solidt i forhold til din højde.' : 'Dine mål giver et brugbart udgangspunkt for progression.' },
+      { muscle: chestRatio >= 1.15 ? 'Bryst' : 'Ben og bagkæde', reason: chestRatio >= 1.15 ? 'Brystmålet står tydeligt i forhold til taljen.' : 'Store basisløft giver det stærkeste fundament.' }
+    ],
+    priorities: [
+      { muscle: 'Ryg og lats', reason: 'Mere trækvolumen skaber bredde og balance omkring skuldrene.', priority: 'Høj' },
+      { muscle: 'Side- og bagskulder', reason: 'Direkte skulderarbejde forbedrer bredde og symmetri.', priority: 'Høj' },
+      { muscle: 'Ben og baller', reason: 'To ugentlige underkropspas holder fysikken komplet.', priority: 'Mellem' }
+    ],
+    plan: [
+      { exercise: 'Lat pulldown', target: 'Lats', sets: '4', reps: '8-12', rest: '90 sek', frequency: '2 gange' },
+      { exercise: 'Chest-supported row', target: 'Øvre ryg', sets: '4', reps: '8-12', rest: '90 sek', frequency: '2 gange' },
+      { exercise: 'Cable lateral raise', target: 'Sideskulder', sets: '4', reps: '12-20', rest: '60 sek', frequency: '2-3 gange' },
+      { exercise: 'Incline dumbbell press', target: 'Øvre bryst', sets: '3', reps: '8-12', rest: '90 sek', frequency: '2 gange' },
+      { exercise: 'Squat', target: 'Lår og baller', sets: '4', reps: '6-10', rest: '2-3 min', frequency: '2 gange' },
+      { exercise: 'Romanian deadlift', target: 'Baglår og baller', sets: '3', reps: '8-12', rest: '2 min', frequency: '2 gange' }
+    ],
+    note: 'Dette er træningsvejledning, ikke en medicinsk vurdering. Øg belastningen, når alle sæt rammer toppen af rep-intervallet med god teknik.'
+  };
+}
+
+function parsePhysiqueAiAnswer(answer) {
+  const text = String(answer || '').replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+function normalizePhysiqueAnalysis(value, fallback) {
+  const data = value && typeof value === 'object' ? value : {};
+  const normalizeItems = (items, fallbackItems, keys, maximum) => Array.isArray(items) && items.length
+    ? items.slice(0, maximum).map((item) => Object.fromEntries(keys.map((key) => [key, String(item?.[key] || '')])))
+    : fallbackItems;
+  return {
+    summary: String(data.summary || fallback.summary),
+    strengths: normalizeItems(data.strengths, fallback.strengths, ['muscle', 'reason'], 4),
+    priorities: normalizeItems(data.priorities, fallback.priorities, ['muscle', 'reason', 'priority'], 4),
+    plan: normalizeItems(data.plan, fallback.plan, ['exercise', 'target', 'sets', 'reps', 'rest', 'frequency'], 7),
+    note: String(data.note || fallback.note)
+  };
+}
+
+function appendPhysiqueFinding(list, title, description, badge = '') {
+  const item = document.createElement('li');
+  const heading = document.createElement('strong');
+  const copy = document.createElement('p');
+  heading.textContent = title;
+  copy.textContent = description;
+  item.append(heading, copy);
+  if (badge) {
+    const marker = document.createElement('span');
+    marker.textContent = badge;
+    item.append(marker);
+  }
+  list.append(item);
+}
+
+function renderPhysiqueMuscleAnalysis(analysis, source) {
+  physiqueStrengths.replaceChildren();
+  physiquePriorities.replaceChildren();
+  physiqueExercisePlan.replaceChildren();
+  analysis.strengths.forEach((item) => appendPhysiqueFinding(physiqueStrengths, item.muscle, item.reason));
+  analysis.priorities.forEach((item) => appendPhysiqueFinding(physiquePriorities, item.muscle, item.reason, item.priority));
+  analysis.plan.forEach((item) => {
+    const row = document.createElement('div');
+    [item.exercise, item.target, `${item.sets} × ${item.reps}`, item.rest, item.frequency].forEach((value) => {
+      const cell = document.createElement('span');
+      cell.textContent = value;
+      row.append(cell);
+    });
+    physiqueExercisePlan.append(row);
+  });
+  physiqueSummaryEl.textContent = analysis.summary;
+  physiqueAnalysisNote.textContent = analysis.note;
+  physiqueAiStatus.textContent = source === 'vision' ? '3-ANGLE ANALYSIS COMPLETE' : 'OFFLINE PROGRAM ACTIVE';
+  physiqueAiStatus.dataset.source = source;
+  physiqueMuscleAnalysis.hidden = false;
+  window.updatePhysique3DMuscles?.(analysis.priorities.map((item) => item.muscle));
+}
+
+async function requestPhysiqueVisionAnalysis(profile, photos) {
+  const images = photos.map((photo) => photo.data.includes(',') ? photo.data.split(',')[1] : photo.data);
+  const prompt = `Du modtager tre fotos i denne faste rækkefølge: 1) front, 2) højre side, 3) venstre side. Sammenlign alle vinkler som en forsigtig træningscoach. Vurder kun synlige muskelgrupper, proportioner og sideforskelle. Gæt ikke identitet, køn, etnicitet, sygdom eller præcis fedtprocent, og opfind ikke observationer om muskler som vinklerne ikke viser. Tag højde for lys, pose, tøj og kameravinkel. Mål: ${JSON.stringify(profile)}. Returnér KUN gyldig JSON: {"summary":"samlet vurdering med usikkerhed","strengths":[{"muscle":"muskelgruppe","reason":"synligt grundlag på tværs af vinkler"}],"priorities":[{"muscle":"muskelgruppe","reason":"hvorfor den bør prioriteres","priority":"Høj eller Mellem"}],"plan":[{"exercise":"øvelse","target":"muskelgruppe","sets":4,"reps":"8-12","rest":"90 sek","frequency":"2 gange"}],"note":"begrænsning og progressionsregel"}. Giv 2-4 styrker, 2-4 fokusområder og 5-7 øvelser med konkrete sæt, reps, pause og ugentlig frekvens.`;
+  const response = await fetch(getCoachEndpoint(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: prompt, context: { physique: profile, photoAngles: ['front', 'right', 'left'] }, images, isPhysiqueQuestion: true })
+  });
+  if (!response.ok) throw new Error('physique-ai-unavailable');
+  const result = await response.json();
+  const parsed = parsePhysiqueAiAnswer(result?.answer);
+  if (!parsed) throw new Error('physique-ai-invalid');
+  return parsed;
+}
+
+physiqueAnalyzeBtn.addEventListener('click', async () => {
+  renderPhysiqueAssessment();
+  const photos = getPhysiquePhotos();
+  if (photos.some((photo) => !photo.data)) {
+    showToast('Tilføj front, højre og venstre foto først');
+    return;
+  }
+  const profile = getPhysiqueProfile();
+  const fallback = getFallbackMuscleAnalysis(profile);
+  physiqueAnalyzeBtn.disabled = true;
+  physiqueAnalyzeBtn.textContent = 'Scanner 3 vinkler...';
+  physiqueAiStatus.textContent = 'ANALYSERER MUSKELGRUPPER';
+  try {
+    const aiResult = await requestPhysiqueVisionAnalysis(profile, photos);
+    const analysis = normalizePhysiqueAnalysis(aiResult, fallback);
+    renderPhysiqueMuscleAnalysis(analysis, 'vision');
+    localStorage.setItem('formlyPhysiqueMuscleAnalysis', JSON.stringify({ ...analysis, source: 'vision', updatedAt: new Date().toISOString() }));
+    showToast('3-vinkels AI-analyse er klar');
+  } catch {
+    renderPhysiqueMuscleAnalysis(fallback, 'fallback');
+    localStorage.setItem('formlyPhysiqueMuscleAnalysis', JSON.stringify({ ...fallback, source: 'fallback', updatedAt: new Date().toISOString() }));
+    showToast('Vision-AI var offline - din målbaserede plan er klar');
+  } finally {
+    physiqueAnalyzeBtn.textContent = 'Start AI body scan';
+    updatePhysiqueScanReadiness();
+  }
+});
+
+[physiqueHeightInput, physiqueWeightInput, physiqueWaistInput, physiqueShouldersInput, physiqueChestInput, physiqueArmInput].forEach((field) => {
+  field.addEventListener('input', renderPhysiqueAssessment);
+  field.addEventListener('change', renderPhysiqueAssessment);
+});
+
+const savedPhysique = JSON.parse(localStorage.getItem('formlyPhysiqueAi') || 'null');
+if (savedPhysique) {
+  physiqueHeightInput.value = savedPhysique.height || physiqueHeightInput.value;
+  physiqueWeightInput.value = savedPhysique.weight || physiqueWeightInput.value;
+  physiqueWaistInput.value = savedPhysique.waist || physiqueWaistInput.value;
+  physiqueShouldersInput.value = savedPhysique.shoulders || physiqueShouldersInput.value;
+  physiqueChestInput.value = savedPhysique.chest || physiqueChestInput.value;
+  physiqueArmInput.value = savedPhysique.arm || physiqueArmInput.value;
+}
+updatePhysiqueScanReadiness();
+const savedMuscleAnalysis = JSON.parse(localStorage.getItem('formlyPhysiqueMuscleAnalysis') || 'null');
+if (savedMuscleAnalysis) {
+  const fallback = getFallbackMuscleAnalysis(getPhysiqueProfile());
+  renderPhysiqueMuscleAnalysis(normalizePhysiqueAnalysis(savedMuscleAnalysis, fallback), savedMuscleAnalysis.source || 'fallback');
+}
+renderPhysiqueAssessment();
+
 const fysikYearSwitcher = document.createElement('div');
 fysikYearSwitcher.className = 'fysik-year-switcher';
-fysikYearSwitcher.innerHTML = '<button id="fysikYearPrevious" type="button" aria-label="Forrige år">←</button><strong id="fysikYearLabel"></strong><button id="fysikYearNext" type="button" aria-label="Næste år">→</button>';
-weightTracker.querySelector('.fysik-goal').before(fysikYearSwitcher);
+fysikYearSwitcher.innerHTML = '<span class="tracker-control-label">Viser år</span><button id="fysikYearPrevious" type="button" aria-label="Forrige år">←</button><strong id="fysikYearLabel"></strong><button id="fysikYearNext" type="button" aria-label="Næste år">→</button>';
+const trackerControls = document.createElement('div');
+trackerControls.className = 'weight-tracker-controls';
+weightTracker.querySelector('.fysik-goal').before(trackerControls);
+trackerControls.append(weightTracker.querySelector('.weight-phase-switcher'), fysikYearSwitcher);
 const weightChart = weightTracker.querySelector('#weightChart');
 const weightHistoryList = weightTracker.querySelector('#weightHistoryList');
 const weightChangeSummary = weightTracker.querySelector('#weightChangeSummary');
@@ -1319,7 +1808,7 @@ function renderWeightHistory() {
   if (overviewWeightNote) overviewWeightNote.textContent = latestWeightEntry ? `${latestWeightEntry.date || 'Seneste måling'} - næste måling mandag` : 'Tryk for at veje dig ind ->';
   if (!entries.length) {
     weightChangeSummary.innerHTML = '';
-    weightChart.innerHTML = '<p>Tilføj din første uge for at se udviklingen.</p>';
+    weightChart.innerHTML = '<div class="weight-empty-state"><span>03</span><strong>Din kurve starter her</strong><p>Gem din første måling ovenfor. Når du kommer tilbage næste uge, kan du se retningen og tempoet i din udvikling.</p></div>';
     weightHistoryList.innerHTML = '';
     return;
   }
@@ -1357,7 +1846,9 @@ function renderWeightHistory() {
   const trendEndY = chartHeight - 24 - (((trendEndWeight - minWeight) / range) * (chartHeight - 48));
   const trendText = entries.length > 1 ? `Lineær trend: ${slope >= 0 ? '+' : ''}${formatWeight(slope)} kg pr. måling` : 'Lineær trend vises fra næste vejning';
   weightChangeSummary.innerHTML += `<small class="weight-linear-trend">${trendText}</small>`;
-  weightChart.innerHTML = `<svg class="weight-line-chart" viewBox="0 0 ${chartWidth} ${chartHeight}" role="img" aria-label="Kropsvægt og lineær trend over tid"><line x1="28" y1="${chartHeight - 24}" x2="${chartWidth - 28}" y2="${chartHeight - 24}"></line><line class="weight-trend-line" x1="${points[0].x}" y1="${trendStartY}" x2="${points[points.length - 1].x}" y2="${trendEndY}"></line><polyline points="${line}"></polyline>${points.map((point, index) => `<g><circle cx="${point.x}" cy="${point.y}" r="5"></circle><text x="${point.x}" y="${point.y - 12}" text-anchor="middle">${formatWeight(entries[index].weight)}</text><text x="${point.x}" y="${chartHeight - 7}" text-anchor="middle">${entries[index].date || `Måling ${index + 1}`}</text></g>`).join('')}</svg>`;
+  const chartBaseline = chartHeight - 24;
+  const areaPoints = `${points[0].x},${chartBaseline} ${line} ${points[points.length - 1].x},${chartBaseline}`;
+  weightChart.innerHTML = `<svg class="weight-line-chart" viewBox="0 0 ${chartWidth} ${chartHeight}" role="img" aria-label="Kropsvægt og lineær trend over tid"><defs><linearGradient id="weightAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00f58a" stop-opacity="0.28"></stop><stop offset="100%" stop-color="#00f58a" stop-opacity="0"></stop></linearGradient><filter id="weightLineGlow" x="-20%" y="-30%" width="140%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs><line class="weight-chart-baseline" x1="28" y1="${chartBaseline}" x2="${chartWidth - 28}" y2="${chartBaseline}"></line><polygon class="weight-chart-area" points="${areaPoints}"></polygon><line class="weight-trend-line" x1="${points[0].x}" y1="${trendStartY}" x2="${points[points.length - 1].x}" y2="${trendEndY}"></line><polyline class="weight-data-line" points="${line}"></polyline>${points.map((point, index) => `<g><circle cx="${point.x}" cy="${point.y}" r="5"></circle><text x="${point.x}" y="${point.y - 12}" text-anchor="middle">${formatWeight(entries[index].weight)}</text><text x="${point.x}" y="${chartHeight - 7}" text-anchor="middle">${entries[index].date || `Måling ${index + 1}`}</text></g>`).join('')}</svg>`;
   weightHistoryList.innerHTML = entries.slice().reverse().map((entry) => {
     const entryIndex = entries.indexOf(entry);
     const previous = entries[entryIndex - 1];
@@ -1464,6 +1955,7 @@ weightTracker.querySelector('#weightDate').value = new Date().toLocaleDateString
 weightTracker.querySelector('#weightPhotoInput').addEventListener('change', (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
+  weightTracker.querySelector('#weightPhotoFileName').textContent = file.name;
   weightPhotoReady = compressWeightPhoto(file).then((imageData) => {
     pendingWeightPhoto = imageData;
     weightTracker.querySelector('#weightPhotoPreview').innerHTML = `<img src="${imageData}" alt="Valgt fysikfoto">`;
@@ -1570,6 +2062,9 @@ const scannerVideo = document.querySelector('#scannerVideo');
 const barcodeInput = document.querySelector('#barcodeInput');
 const useBarcode = document.querySelector('#useBarcode');
 const scannerStatus = document.querySelector('#scannerStatus');
+const mealSummaryGrid = document.createElement('div');
+mealSummaryGrid.className = 'meal-summary-grid';
+document.querySelector('.meal-quick-select')?.after(mealSummaryGrid);
 // Clicking a meal shortcut opens an overview panel for that meal (kcal + logged items), with scanning tucked in the corner.
 const mealOverviewModal = document.querySelector('#mealOverviewModal');
 const mealOverviewTitle = document.querySelector('#mealOverviewTitle');
@@ -1580,14 +2075,53 @@ function renderMealOverview(meal) {
   const mealEntries = foodEntries.filter((entry) => entry.meal === meal && entry.date === foodDateKey(selectedFoodDate));
   const mealKcal = mealEntries.reduce((total, entry) => total + entry.kcal, 0);
   mealOverviewKcal.textContent = `${mealKcal.toLocaleString('da-DK')} kcal`;
-  mealOverviewList.innerHTML = mealEntries.length ? mealEntries.map((entry) => `<div class="food-entry"><strong>${entry.name}</strong><span>${entry.grams} g · ${entry.kcal} kcal</span><b>${entry.protein || 0}P · ${entry.carbs || 0}K · ${entry.fat || 0}F</b></div>`).join('') : '<p>Intet logget endnu i denne kategori.</p>';
+  mealOverviewList.innerHTML = mealEntries.length ? mealEntries.map((entry) => {
+    const name = String(entry.name || 'Fødevarer').trim() || 'Fødevarer';
+    return `<div class="food-entry"><strong>${name}</strong><span>${entry.grams} g · ${entry.kcal} kcal</span><b>${entry.protein || 0}P · ${entry.carbs || 0}K · ${entry.fat || 0}F</b></div>`;
+  }).join('') : '<p>Intet logget endnu i denne kategori.</p>';
+}
+function renderMealSummaries() {
+  const meals = ['Morgenmad', 'Frokost', 'Aftensmad', 'Snack'];
+  if (!mealSummaryGrid) return;
+  const entriesByMeal = meals.map((meal) => {
+    const items = foodEntries.filter((entry) => entry.meal === meal && entry.date === foodDateKey(selectedFoodDate));
+    const totalKcal = items.reduce((total, item) => total + Number(item.kcal || 0), 0);
+    return { meal, items, totalKcal };
+  });
+  mealSummaryGrid.innerHTML = entriesByMeal.map(({ meal, items, totalKcal }) => {
+    const names = items.length ? items.map((item) => String(item.name || 'Fødevarer').trim() || 'Fødevarer') : ['Intet logget endnu'];
+    const visibleNames = names.slice(0, 2).join('<br>');
+    const extra = names.length > 2 ? `<small>+${names.length - 2} mere</small>` : '';
+    return `
+      <article class="meal-summary-card ${items.length ? 'filled' : ''}" data-meal="${meal}">
+        <div class="meal-summary-header">
+          <span>${meal}</span>
+          <strong>${totalKcal.toLocaleString('da-DK')} kcal</strong>
+        </div>
+        <div class="meal-summary-items">${visibleNames}${extra}</div>
+      </article>
+    `;
+  }).join('');
+  mealSummaryGrid.querySelectorAll('.meal-summary-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const selectedMeal = card.dataset.meal;
+      document.querySelectorAll('.meal-quick-select button').forEach((button) => {
+        button.classList.toggle('active', button.dataset.meal === selectedMeal);
+      });
+      document.querySelector('#mealInput').value = selectedMeal;
+      renderMealOverview(selectedMeal);
+      mealOverviewModal.hidden = false;
+    });
+  });
 }
 document.querySelectorAll('.meal-quick-select button').forEach((button) => button.addEventListener('click', () => {
+  const selectedMeal = button.dataset.meal;
   document.querySelectorAll('.meal-quick-select button').forEach((item) => item.classList.remove('active'));
   button.classList.add('active');
-  document.querySelector('#mealInput').value = button.dataset.meal;
-  renderMealOverview(button.dataset.meal);
+  document.querySelector('#mealInput').value = selectedMeal;
+  renderMealOverview(selectedMeal);
   mealOverviewModal.hidden = false;
+  window.setTimeout(() => startScanner.click(), 120);
 }));
 document.querySelector('#mealOverviewClose').addEventListener('click', () => { mealOverviewModal.hidden = true; });
 document.querySelector('#mealOverviewScan').addEventListener('click', () => {
@@ -1649,6 +2183,7 @@ function selectWorkoutSession(sessionNumber) {
   localStorage.setItem('formlyActiveWorkoutSession', String(activeWorkoutSession));
   renderSessionSwitcher();
   syncWeekProgressState(selectedProgramWeek);
+  renderWorkoutOverview();
   showToast(`Session ${activeWorkoutSession} er valgt`);
 }
 sessionSwitcher.querySelector('#sessionPrevious').addEventListener('click', () => selectWorkoutSession(activeWorkoutSession - 1));
@@ -1875,11 +2410,57 @@ let selectedGoal = 'cut';
 
 const profileSection = document.querySelector('.profile-section');
 const profileHeading = profileSection?.querySelector('.section-heading h2');
-if (profileHeading) profileHeading.textContent = 'Kcal-beregner';
+if (profileHeading) {
+  profileHeading.textContent = 'Dit personlige kcal-mål';
+  profileHeading.insertAdjacentHTML('afterend', '<p class="profile-calculator-intro">Beregn et realistisk mål ud fra din krop, aktivitet og træning.</p>');
+}
 const weightDevicePanel = document.createElement('div');
 weightDevicePanel.className = 'weight-device-panel';
 weightDevicePanel.innerHTML = '<div><p class="eyebrow">VÆGTMÅLER</p><h3>Seneste vejning</h3><strong><span id="weightReading">-</span> kg</strong><small id="weightSyncStatus">Ingen vejning endnu</small><small id="withingsStats">Withings-statistik vises efter synkronisering</small><small id="withingsActivityStats">Withings steps vises efter aktivitetsgodkendelse</small></div><div class="weight-device-controls"><label>Kilde<select id="weightSource"><option value="manual">Manuel vejning</option><option value="withings">Withings</option><option value="apple">Apple Sundhed</option><option value="google">Google Fit</option><option value="fitbit">Fitbit</option><option value="oura">Oura</option><option value="whoop">WHOOP</option></select></label><button id="syncWeight" type="button">Synkroniser vægt</button></div>';
 profileSection.querySelector('.section-heading').after(weightDevicePanel);
+
+const profileInputsPanel = profileSection.querySelector(':scope > .form-grid');
+const profileCalculatorGrid = document.createElement('div');
+profileCalculatorGrid.className = 'profile-calculator-grid';
+profileInputsPanel.classList.add('profile-inputs-panel');
+profileInputsPanel.insertAdjacentHTML('afterbegin', '<div class="profile-step-heading"><span>01</span><div><p>DINE OPLYSNINGER</p><h3>Grundlag for beregningen</h3></div></div>');
+
+const profileResultPanel = document.createElement('aside');
+profileResultPanel.className = 'profile-result-panel';
+profileResultPanel.innerHTML = '<div class="profile-step-heading"><span>02</span><div><p>DIT DAGLIGE MÅL</p><h3>Kalorier og retning</h3></div></div>';
+profileSection.querySelector('.section-heading').after(profileCalculatorGrid);
+profileCalculatorGrid.append(profileInputsPanel, profileResultPanel);
+profileCalculatorGrid.after(weightDevicePanel);
+
+const goalTabsElement = profileSection.querySelector('#goalTabs');
+const goalPrimary = document.createElement('div');
+goalPrimary.className = 'profile-goal-primary';
+const goalInsights = document.createElement('div');
+goalInsights.className = 'profile-goal-insights';
+const goalBenefit = document.createElement('div');
+goalBenefit.className = 'profile-goal-benefit';
+goalBenefit.innerHTML = '<span>FORDEL</span>';
+const goalCaution = document.createElement('div');
+goalCaution.className = 'profile-goal-caution';
+goalCaution.innerHTML = '<span>VÆR OPMÆRKSOM PÅ</span>';
+const profileActivitySummary = document.createElement('div');
+profileActivitySummary.className = 'profile-activity-summary';
+const profileStepsSummary = document.createElement('div');
+profileStepsSummary.innerHTML = '<span>DAGLIGE STEPS</span>';
+const profileStepKcalSummary = document.createElement('div');
+profileStepKcalSummary.innerHTML = '<span>AKTIVITET</span>';
+const profileHealthSync = document.createElement('div');
+profileHealthSync.className = 'profile-health-sync';
+
+profileResultPanel.append(goalTabsElement, goalPrimary, goalInsights, profileSummary, profileActivitySummary, profileHealthSync);
+goalPrimary.append(goalCalories, goalChange);
+goalInsights.append(goalBenefit, goalCaution);
+goalBenefit.append(goalPros);
+goalCaution.append(goalCons);
+profileActivitySummary.append(profileStepsSummary, profileStepKcalSummary);
+profileStepsSummary.append(stepsValue);
+profileStepKcalSummary.append(stepKcalResult);
+profileHealthSync.append(syncHealth, healthStatus, healthSteps);
 const weightReading = weightDevicePanel.querySelector('#weightReading');
 const weightSyncStatus = weightDevicePanel.querySelector('#weightSyncStatus');
 const withingsStats = weightDevicePanel.querySelector('#withingsStats');
@@ -2104,6 +2685,32 @@ function showToast(message) {
   window.setTimeout(() => toast.classList.remove('show'), 3200);
 }
 
+function renderWorkoutOverview() {
+  const rows = [...document.querySelectorAll('#exerciseList .exercise-row')];
+  const sessionEntries = workoutLog.filter((entry) => Number(entry.session || 1) === activeWorkoutSession);
+  const completedExercises = rows.filter((row) => row.classList.contains('completed')).length;
+  const isSessionComplete = localStorage.getItem(`formlyWorkoutSessionComplete:${activeWorkoutSession}`) === 'true';
+  const loggedSets = sessionEntries.reduce((total, entry) => total + getExerciseSetCount(entry), 0);
+  const sessionVolume = sessionEntries.reduce((total, entry) => total + getExerciseVolume(entry), 0);
+  const completionPercent = isSessionComplete ? 100 : rows.length ? Math.round((completedExercises / rows.length) * 100) : 0;
+  const latestEntry = [...sessionEntries].sort((a, b) => getProgressTimestamp(b) - getProgressTimestamp(a))[0];
+
+  document.querySelector('#workoutSessionBadge').textContent = `SESSION ${String(activeWorkoutSession).padStart(2, '0')}`;
+  document.querySelector('#workoutStatusLabel').textContent = isSessionComplete ? 'Session gennemført' : sessionEntries.length ? 'Træning i gang' : 'Klar til at starte';
+  document.querySelector('#workoutOverviewTitle').textContent = isSessionComplete ? 'Dagens arbejde er gemt' : sessionEntries.length ? 'Fortsæt hvor du slap' : 'Byg videre på din styrke';
+  document.querySelector('#workoutOverviewLead').textContent = isSessionComplete ? `${loggedSets} arbejdssæt og ${sessionVolume.toLocaleString('da-DK')} kg volumen er registreret.` : sessionEntries.length ? `${loggedSets} arbejdssæt er logget. Fortsæt med næste øvelse.` : 'Dit program er klar. Åbn øvelserne og registrér dagens arbejdssæt.';
+  document.querySelector('#workoutExerciseTotal').textContent = String(rows.length);
+  document.querySelector('#workoutLoggedSets').textContent = String(loggedSets);
+  document.querySelector('#workoutSessionVolume').textContent = `${sessionVolume.toLocaleString('da-DK')} kg`;
+  document.querySelector('#workoutCompletionPercent').textContent = `${completionPercent}%`;
+  document.querySelector('#workoutCompletionBar').style.width = `${completionPercent}%`;
+  document.querySelector('#workoutPlanSummary').textContent = isSessionComplete ? 'Sessionen er gennemført' : `${completedExercises} af ${rows.length} øvelser markeret færdige`;
+  document.querySelector('#workoutLastLog').textContent = latestEntry ? `${latestEntry.exercise} · ${latestEntry.date || formatWorkoutDate(new Date(getProgressTimestamp(latestEntry)))}` : 'Ingen endnu';
+  startButton.innerHTML = `${sessionEntries.length ? 'Fortsæt træning' : 'Åbn øvelser'} <span aria-hidden="true">→</span>`;
+  sessionComplete.textContent = isSessionComplete ? 'Gennemført' : 'Markér som gennemført';
+  sessionComplete.classList.toggle('done', isSessionComplete);
+}
+
 startButton.addEventListener('click', () => {
   if (!sessionStarted) {
     activeWorkoutSession += 1;
@@ -2111,13 +2718,16 @@ startButton.addEventListener('click', () => {
     localStorage.setItem('formlyActiveWorkoutSession', String(activeWorkoutSession));
   }
   syncWeekProgressState(selectedProgramWeek);
-  document.querySelector('#library').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window.showAppPage?.('library');
   showToast(`Session ${activeWorkoutSession} er klar på dashboardet`);
 });
 sessionComplete.addEventListener('click', () => {
-  sessionComplete.classList.toggle('done');
-  showToast(sessionComplete.classList.contains('done') ? 'Hele træningen er markeret som færdig' : 'Træningen er markeret som aktiv');
+  const isComplete = localStorage.getItem(`formlyWorkoutSessionComplete:${activeWorkoutSession}`) !== 'true';
+  localStorage.setItem(`formlyWorkoutSessionComplete:${activeWorkoutSession}`, String(isComplete));
+  renderWorkoutOverview();
+  showToast(isComplete ? 'Hele træningen er markeret som færdig' : 'Træningen er markeret som aktiv');
 });
+renderWorkoutOverview();
 progressButton.addEventListener('click', () => document.querySelector('#progress').scrollIntoView({ behavior: 'smooth' }));
 
 window.setInterval(() => renderTrainingProgress(), 60 * 60 * 1000);
@@ -2380,6 +2990,7 @@ function renderFood() {
   foodList.querySelectorAll('.food-remove').forEach((button) => button.addEventListener('click', () => { foodEntries.splice(Number(button.dataset.index), 1); localStorage.setItem('formlyFoodEntries', JSON.stringify(foodEntries)); renderFood(); }));
   const overviewFoodStat = document.querySelector('#overviewFoodStat');
   if (overviewFoodStat) overviewFoodStat.textContent = `${calories.toLocaleString('da-DK')} / ${goals.kcal.toLocaleString('da-DK')} kcal`;
+  renderMealSummaries();
 }
 document.querySelector('#overviewFoodCard')?.addEventListener('click', () => document.querySelector('.food-section').scrollIntoView({ behavior: 'smooth', block: 'start' }));
 document.querySelector('#overviewWeightCard')?.addEventListener('click', () => document.querySelector('.weight-tracker-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -2391,12 +3002,15 @@ foodForm.addEventListener('submit', (event) => {
   const carbsPer100g = Number(foodCarbsInput.value) || 0;
   const fatPer100g = Number(foodFatInput.value) || 0;
   const kcalPer100g = (proteinPer100g * 4) + (carbsPer100g * 4) + (fatPer100g * 9);
-  foodEntries.push({ meal: document.querySelector('#mealInput').value, name: document.querySelector('#foodNameInput').value.trim(), grams, kcal: Math.round(grams / 100 * kcalPer100g), protein: Math.round(grams / 100 * proteinPer100g), carbs: Math.round(grams / 100 * carbsPer100g), fat: Math.round(grams / 100 * fatPer100g), date: foodDateKey(selectedFoodDate) });
+  const foodName = document.querySelector('#foodNameInput').value.trim() || 'Uden navn';
+  const selectedMeal = document.querySelector('#mealInput').value || 'Morgenmad';
+  foodEntries.push({ meal: selectedMeal, name: foodName, grams, kcal: Math.round(grams / 100 * kcalPer100g), protein: Math.round(grams / 100 * proteinPer100g), carbs: Math.round(grams / 100 * carbsPer100g), fat: Math.round(grams / 100 * fatPer100g), date: foodDateKey(selectedFoodDate) });
   localStorage.setItem('formlyFoodEntries', JSON.stringify(foodEntries));
   foodForm.reset();
-  document.querySelector('#mealInput').value = 'Morgenmad';
+  document.querySelector('#mealInput').value = selectedMeal;
+  renderMealOverview(selectedMeal);
   renderFood();
-  showToast(`Mad gemt på ${foodDateLabel.textContent}`);
+  showToast(`${foodName} gemt i ${selectedMeal}`);
 });
 
 async function lookupFoodBarcode(code) {
@@ -2691,10 +3305,10 @@ function renderWorkoutStats() {
   const currentEntries = groups[currentKey] || [];
   const previousEntries = groups[keys[keys.length - 2]] || [];
 
-  const volume = currentEntries.reduce((total, entry) => total + (Number(entry.weight) || 0) * (Number(entry.reps) || 0), 0);
-  const previousVolume = previousEntries.reduce((total, entry) => total + (Number(entry.weight) || 0) * (Number(entry.reps) || 0), 0);
+  const volume = currentEntries.reduce((total, entry) => total + getExerciseVolume(entry), 0);
+  const previousVolume = previousEntries.reduce((total, entry) => total + getExerciseVolume(entry), 0);
   const bestOrm = currentEntries.reduce((best, entry) => Math.max(best, (Number(entry.weight) || 0) * (1 + (Number(entry.reps) || 0) / 30)), 0);
-  const reps = currentEntries.reduce((total, entry) => total + (Number(entry.reps) || 0), 0);
+  const reps = currentEntries.reduce((total, entry) => total + (Number(entry.reps) || 0) * getExerciseSetCount(entry), 0);
   const change = previousVolume ? Math.round((volume - previousVolume) / previousVolume * 100) : (volume ? 100 : 0);
 
   volumeStat.textContent = `${volume.toLocaleString('da-DK')} kg`;
@@ -2711,10 +3325,10 @@ function renderWorkoutStats() {
     return;
   }
 
-  const maxVolume = Math.max(1, ...keys.map((key) => groups[key].reduce((total, entry) => total + (Number(entry.weight) || 0) * (Number(entry.reps) || 0), 0)));
+  const maxVolume = Math.max(1, ...keys.map((key) => groups[key].reduce((total, entry) => total + getExerciseVolume(entry), 0)));
   weekHistory.innerHTML = keys.length ? keys.map((key) => {
     const entries = groups[key];
-    const groupVolume = entries.reduce((total, entry) => total + (Number(entry.weight) || 0) * (Number(entry.reps) || 0), 0);
+    const groupVolume = entries.reduce((total, entry) => total + getExerciseVolume(entry), 0);
     const width = Math.max(4, Math.round((groupVolume / maxVolume) * 100));
     const label = activeView === 'week' ? `Uge ${key}` : key;
     return `<div class="week-row"><strong>${label}</strong><div class="week-bar"><i style="width:${width}%"></i></div><span>${groupVolume.toLocaleString('da-DK')} kg</span></div>`;
@@ -2887,7 +3501,7 @@ if (Array.isArray(savedProgramExercises) && savedProgramExercises.length) {
     const row = rowTemplate.cloneNode(true);
     row.querySelector('.exercise-number').textContent = String(index + 1).padStart(2, '0');
     row.dataset.category = exercise.category || getExerciseCategory(exercise.name);
-    applyExerciseInfo(row, exercise.name, `${exercise.kg} kg <span>•</span> ${exercise.reps} reps <span>•</span> ${exercise.sets} sæt`);
+    applyExerciseInfo(row, exercise.name, formatExerciseLogSummary(exercise.kg, exercise.reps, exercise.sets));
     bindExerciseRow(row);
     exerciseListEl.append(row);
   });
@@ -2920,7 +3534,7 @@ function bindExercisePhoto(row) {
   if (!actions) {
     actions = document.createElement('div');
     actions.className = 'exercise-photo-actions';
-    actions.innerHTML = '<button type="button" class="exercise-photo-button exercise-camera-button">Tag foto/video</button><button type="button" class="exercise-photo-button exercise-library-button">Vælg billede</button><button type="button" class="exercise-photo-button exercise-video-button">Vælg video</button><input class="exercise-camera-input" type="file" accept="image/*,video/*" capture="environment" hidden><input class="exercise-photo-input" type="file" accept="image/*" hidden><input class="exercise-video-input" type="file" accept="video/*" hidden>';
+    actions.innerHTML = '<button type="button" class="exercise-photo-button exercise-camera-button">Tag foto/video</button><button type="button" class="exercise-photo-button exercise-library-button">Vælg foto</button><button type="button" class="exercise-photo-button exercise-video-button">Vælg video</button><input class="exercise-camera-input" type="file" accept="image/*,video/*" capture="environment" hidden><input class="exercise-photo-input" type="file" accept="image/*" hidden><input class="exercise-video-input" type="file" accept="video/*" hidden>';
     media.append(actions);
   }
   const cameraButton = actions.querySelector('.exercise-camera-button');
@@ -3004,11 +3618,23 @@ function bindExerciseRow(row) {
     const controls = document.createElement('div');
     controls.className = 'exercise-entry-controls';
     const initialStats = row.querySelector('.exercise-info p').textContent.match(/([\d.]+)\s*kg.*?([\d.]+)\s*reps.*?([\d.]+)\s*sæt/i) || [];
-    controls.innerHTML = `<label>Øvelse<input class="exercise-name-input" type="text" list="exerciseOptions" value="${row.querySelector('h3').textContent}" aria-label="Søg eller vælg øvelse"></label><label>Kategori<select class="exercise-category-input" aria-label="Kategori">${exerciseCategoryOptions}</select></label><label>KG<input type="number" min="0" step="0.5" value="${initialStats[1] || 20}" aria-label="Vægt i kg"></label><label>Reps<input type="number" min="1" value="${initialStats[2] || 10}" aria-label="Reps"></label><label>Sæt<input type="number" min="1" value="${initialStats[3] || 3}" aria-label="Antal sæt"></label><label>Dato<input type="date" class="exercise-date-input" value="${getIsoDateValue(new Date())}" aria-label="Dato for træning"></label><button type="button">Log</button>`;
+    controls.innerHTML = `<div class="exercise-log-heading"><div><span>REGISTRER TRÆNING</span><strong>Hvad gennemførte du?</strong></div><small>Én registrering gemmer hele øvelsen fra denne træning.</small></div><label>Øvelsesnavn<input class="exercise-name-input" type="text" list="exerciseOptions" value="${row.querySelector('h3').textContent}" aria-label="Søg eller vælg øvelse"></label><label>Kategori<select class="exercise-category-input" aria-label="Kategori">${exerciseCategoryOptions}</select></label><label>Vægt (kg)<input type="number" min="0" step="0.5" value="${initialStats[1] || 20}" aria-label="Vægt i kg"></label><label>Reps pr. sæt<input type="number" min="1" value="${initialStats[2] || 10}" aria-label="Reps i hvert sæt"></label><label>Arbejdssæt<input type="number" min="1" value="${initialStats[3] || 3}" aria-label="Antal arbejdssæt"></label><label>Træningsdato<input type="date" class="exercise-date-input" value="${getIsoDateValue(new Date())}" aria-label="Dato for træning"></label><div class="exercise-log-preview" aria-live="polite"><span>DU GEMMER</span><strong></strong><small></small></div><button type="button">Gem træning</button>`;
     row.querySelector('.more-button').before(controls);
   }
 
   const controls = row.querySelector('.exercise-entry-controls');
+  const updateLogPreview = () => {
+    const values = controls?.querySelectorAll('input');
+    const preview = controls?.querySelector('.exercise-log-preview');
+    if (!values || !preview) return;
+    const weight = Number(values[1].value) || 0;
+    const reps = Number(values[2].value) || 0;
+    const sets = getExerciseSetCount(values[3].value);
+    preview.querySelector('strong').textContent = `${sets} arbejdssæt × ${reps} reps med ${weight} kg`;
+    preview.querySelector('small').textContent = `Samlet volumen: ${(weight * reps * sets).toLocaleString('da-DK')} kg`;
+  };
+  controls?.querySelectorAll('input').forEach((input) => input.addEventListener('input', updateLogPreview));
+  updateLogPreview();
   const categoryInput = controls?.querySelector('.exercise-category-input');
   if (categoryInput && !categoryInput.dataset.bound) {
     categoryInput.dataset.bound = 'true';
@@ -3050,24 +3676,24 @@ function bindExerciseRow(row) {
       localStorage.setItem('formlyWorkoutLog', JSON.stringify(workoutLog));
       row.querySelector('h3').textContent = currentName;
       const displayDate = new Date(`${logDateValue}T12:00:00`).toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: '2-digit' });
-      const rowText = `${values[1].value} kg <span>•</span> ${values[2].value} reps <span>•</span> ${values[3].value} sæt <span>•</span> ${displayDate}`;
+      const rowText = formatExerciseLogSummary(weight, reps, sets, displayDate);
       applyExerciseInfo(row, currentName, rowText);
       syncProgressExerciseOptions();
       saveButton.classList.remove('saved');
-      saveButton.textContent = 'Log';
+      saveButton.textContent = 'Gem træning';
       saveProgramExercises();
       syncWeekProgressState(selectedProgramWeek);
       if (typeof renderExerciseTracker === 'function') renderExerciseTracker();
       if (typeof renderWorkoutStats === 'function') renderWorkoutStats();
       if (typeof renderWorkoutLog === 'function') renderWorkoutLog();
-      showToast(`${row.querySelector('h3').textContent}: ${values[1].value} kg, ${values[2].value} reps x ${values[3].value} sæt · ${displayDate}`);
+      showToast(`${row.querySelector('h3').textContent}: ${sets} arbejdssæt × ${reps} reps med ${weight} kg · ${displayDate}`);
     });
   }
 
   bindDeleteExercise(row);
   ensureExerciseRowVisual(row);
   const rowSaveButton = row.querySelector('.exercise-entry-controls button');
-  if (rowSaveButton) rowSaveButton.textContent = 'Log';
+  if (rowSaveButton) rowSaveButton.textContent = 'Gem træning';
   restoreExerciseVideo(row);
 }
 
@@ -3085,7 +3711,7 @@ function hydrateExerciseLibraryRows() {
       updateExerciseVisual(row, exerciseName);
     }
     const rowSaveButton = row.querySelector('.exercise-entry-controls button');
-    if (rowSaveButton) rowSaveButton.textContent = 'Log';
+    if (rowSaveButton) rowSaveButton.textContent = 'Gem træning';
     restoreExerciseVideo(row);
   });
 }
@@ -3101,8 +3727,11 @@ function initializeExerciseLibrary() {
     ensureExerciseRowVisual(row);
     const name = row.querySelector('h3')?.textContent?.trim() || '';
     if (name) {
-      const statsMarkup = row.querySelector('.exercise-info p')?.innerHTML || '';
-      applyExerciseInfo(row, name, statsMarkup);
+      const statsElement = row.querySelector('.exercise-info p');
+      const statsMarkup = statsElement?.innerHTML || '';
+      const initialStats = statsElement?.textContent.match(/([\d.]+)\s*kg.*?([\d.]+)\s*reps.*?([\d.]+)\s*(?:arbejds)?sæt/i) || [];
+      const initialDate = statsElement?.textContent.match(/\d{2}[./-]\d{2}[./-]\d{2,4}/)?.[0] || '';
+      applyExerciseInfo(row, name, statsElement?.querySelector('.exercise-latest-values') || !initialStats.length ? statsMarkup : formatExerciseLogSummary(initialStats[1], initialStats[2], initialStats[3], initialDate));
       updateExerciseVisual(row, name);
     }
     const savedImage = getSavedExerciseImage(name);
@@ -3112,7 +3741,7 @@ function initializeExerciseLibrary() {
       updateExerciseVisual(row, name);
     }
     const rowSaveButton = row.querySelector('.exercise-entry-controls button');
-    if (rowSaveButton) rowSaveButton.textContent = 'Log';
+    if (rowSaveButton) rowSaveButton.textContent = 'Gem træning';
   });
 }
 
@@ -3142,6 +3771,7 @@ const appPageTargets = {
   profile: ['.profile-section'],
   weight: ['#weight'],
   progress: ['#progress', '.training-progress-panel'],
+  physique: ['#physique-ai'],
   library: ['#library']
 };
 const appContent = document.querySelector('.content');
@@ -3161,9 +3791,6 @@ if (appContent) {
       if (element !== appContent && appContent.contains(element)) {
         element.dataset.appPage = pageName;
         elements.add(element);
-        element.querySelectorAll('*').forEach((child) => {
-          if (!child.classList.contains('meal-overview-modal')) child.dataset.appPage = pageName;
-        });
       }
     }));
     appPageElements.set(pageName, elements);
@@ -3172,7 +3799,8 @@ if (appContent) {
     const backToOverviewButton = document.createElement('button');
     backToOverviewButton.type = 'button';
     backToOverviewButton.className = 'app-page-back';
-    backToOverviewButton.textContent = 'Tilbage til oversigt';
+    backToOverviewButton.setAttribute('aria-label', 'Tilbage til oversigt');
+    backToOverviewButton.innerHTML = '<span class="app-page-back-icon" aria-hidden="true">←</span><span class="app-page-back-label">Tilbage til oversigt</span>';
     backToOverviewButton.hidden = true;
     appContent.prepend(backToOverviewButton);
 
@@ -3181,7 +3809,7 @@ if (appContent) {
     appContent.dataset.activeAppPage = selectedPage;
     appContent.classList.add('app-pages-mode');
       backToOverviewButton.hidden = selectedPage === 'overview';
-    appContent.querySelectorAll('[data-app-page]').forEach((element) => {
+    appContent.querySelectorAll(':scope > [data-app-page]').forEach((element) => {
       element.hidden = element.dataset.appPage !== selectedPage;
       if (element.dataset.appPage === selectedPage && element.parentElement === appContent) element.scrollTop = 0;
     });
@@ -3210,6 +3838,7 @@ if (appContent) {
     if (target.includes('coach')) return 'coach';
     if (target.includes('weight')) return 'weight';
     if (target.includes('profile')) return 'profile';
+    if (target.includes('physique-ai')) return 'physique';
     if (target.includes('workout')) return 'training';
     if (target.includes('library')) return 'library';
     if (target.includes('progress')) return 'progress';
@@ -3289,13 +3918,7 @@ function addExerciseToLibrary(exerciseNameFromSelect = '') {
     applyExerciseButtonState(completeButton, false);
   }
 
-  if (!newRow.querySelector('.exercise-entry-controls')) {
-    const controls = document.createElement('div');
-    controls.className = 'exercise-entry-controls';
-    controls.innerHTML = `<label>Øvelse<input class="exercise-name-input" type="text" list="exerciseOptions" value="${selectedExerciseName}" aria-label="Søg eller vælg øvelse"></label><label>KG<input type="number" min="0" step="0.5" value="20" aria-label="Vægt i kg"></label><label>Reps<input type="number" min="1" value="10" aria-label="Reps"></label><label>Sæt<input type="number" min="1" value="3" aria-label="Antal sæt"></label><label>Dato<input type="date" class="exercise-date-input" value="${getIsoDateValue(new Date())}" aria-label="Dato for træning"></label><button type="button">Log</button>`;
-    const moreButton = newRow.querySelector('.more-button');
-    if (moreButton) moreButton.before(controls);
-  } else {
+  if (newRow.querySelector('.exercise-entry-controls')) {
     const clonedControls = newRow.querySelector('.exercise-entry-controls');
     const nameInput = clonedControls.querySelector('.exercise-name-input');
     if (nameInput) nameInput.value = selectedExerciseName;
@@ -3313,7 +3936,7 @@ function addExerciseToLibrary(exerciseNameFromSelect = '') {
   bindExerciseRow(newRow);
   ensureExerciseRowVisual(newRow);
   const newSaveButton = newRow.querySelector('.exercise-entry-controls button');
-  if (newSaveButton) newSaveButton.textContent = 'Log';
+  if (newSaveButton) newSaveButton.textContent = 'Gem træning';
 
   exerciseList.appendChild(newRow);
   syncProgressExerciseOptions();

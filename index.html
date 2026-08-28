@@ -14,7 +14,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20260828-godmorgen-rgb">
+	<link rel="stylesheet" href="styles.css?v=20260828-physique-3d-muscle-map">
 	
 </head>
 <body>
@@ -42,8 +42,8 @@
 			<section class="welcome"><div><p class="eyebrow">DIN UGE I BEVÆGELSE</p><h1 id="greetingText">Godmorgen.</h1><p>Du har allerede taget hul på en stærk uge.</p></div><strong class="streak"><span class="streak-icon" aria-hidden="true">🔥</span><span id="streakCount">04</span><small>STREAK</small></strong></section>
 
 			<section class="hero-grid" id="workout">
-				<article class="workout-card"><div class="card-kicker">NÆSTE TRÆNING</div><h2>Næste session</h2><p>Vælg øvelser i dit bibliotek</p><button id="startWorkout" type="button">Start træning -&gt;</button><button id="sessionComplete" type="button" class="complete-session">✓ Træning klaret</button></article>
-				<article class="quote-card"><span>“</span><p>Små skridt hver dag bliver til store forandringer.</p><small>- DIN FREMTIDIGE DIG</small></article>
+				<article class="workout-card"><div class="workout-card-top"><div class="card-kicker">DAGENS TRÆNING</div><span id="workoutSessionBadge">SESSION 01</span></div><div class="workout-card-copy"><p class="workout-status-line"><i aria-hidden="true"></i><span id="workoutStatusLabel">Klar til at starte</span></p><h2 id="workoutOverviewTitle">Byg videre på din styrke</h2><p id="workoutOverviewLead">Dit program er klar. Åbn øvelserne og registrér dagens arbejdssæt.</p></div><div class="workout-metrics"><div><span>ØVELSER</span><strong id="workoutExerciseTotal">0</strong><small>i programmet</small></div><div><span>ARBEJDSSÆT</span><strong id="workoutLoggedSets">0</strong><small>registreret</small></div><div><span>VOLUMEN</span><strong id="workoutSessionVolume">0 kg</strong><small>denne session</small></div></div><div class="workout-actions"><button id="startWorkout" type="button">Åbn øvelser <span aria-hidden="true">→</span></button><button id="sessionComplete" type="button" class="complete-session">Markér som gennemført</button></div></article>
+				<article class="quote-card training-brief-card"><div class="training-brief-top"><div><p class="card-kicker">SESSIONSTATUS</p><h3>Dagens plan</h3></div><span id="workoutCompletionPercent">0%</span></div><div class="training-progress-track" aria-hidden="true"><i id="workoutCompletionBar"></i></div><p id="workoutPlanSummary">Ingen øvelser gennemført endnu</p><div class="training-brief-list"><div><span>01</span><p><strong>Vælg øvelse</strong><small>Find næste bevægelse</small></p></div><div><span>02</span><p><strong>Registrér sæt</strong><small>Vægt, reps og arbejdssæt</small></p></div><div><span>03</span><p><strong>Afslut session</strong><small>Gem dagens fremgang</small></p></div></div><div class="training-last-log"><span>SENESTE LOG</span><strong id="workoutLastLog">Ingen endnu</strong></div></article>
 			</section>
 
 			<section class="section-heading"><div><p class="eyebrow">DENNE UGE</p><h2>Din rytme</h2></div><button id="viewProgress" type="button">Se fremskridt -&gt;</button></section>
@@ -82,7 +82,8 @@
 		</main>
 	</div>
 	<div id="toast" role="status"></div>
-	<script src="app.js?v=20260828-godmorgen-rgb"></script>
+	<script src="app.js?v=20260828-physique-3d-muscle-map"></script>
+	<script type="module" src="physique-3d.js?v=20260828-physique-3d-muscle-map"></script>
 </body>
 </html>
 
