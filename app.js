@@ -70,35 +70,51 @@ installAppButton.addEventListener('click', async () => {
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then((registration) => {
-    const refreshIfUpdated = () => {
-      if (!registration || !navigator.serviceWorker.controller) return;
-      const installing = registration.waiting;
-      if (installing) {
-        showToast('Ny version er klar – opdaterer siden...');
-        installing.addEventListener('statechange', () => {
-          if (installing.state === 'activated') {
-            window.location.reload();
-          }
-        }, { once: true });
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((registration) => {
+    let updateReloadStarted = false;
+    const reloadForUpdate = () => {
+      if (updateReloadStarted) return;
+      updateReloadStarted = true;
+      showToast('Ny version er klar - opdaterer appen...');
+      window.setTimeout(() => window.location.reload(), 300);
+    };
+    const checkDeploymentBuild = async () => {
+      if (!navigator.onLine || updateReloadStarted) return;
+      try {
+        const response = await fetch(`/api/health?update=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const { build } = await response.json();
+        if (!build || build === 'local') return;
+        const storedBuild = localStorage.getItem('formlyAppBuild');
+        localStorage.setItem('formlyAppBuild', build);
+        if (storedBuild && storedBuild !== build) {
+          await registration.update().catch(() => {});
+          reloadForUpdate();
+        }
+      } catch {
+        // The current cached app remains usable while update checks are offline.
       }
     };
-
     registration.addEventListener('updatefound', () => {
       const installing = registration.installing;
       if (!installing) return;
       installing.addEventListener('statechange', () => {
         if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-          refreshIfUpdated();
+          installing.postMessage({ type: 'SKIP_WAITING' });
         }
-      }, { once: true });
+      });
     });
 
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    }, { once: true });
+    navigator.serviceWorker.addEventListener('controllerchange', reloadForUpdate);
+    window.addEventListener('online', checkDeploymentBuild);
+    window.addEventListener('pageshow', checkDeploymentBuild);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkDeploymentBuild();
+    });
 
-    setInterval(() => registration.update().catch(() => {}), 60000);
+    registration.update().catch(() => {});
+    checkDeploymentBuild();
+    setInterval(checkDeploymentBuild, 60000);
   }).catch(() => {});
 }
 

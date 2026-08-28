@@ -35,6 +35,7 @@ DEFAULT_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3.2')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 OPENAI_BASE_URL = os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1')
 OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+APP_BUILD = os.environ.get('RAILWAY_GIT_COMMIT_SHA') or os.environ.get('APP_BUILD') or 'local'
 WITHINGS_CLIENT_ID = os.environ.get('WITHINGS_CLIENT_ID')
 WITHINGS_CLIENT_SECRET = os.environ.get('WITHINGS_CLIENT_SECRET')
 WITHINGS_AUTH_URL = os.environ.get('WITHINGS_AUTH_URL', 'https://account.withings.com/oauth2_user/authorize2')
@@ -441,6 +442,7 @@ class LocalAIHandler(BaseHTTPRequestHandler):
         if parsed.path == '/api/health':
             self.send_json({
                 'status': 'ok',
+                'build': APP_BUILD,
                 'model': OPENAI_MODEL if OPENAI_API_KEY else DEFAULT_MODEL,
                 'provider': 'openai' if OPENAI_API_KEY else 'ollama',
                 'ollama_url': OLLAMA_URL,

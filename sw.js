@@ -1,4 +1,4 @@
-const APP_BUILD = 'formly-v20260828-physique-3d-muscle-map';
+const APP_BUILD = 'formly-v20260828-automatic-updates';
 const CACHE_NAME = APP_BUILD;
 const APP_FILES = ['./', './index.html', './styles.css', './app.js', './physique-3d.js', './workout.html', './workout.js', './manifest.json', './sw.js', './favicon.svg', './assets/training-background.jpeg'];
 

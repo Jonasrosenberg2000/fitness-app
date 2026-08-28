@@ -6489,3 +6489,100 @@ body .app-shell .physique-ai-grid {
 body .app-shell .physique-result-card {
 	display: none !important;
 }
+
+body.app-single-page::before {
+	display: none !important;
+	animation: none !important;
+}
+
+.content.app-pages-mode .welcome h1 {
+	background: none !important;
+	color: #4f9bc7 !important;
+	-webkit-text-fill-color: #4f9bc7 !important;
+	text-shadow: 0 0 18px rgba(44, 200, 255, 0.18);
+	animation: none !important;
+}
+
+@media (max-width: 700px) {
+	html,
+	body,
+	body.app-single-page {
+		height: auto;
+		min-height: 100%;
+		overflow-y: auto !important;
+		overscroll-behavior-y: auto;
+	}
+
+	.app-shell {
+		height: auto;
+		min-height: 100dvh;
+		overflow: visible;
+	}
+
+	.content.app-pages-mode {
+		height: auto;
+		min-height: 100dvh;
+		overflow: visible;
+		padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+	}
+
+	.content.app-pages-mode > [data-app-page]:not([hidden]) {
+		max-height: none;
+		overflow: visible;
+		overscroll-behavior-y: auto;
+	}
+
+	.content.app-pages-mode[data-active-app-page="overview"] .overview-category-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		gap: 8px;
+	}
+
+	.overview-category-grid button {
+		min-width: 0;
+		min-height: 82px;
+		padding: 10px;
+	}
+
+	.overview-category-grid strong,
+	.overview-category-grid span {
+		overflow: visible;
+		white-space: normal;
+		text-overflow: clip;
+		overflow-wrap: anywhere;
+	}
+
+	.content.app-pages-mode .welcome > div {
+		max-width: none;
+		overflow: visible;
+		text-overflow: clip;
+	}
+
+	.content.app-pages-mode .welcome h1 {
+		font: 700 19px 'Space Grotesk', sans-serif;
+		letter-spacing: 0;
+		white-space: nowrap;
+	}
+
+	.content.app-pages-mode .welcome .streak {
+		top: 10px;
+		right: 12px;
+		min-width: 72px;
+		padding: 7px 9px;
+		border-radius: 8px;
+	}
+
+	.content.app-pages-mode .welcome .streak #streakCount {
+		font-size: 20px;
+	}
+
+	.content.app-pages-mode .welcome .streak .streak-icon {
+		font-size: 15px;
+		filter: none !important;
+	}
+
+	.content.app-pages-mode .welcome .streak small {
+		margin-top: 3px;
+		font-size: 7px;
+		letter-spacing: 1px;
+	}
+}
