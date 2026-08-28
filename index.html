@@ -17,7 +17,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20260828-mobile-overview-scroll">
+	<link rel="stylesheet" href="styles.css?v=20260828-mobile-page-flow">
 	
 </head>
 <body>
@@ -48,9 +48,6 @@
 				<article class="workout-card"><div class="workout-card-top"><div class="card-kicker">DAGENS TRÆNING</div><span id="workoutSessionBadge">SESSION 01</span></div><div class="workout-card-copy"><p class="workout-status-line"><i aria-hidden="true"></i><span id="workoutStatusLabel">Klar til at starte</span></p><h2 id="workoutOverviewTitle">Byg videre på din styrke</h2><p id="workoutOverviewLead">Dit program er klar. Åbn øvelserne og registrér dagens arbejdssæt.</p></div><div class="workout-metrics"><div><span>ØVELSER</span><strong id="workoutExerciseTotal">0</strong><small>i programmet</small></div><div><span>ARBEJDSSÆT</span><strong id="workoutLoggedSets">0</strong><small>registreret</small></div><div><span>VOLUMEN</span><strong id="workoutSessionVolume">0 kg</strong><small>denne session</small></div></div><div class="workout-actions"><button id="startWorkout" type="button">Åbn øvelser <span aria-hidden="true">→</span></button><button id="sessionComplete" type="button" class="complete-session">Markér som gennemført</button></div></article>
 				<article class="quote-card training-brief-card"><div class="training-brief-top"><div><p class="card-kicker">SESSIONSTATUS</p><h3>Dagens plan</h3></div><span id="workoutCompletionPercent">0%</span></div><div class="training-progress-track" aria-hidden="true"><i id="workoutCompletionBar"></i></div><p id="workoutPlanSummary">Ingen øvelser gennemført endnu</p><div class="training-brief-list"><div><span>01</span><p><strong>Vælg øvelse</strong><small>Find næste bevægelse</small></p></div><div><span>02</span><p><strong>Registrér sæt</strong><small>Vægt, reps og arbejdssæt</small></p></div><div><span>03</span><p><strong>Afslut session</strong><small>Gem dagens fremgang</small></p></div></div><div class="training-last-log"><span>SENESTE LOG</span><strong id="workoutLastLog">Ingen endnu</strong></div></article>
 			</section>
-
-			<section class="section-heading"><div><p class="eyebrow">DENNE UGE</p><h2>Din rytme</h2></div><button id="viewProgress" type="button">Se fremskridt -&gt;</button></section>
-			<section class="stats-grid"><article class="stat-card">TRÆNINGER<strong id="overviewTrainingStat">0/3</strong><small id="overviewTrainingNote">I gang med ugen</small></article><article class="stat-card">AKTIV TID<strong id="overviewActiveTimeStat">0 min</strong><small id="overviewActiveTimeNote">Estimeret ud fra loggede sæt</small></article><article class="stat-card">ENERGI<strong id="overviewEnergyStat">0/10</strong><small id="overviewEnergyNote">Baseret på ugens fremgang</small></article><article class="stat-card" id="overviewFoodCard" style="cursor:pointer">MAD I DAG<strong id="overviewFoodStat">0 / 2.000 kcal</strong><small id="overviewFoodNote">Tryk for Mad Tracker -&gt;</small></article><article class="stat-card" id="overviewWeightCard" style="cursor:pointer">VÆGT<strong id="overviewWeightStat">-</strong><small id="overviewWeightNote">Tryk for at veje dig ind -&gt;</small></article></section>
 
 			<section class="food-section" id="food">
 				<div class="food-date-nav"><button type="button" id="foodDatePrev" aria-label="Forrige dag">‹</button><strong id="foodDateLabel">24. AUG</strong><button type="button" id="foodDateNext" aria-label="Næste dag">›</button></div>
@@ -85,8 +82,8 @@
 		</main>
 	</div>
 	<div id="toast" role="status"></div>
-	<script src="app.js?v=20260828-mobile-overview-scroll"></script>
-	<script type="module" src="physique-3d.js?v=20260828-mobile-overview-scroll"></script>
+	<script src="app.js?v=20260828-mobile-page-flow"></script>
+	<script type="module" src="physique-3d.js?v=20260828-mobile-page-flow"></script>
 </body>
 </html>
 

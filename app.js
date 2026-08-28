@@ -528,20 +528,7 @@ function updateMaintenance() {
   updateIntensityLabels();
   updateGoal();
 }
-const healthOverview = document.createElement('section');
-healthOverview.className = 'health-overview';
-healthOverview.innerHTML = '<div><p class="eyebrow">DAGENS SUNDHED</p><h2>Dit overblik</h2><small id="healthOverviewStatus">Klar til data fra Apple Watch og appen Sundhed</small></div><div class="health-overview-grid"><div><strong id="overviewSteps">0</strong><span>Skridt</span></div><div><strong id="overviewEnergy">0</strong><span>Aktive kcal</span></div><div><strong id="overviewDistance">0</strong><span>Meter</span></div><div><strong id="overviewSleep">-</strong><span>Søvn / restitution</span></div></div>';
-document.querySelector('.welcome').after(healthOverview);
 const savedHealth = JSON.parse(localStorage.getItem('formlyHealthOverview') || '{}');
-const updateHealthOverview = (health = {}) => {
-  const values = { steps: Number(health.steps) || 0, energy: Number(health.energy) || 0, distance: Number(health.distance) || 0, sleep: health.sleep || '-' };
-  healthOverview.querySelector('#overviewSteps').textContent = values.steps.toLocaleString('da-DK');
-  healthOverview.querySelector('#overviewEnergy').textContent = values.energy.toLocaleString('da-DK');
-  healthOverview.querySelector('#overviewDistance').textContent = values.distance.toLocaleString('da-DK');
-  healthOverview.querySelector('#overviewSleep').textContent = values.sleep;
-  if (health.source) healthOverview.querySelector('#healthOverviewStatus').textContent = `Synkroniseret fra ${health.source}`;
-};
-updateHealthOverview(savedHealth);
 if (savedHealth.steps) {
   stepsInput.value = Math.min(20000, Number(savedHealth.steps));
   exactStepsInput.value = Number(savedHealth.steps);
@@ -756,20 +743,6 @@ overviewCategories.querySelectorAll('[data-category-target]').forEach((button) =
   const muscle = button.dataset.categoryMuscle;
   if (muscle) document.querySelector(`.training-progress-panel .training-tabs [data-muscle="${muscle}"]`)?.click();
 }));
-const overviewAiPanel = document.createElement('section');
-overviewAiPanel.className = 'overview-ai-panel';
-overviewAiPanel.innerHTML = '<div><p class="eyebrow">AI-OVERSIGT</p><h2>Professionel helhedsvurdering</h2><p id="overviewAiAnswer">Lad AI analysere dine valgte kategorier og samle de vigtigste indsigter i én status.</p></div><button id="overviewAiButton" type="button">Analysér oversigt</button>';
-overviewStatsGrid?.after(overviewAiPanel);
-overviewAiPanel.querySelector('#overviewAiButton').addEventListener('click', async () => {
-  const button = overviewAiPanel.querySelector('#overviewAiButton');
-  const answer = overviewAiPanel.querySelector('#overviewAiAnswer');
-  const question = 'Gennemgå hele min Oversigt ud fra alle data og de aktuelt valgte kategorier. Brug især feltet selected til at forklare mit valgte mål, fase, mad-dato, session, progression-øvelse, muskelkategori og år. Saml en kort status for træning, mad, kcal, steps, Bulk/Cut/Vedligehold, Fysikudvikling, billeder, progression, sessioner og øvelsesbibliotek. Forklar hvad der hænger sammen, hvad der går godt, hvad der er en ulempe eller risiko, og giv mine vigtigste næste skridt. Spørg bagefter om det vigtigste, du mangler at vide.';
-  button.disabled = true;
-  const response = await askLocalCoach(question);
-  answer.textContent = response;
-  saveCoachConversation(question, response);
-  button.disabled = false;
-});
 const coachAnswer = coachPanel.querySelector('#coachAnswer');
 const coachConversationKey = 'formlyCoachConversation';
 const coachConversation = JSON.parse(localStorage.getItem(coachConversationKey) || '[]');
@@ -895,7 +868,7 @@ coachPanel.querySelectorAll('.coach-suggestions button').forEach((button) => but
 
 const trainingProgressPanel = document.createElement('section');
 trainingProgressPanel.className = 'training-progress-panel';
-trainingProgressPanel.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">DIN PERFORMANCE</p><h2>Progression i træningen</h2><p>Vægt over sessioner, uger, måneder og år.</p></div><span class="progress-live">LIVE LOG</span></div><div class="training-tabs"><button type="button" class="active" data-muscle="push">Push</button><button type="button" data-muscle="pull">Pull</button><button type="button" data-muscle="legs">Ben</button></div><div class="training-progress-content"><div><h3 id="progressExerciseName">Bench press</h3><p id="progressExerciseMeta">Seneste træningsblok og udvikling</p><div id="progressChart" class="progress-chart"></div></div><div class="progress-callout"><strong id="progressChange">+0 kg</strong><span>øgning siden sidste session</span><small id="progressNext">Registrér din næste træning for at fortsætte grafen.</small></div></div>';
+trainingProgressPanel.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">STYRKE & PERFORMANCE</p><h2>Progression i træningen</h2><p>Følg dine løft og se udviklingen fra træning til træning.</p></div><span class="progress-live">LIVE DATA</span></div><div class="training-tabs"><button type="button" class="active" data-muscle="push">Pres</button><button type="button" data-muscle="pull">Træk</button><button type="button" data-muscle="legs">Ben</button></div><div class="training-progress-content"><div><h3 id="progressExerciseName">Bench press</h3><p id="progressExerciseMeta">Seneste træningsblok og udvikling</p><div id="progressChart" class="progress-chart"></div></div><div class="progress-callout"><strong id="progressChange">+0 kg</strong><span>udvikling siden sidste træning</span><small id="progressNext">Registrér din næste træning for at fortsætte grafen.</small></div></div>';
 const librarySection = document.querySelector('#library');
 if (librarySection) {
   librarySection.after(trainingProgressPanel);
@@ -904,11 +877,11 @@ if (librarySection) {
 }
 const progressRangeTabs = document.createElement('div');
 progressRangeTabs.className = 'progress-range-tabs';
-progressRangeTabs.innerHTML = '<button type="button" class="active" data-range="session">Sessioner</button><button type="button" data-range="week">Uger</button><button type="button" data-range="month">Måneder</button><button type="button" data-range="year">År</button>';
+progressRangeTabs.innerHTML = '<button type="button" class="active" data-range="session">Træninger</button><button type="button" data-range="week">Uger</button><button type="button" data-range="month">Måneder</button><button type="button" data-range="year">År</button>';
 trainingProgressPanel.querySelector('.training-tabs').after(progressRangeTabs);
 const progressPeriodNav = document.createElement('div');
 progressPeriodNav.className = 'progress-period-nav';
-progressPeriodNav.innerHTML = '<button type="button" id="progressPreviousPeriod" aria-label="Forrige periode">←</button><span>Bladr i perioder</span><button type="button" id="progressNextPeriod" aria-label="Næste periode">→</button>';
+progressPeriodNav.innerHTML = '<button type="button" id="progressPreviousPeriod" aria-label="Forrige periode">←</button><span>Skift periode</span><button type="button" id="progressNextPeriod" aria-label="Næste periode">→</button>';
 progressRangeTabs.after(progressPeriodNav);
 const progressYearNav = document.createElement('div');
 progressYearNav.className = 'progress-year-nav';
@@ -1033,7 +1006,7 @@ function getExerciseProfile(exerciseName = '') {
   const name = exerciseName.trim().toLowerCase();
   const machine = /machine|cable|pec deck|lat pulldown|leg press|chest press|shoulder press|seated row|smith/.test(name);
   const compound = /squat|deadlift|press|row|pull-up|chin-up|dip|lunge|leg press|push-up|hip thrust|kettlebell swing/.test(name);
-  const type = compound ? 'compound' : 'accessory';
+  const type = compound ? 'basisøvelse' : 'isoleringsøvelse';
   const equipment = machine ? 'maskine/kabel' : 'fri vægt/kropsvægt';
   const reliability = machine ? 'Brug samme maskine og indstilling hver gang; maskin-kg kan ikke sammenlignes direkte med fri vægt.' : 'Sammenlign helst samme teknik, tempo og bevægeudslag hver gang.';
   return { type, equipment, reliability };
@@ -2744,7 +2717,7 @@ sessionComplete.addEventListener('click', () => {
   showToast(isComplete ? 'Hele træningen er markeret som færdig' : 'Træningen er markeret som aktiv');
 });
 renderWorkoutOverview();
-progressButton.addEventListener('click', () => document.querySelector('#progress').scrollIntoView({ behavior: 'smooth' }));
+progressButton?.addEventListener('click', () => document.querySelector('#progress').scrollIntoView({ behavior: 'smooth' }));
 
 window.setInterval(() => renderTrainingProgress(), 60 * 60 * 1000);
 
@@ -3780,7 +3753,7 @@ if (document.readyState === 'loading') {
 }
 
 const appPageTargets = {
-  overview: ['.welcome', '.health-overview', '.daily-focus-card', '.daily-quick-actions', '.overview-quick-links', '.overview-categories', '.overview-ai-panel', '.hero-grid', '.stats-grid'],
+  overview: ['.welcome', '.daily-focus-card', '.daily-quick-actions', '.overview-quick-links', '.overview-categories', '.hero-grid', '.stats-grid'],
   training: ['#workout'],
   food: ['#food'],
   coach: ['.coach-panel'],
@@ -3824,6 +3797,7 @@ if (appContent) {
     const selectedPage = appPageTargets[pageName] ? pageName : 'overview';
     appContent.dataset.activeAppPage = selectedPage;
     appContent.classList.add('app-pages-mode');
+    document.body.classList.toggle('app-overview-active', selectedPage === 'overview');
       backToOverviewButton.hidden = selectedPage === 'overview';
     appContent.querySelectorAll(':scope > [data-app-page]').forEach((element) => {
       element.hidden = element.dataset.appPage !== selectedPage;

@@ -6522,8 +6522,17 @@ body.app-single-page::before {
 	.content.app-pages-mode {
 		height: auto;
 		min-height: 100dvh;
+		max-height: none;
 		overflow: visible;
 		padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+	}
+
+	body .app-shell .content.app-pages-mode > .app-page-back:not([hidden]) {
+		position: sticky;
+		top: 8px;
+		z-index: 30;
+		display: inline-flex;
+		margin-bottom: 10px;
 	}
 
 	.content.app-pages-mode > [data-app-page]:not([hidden]) {
@@ -6584,5 +6593,256 @@ body.app-single-page::before {
 		margin-top: 3px;
 		font-size: 7px;
 		letter-spacing: 1px;
+	}
+
+	body.app-overview-active {
+		height: 100dvh;
+		min-height: 100dvh;
+		overflow-y: hidden !important;
+	}
+
+	body.app-overview-active .app-shell,
+	body.app-overview-active .content.app-pages-mode {
+		height: 100dvh;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	body.app-overview-active .content.app-pages-mode {
+		padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+	}
+
+	body.app-overview-active .content.app-pages-mode[data-active-app-page="overview"] > [data-app-page="overview"]:not(.welcome):not(.overview-categories) {
+		display: none !important;
+	}
+}
+
+/* Progression: one calm performance theme shared with the weight trend graph. */
+body .app-shell .content.app-pages-mode[data-active-app-page="progress"] > #progress {
+	display: none !important;
+}
+
+body .app-shell .training-progress-panel {
+	--progress-accent: #00f58a;
+	--progress-accent-soft: rgba(0, 245, 138, 0.12);
+	--progress-border: rgba(0, 245, 138, 0.28);
+	--progress-text: #edf8ff;
+	--progress-muted: #91adc0;
+	margin-top: 0;
+	padding: 30px !important;
+	border: 1px solid var(--progress-border) !important;
+	border-radius: 8px !important;
+	background: linear-gradient(145deg, #071827 0%, #082333 58%, #071b28 100%) !important;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 22px 50px rgba(0, 8, 18, 0.28) !important;
+}
+
+body .app-shell .training-progress-panel .training-progress-header {
+	align-items: center;
+	margin: 0 0 24px;
+	padding: 0 0 22px;
+	border-bottom: 1px solid var(--progress-border);
+}
+
+body .app-shell .training-progress-panel .training-progress-header .eyebrow {
+	margin-bottom: 8px;
+	color: var(--progress-accent) !important;
+	letter-spacing: 1.6px;
+}
+
+body .app-shell .training-progress-panel .training-progress-header h2 {
+	margin: 0;
+	font: 700 32px/1.12 'Space Grotesk', sans-serif;
+	letter-spacing: 0;
+	color: var(--progress-text) !important;
+}
+
+body .app-shell .training-progress-panel .training-progress-header p,
+body .app-shell .training-progress-panel #progressExerciseMeta {
+	margin-top: 9px;
+	color: var(--progress-muted) !important;
+	font-size: 13px;
+	line-height: 1.55;
+}
+
+body .app-shell .training-progress-panel .progress-live {
+	border: 1px solid var(--progress-border) !important;
+	background: var(--progress-accent-soft) !important;
+	color: var(--progress-accent) !important;
+	box-shadow: 0 0 18px rgba(0, 245, 138, 0.08);
+}
+
+body .app-shell .training-progress-panel .training-tabs,
+body .app-shell .training-progress-panel .progress-range-tabs {
+	gap: 8px;
+}
+
+body .app-shell .training-progress-panel .training-tabs button,
+body .app-shell .training-progress-panel .progress-range-tabs button {
+	min-height: 40px;
+	padding: 9px 17px;
+	border: 1px solid rgba(145, 173, 192, 0.3) !important;
+	border-radius: 6px !important;
+	background: rgba(5, 19, 31, 0.72) !important;
+	color: #c7d9e5 !important;
+	font: 650 12px 'DM Sans', sans-serif;
+	box-shadow: none !important;
+}
+
+body .app-shell .training-progress-panel .training-tabs button:hover,
+body .app-shell .training-progress-panel .progress-range-tabs button:hover,
+body .app-shell .training-progress-panel .training-tabs button.active,
+body .app-shell .training-progress-panel .progress-range-tabs button.active {
+	border-color: var(--progress-accent) !important;
+	background: var(--progress-accent-soft) !important;
+	color: var(--progress-accent) !important;
+}
+
+body .app-shell .training-progress-panel #progressExercisePicker {
+	width: min(100%, 340px);
+	max-width: 340px;
+	min-height: 44px;
+	margin: 14px 0 0;
+	padding: 10px 13px;
+	border: 1px solid rgba(145, 173, 192, 0.35) !important;
+	border-radius: 6px;
+	background: #061521 !important;
+	color: var(--progress-text) !important;
+}
+
+body .app-shell .training-progress-panel .progress-period-nav {
+	margin: 12px 0 0;
+	color: var(--progress-muted);
+}
+
+body .app-shell .training-progress-panel .progress-period-nav button,
+body .app-shell .training-progress-panel .progress-year-nav button {
+	border-color: var(--progress-border) !important;
+	background: rgba(0, 245, 138, 0.06) !important;
+	color: var(--progress-accent) !important;
+}
+
+body .app-shell .training-progress-panel .training-progress-content {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(190px, 220px);
+	gap: 18px;
+	align-items: stretch;
+	margin-top: 26px;
+}
+
+body .app-shell .training-progress-panel #progressExerciseName {
+	margin-bottom: 4px;
+	font: 700 30px/1.15 'Space Grotesk', sans-serif;
+	letter-spacing: 0;
+	color: var(--progress-text) !important;
+}
+
+body .app-shell .training-progress-panel .progress-chart {
+	margin-top: 18px;
+	padding: 16px 0 10px;
+	border-color: rgba(145, 173, 192, 0.2);
+}
+
+body .app-shell .training-progress-panel .progress-line-chart polyline {
+	stroke: var(--progress-accent) !important;
+	stroke-width: 4;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 0 7px rgba(0, 245, 138, 0.68)) !important;
+}
+
+body .app-shell .training-progress-panel .chart-point circle {
+	fill: #d8ffec !important;
+	stroke: var(--progress-accent) !important;
+	stroke-width: 3;
+	filter: drop-shadow(0 0 5px rgba(0, 245, 138, 0.8));
+}
+
+body .app-shell .training-progress-panel .chart-point-label,
+body .app-shell .training-progress-panel .chart-point-date {
+	fill: #c8dce8 !important;
+	color: #c8dce8 !important;
+}
+
+body .app-shell .training-progress-panel .progress-callout {
+	justify-content: center;
+	margin: 0;
+	padding: 22px;
+	border: 1px solid var(--progress-border) !important;
+	border-left: 3px solid var(--progress-accent) !important;
+	border-radius: 7px;
+	background: linear-gradient(180deg, rgba(8, 39, 42, 0.9), rgba(5, 24, 31, 0.94)) !important;
+	box-shadow: inset 0 1px 0 rgba(0, 245, 138, 0.06);
+}
+
+body .app-shell .training-progress-panel .progress-callout strong,
+body .app-shell .training-progress-panel #progressChange {
+	color: var(--progress-accent) !important;
+}
+
+body .app-shell .training-progress-panel .progress-callout span {
+	color: #c9dce6 !important;
+}
+
+body .app-shell .training-progress-panel .progress-callout small,
+body .app-shell .training-progress-panel #progressNext {
+	color: var(--progress-muted) !important;
+}
+
+body .app-shell .training-progress-panel .progress-history {
+	border-color: rgba(145, 173, 192, 0.2);
+}
+
+body .app-shell .training-progress-panel .progress-history-heading strong,
+body .app-shell .training-progress-panel .progress-history-row b,
+body .app-shell .training-progress-panel .progress-history-row em {
+	color: var(--progress-accent) !important;
+}
+
+body .app-shell .training-progress-panel .long-progress-summary {
+	gap: 12px;
+	margin-top: 18px !important;
+}
+
+body .app-shell .training-progress-panel .long-progress-summary > div {
+	min-height: 104px;
+	padding: 16px;
+	border: 1px solid rgba(145, 173, 192, 0.22) !important;
+	border-top: 2px solid var(--progress-accent) !important;
+	border-radius: 6px;
+	background: rgba(5, 19, 31, 0.7) !important;
+	box-shadow: none;
+}
+
+body .app-shell .training-progress-panel .long-progress-summary strong {
+	color: var(--progress-text) !important;
+}
+
+body .app-shell .training-progress-panel .long-progress-summary small {
+	color: var(--progress-muted) !important;
+}
+
+@media (max-width: 700px) {
+	body .app-shell .training-progress-panel {
+		padding: 20px 16px !important;
+	}
+
+	body .app-shell .training-progress-panel .training-progress-header {
+		align-items: flex-start;
+	}
+
+	body .app-shell .training-progress-panel .training-progress-header h2 {
+		font-size: 26px;
+	}
+
+	body .app-shell .training-progress-panel .training-progress-content {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	body .app-shell .training-progress-panel .progress-callout {
+		min-height: 150px;
+	}
+
+	body .app-shell .training-progress-panel .long-progress-summary {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
