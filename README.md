@@ -47,6 +47,16 @@ Before deploying publicly, set all secrets in the hosting provider's environment
 ## API endpoints
 
 - GET /api/health
+- GET /api/auth/session
+- POST /api/auth/signup
+- POST /api/auth/login
+- POST /api/auth/exchange
+- POST /api/auth/logout
+- GET /api/billing/status
+- POST /api/billing/checkout
+- POST /api/billing/confirm
+- POST /api/billing/portal
+- POST /api/billing/webhook
 - POST /api/coach
 
 The local AI is shared by users who open the app through the same running server. Each browser sends its own app context with the question; the backend does not keep a shared conversation history.
@@ -87,6 +97,8 @@ For this deployment, configure these Railway variables directly in the Railway d
 OPENAI_API_KEY=<secret>
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o-mini
+SUPABASE_URL=https://zrkhdtyoaukwjyaaokzq.supabase.co
+SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 WITHINGS_CLIENT_ID=<secret>
 WITHINGS_CLIENT_SECRET=<secret>
 OAUTH_STATE_SECRET=<long-random-secret>
@@ -95,3 +107,44 @@ TOKEN_STORE_PATH=/data/withings_tokens.json
 ```
 
 Use an OpenAI-compatible model with image input for the three-angle physique analysis. Mount a Railway volume at `/data`; the backend stores Withings refresh tokens there and renews expired access tokens automatically. In the Withings Developer Portal, register the callback URL exactly as shown above. Never paste secret values into source files, commits, issue descriptions, or chat messages.
+
+## Pro subscription
+
+Online AI is protected by a server-side Pro check. The plan costs 39 DKK per month and includes 60 coach messages and 4 three-angle physique analyses per billing month. Training, food, weight, photos, and Withings remain available without Pro.
+
+### Supabase login
+
+Pro access belongs to a verified Supabase user UUID, so the same account can restore its subscription on another device. The browser sends email and password only to this backend; access and refresh tokens are stored in `HttpOnly`, `SameSite=Lax` cookies. After email confirmation, the app immediately exchanges Supabase's redirect token for the same cookies and removes it from the URL. Never configure `SUPABASE_PUBLISHABLE_KEY` with a Supabase secret or `service_role` key.
+
+Use the project's existing default publishable key and configure Supabase Authentication with:
+
+```text
+Site URL: https://web-production-2385a.up.railway.app
+Redirect URL: https://web-production-2385a.up.railway.app
+Local redirect URL: http://localhost:8010
+```
+
+Keep email confirmation enabled for production. The account currently restores Pro access and quotas across devices; workout, food, weight, and photo records remain local to each browser unless the user exports/imports a backup.
+
+Create a recurring monthly Stripe Price for 39 DKK, enable the Stripe Customer Portal, and add these Railway variables:
+
+```text
+STRIPE_SECRET_KEY=<secret>
+STRIPE_PRICE_ID=<price_...>
+STRIPE_WEBHOOK_SECRET=<whsec_...>
+PUBLIC_APP_URL=https://web-production-2385a.up.railway.app
+BILLING_STORE_PATH=/data/billing.json
+PRO_COACH_MONTHLY_LIMIT=60
+PRO_VISION_MONTHLY_LIMIT=4
+OPENAI_MAX_OUTPUT_TOKENS=900
+MAX_COACH_REQUEST_BYTES=12582912
+RATE_LIMIT_WINDOW_SECONDS=60
+AUTH_BURST_LIMIT=10
+BILLING_BURST_LIMIT=20
+COACH_BURST_LIMIT=10
+RATE_LIMIT_MAX_BUCKETS=4096
+```
+
+Register `https://web-production-2385a.up.railway.app/api/billing/webhook` as a Stripe webhook for `checkout.session.completed`, `customer.subscription.updated`, and `customer.subscription.deleted`. Keep Stripe test keys and live keys separate; use test mode until checkout, renewal, cancellation, and quota enforcement have all been verified.
+
+Cookie-authenticated mutation routes enforce same-origin requests and per-client burst limits. Stripe webhooks are exempt from browser-origin checks and instead require Stripe signature verification.

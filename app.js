@@ -8,6 +8,21 @@ const userId = storedUserId && storedUserId !== 'default'
   ? storedUserId
   : `user-${crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
 localStorage.setItem('formlyUserId', userId);
+const billingState = {
+  loaded: false,
+  configured: false,
+  isPro: false,
+  priceDkk: 39,
+  limits: { coach: 60, vision: 4 },
+  remaining: { coach: 0, vision: 0 }
+};
+const authState = {
+  loaded: false,
+  configured: false,
+  authenticated: false,
+  user: null,
+  notice: ''
+};
 
 const installAppButton = document.createElement('button');
 installAppButton.type = 'button';
@@ -556,6 +571,10 @@ coachPanel.innerHTML = `
     <div class="coach-status-indicator"><i aria-hidden="true"></i><span id="coachStatus" class="coach-status">AI er klar</span></div>
     <div id="aiProviderStatus" class="coach-provider-status">Kontrollerer AI-status...</div>
   </div>
+  <div id="coachProGate" class="pro-inline-gate">
+    <div><span>PRO ONLINE</span><strong>AI-coach kræver Pro</strong><small>Personlig AI og billedanalyse · 39 kr./måned</small></div>
+    <button type="button" data-open-pro>Se Pro</button>
+  </div>
   <div class="coach-layout">
     <div class="coach-conversation">
       <div class="coach-conversation-heading"><span>SENESTE SVAR</span><small>Personlig analyse</small></div>
@@ -587,6 +606,370 @@ coachPanel.innerHTML = `
     </aside>
   </div>`;
 document.querySelector('.welcome').after(coachPanel);
+
+const proAccessButton = document.createElement('button');
+proAccessButton.type = 'button';
+proAccessButton.id = 'proAccessButton';
+proAccessButton.className = 'pro-access-button';
+proAccessButton.textContent = 'PRO · 39 KR';
+document.body.append(proAccessButton);
+
+const proAccessDialog = document.createElement('div');
+proAccessDialog.id = 'proAccessDialog';
+proAccessDialog.className = 'pro-access-dialog';
+proAccessDialog.hidden = true;
+proAccessDialog.innerHTML = `
+  <section class="pro-access-sheet" role="dialog" aria-modal="true" aria-labelledby="proAccessTitle">
+    <button type="button" class="pro-access-close" aria-label="Luk">×</button>
+    <div class="pro-access-heading">
+      <span>AIO PRO</span>
+      <h2 id="proAccessTitle">Online coaching, på din konto</h2>
+      <p>Gratisdelen fortsætter som før. Pro åbner de funktioner, der bruger online AI.</p>
+    </div>
+    <div class="pro-access-price"><strong>39</strong><span>kr.<small>pr. måned</small></span></div>
+    <ul class="pro-access-features">
+      <li><b>60</b><span>personlige AI-coachbeskeder hver måned</span></li>
+      <li><b>4</b><span>3-vinkels fysikanalyser hver måned</span></li>
+      <li><b>Fri</b><span>træning, mad, vægt og Withings uden abonnement</span></li>
+    </ul>
+    <div class="pro-auth-panel">
+      <div id="proAuthGuest">
+        <div class="pro-auth-tabs" role="tablist" aria-label="Konto">
+          <button type="button" class="active" data-auth-mode="login" role="tab" aria-selected="true">Log ind</button>
+          <button type="button" data-auth-mode="signup" role="tab" aria-selected="false">Opret konto</button>
+        </div>
+        <form id="proAuthForm" class="pro-auth-form">
+          <label>E-mail<input id="proAuthEmail" type="email" autocomplete="email" required></label>
+          <label>Adgangskode<input id="proAuthPassword" type="password" minlength="8" maxlength="128" autocomplete="current-password" required></label>
+          <button id="proAuthSubmit" type="submit">Log ind</button>
+        </form>
+      </div>
+      <div id="proAuthAccount" class="pro-auth-account" hidden>
+        <div><span>KONTO</span><strong id="proAuthEmailLabel"></strong></div>
+        <button id="proAuthLogout" type="button">Log ud</button>
+      </div>
+      <small id="proAuthStatus" class="pro-auth-status" role="status">Log ind for at aktivere eller administrere Pro.</small>
+    </div>
+    <div id="proUsageSummary" class="pro-usage-summary" hidden></div>
+    <button type="button" id="startProCheckout" class="pro-checkout-button">Start Pro for 39 kr./måned</button>
+    <small id="proCheckoutStatus" class="pro-checkout-status">Sikker betaling håndteres af Stripe. Opsig når som helst.</small>
+  </section>`;
+document.body.append(proAccessDialog);
+
+const proCheckoutButton = proAccessDialog.querySelector('#startProCheckout');
+const proCheckoutStatus = proAccessDialog.querySelector('#proCheckoutStatus');
+const proUsageSummary = proAccessDialog.querySelector('#proUsageSummary');
+const proAuthGuest = proAccessDialog.querySelector('#proAuthGuest');
+const proAuthAccount = proAccessDialog.querySelector('#proAuthAccount');
+const proAuthForm = proAccessDialog.querySelector('#proAuthForm');
+const proAuthEmail = proAccessDialog.querySelector('#proAuthEmail');
+const proAuthPassword = proAccessDialog.querySelector('#proAuthPassword');
+const proAuthSubmit = proAccessDialog.querySelector('#proAuthSubmit');
+const proAuthEmailLabel = proAccessDialog.querySelector('#proAuthEmailLabel');
+const proAuthStatus = proAccessDialog.querySelector('#proAuthStatus');
+const proAuthLogout = proAccessDialog.querySelector('#proAuthLogout');
+let authMode = 'login';
+
+function openProAccess() {
+  proAccessDialog.hidden = false;
+  document.body.classList.add('pro-dialog-open');
+  proAccessDialog.querySelector('.pro-access-close').focus();
+}
+
+function closeProAccess() {
+  proAccessDialog.hidden = true;
+  document.body.classList.remove('pro-dialog-open');
+}
+
+function setAuthMode(mode) {
+  authMode = mode === 'signup' ? 'signup' : 'login';
+  proAccessDialog.querySelectorAll('[data-auth-mode]').forEach((button) => {
+    const active = button.dataset.authMode === authMode;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+  proAuthPassword.autocomplete = authMode === 'signup' ? 'new-password' : 'current-password';
+  proAuthSubmit.textContent = authMode === 'signup' ? 'Opret gratis konto' : 'Log ind';
+  authState.notice = authMode === 'signup' ? 'Din gratis konto koster ingenting. Pro vælges separat.' : '';
+  updateAuthUi();
+}
+
+function updateAuthUi() {
+  proAuthGuest.hidden = authState.authenticated;
+  proAuthAccount.hidden = !authState.authenticated;
+  proAuthEmailLabel.textContent = authState.user?.email || '';
+  if (authState.authenticated) {
+    proAuthStatus.textContent = billingState.isPro ? 'Din konto har aktiv Pro-adgang.' : 'Kontoen er klar. Du kan nu vælge Pro.';
+  } else if (authState.notice) {
+    proAuthStatus.textContent = authState.notice;
+  } else if (!authState.loaded) {
+    proAuthStatus.textContent = 'Kontrollerer konto...';
+  } else if (!authState.configured) {
+    proAuthStatus.textContent = 'Konto-login klargøres.';
+  } else {
+    proAuthStatus.textContent = 'Log ind for at aktivere eller administrere Pro.';
+  }
+}
+
+function requireFreshLogin() {
+  setAuthMode('login');
+  authState.authenticated = false;
+  authState.user = null;
+  authState.notice = 'Din session er udløbet. Log ind igen.';
+  billingState.isPro = false;
+  updateBillingUi();
+  openProAccess();
+  proAuthEmail.focus();
+}
+
+function updateBillingUi() {
+  const hasOnlineAccess = authState.authenticated && billingState.isPro;
+  document.body.classList.toggle('has-pro-access', hasOnlineAccess);
+  proAccessButton.textContent = !authState.authenticated ? 'LOG IND · PRO' : hasOnlineAccess ? 'PRO AKTIV' : 'PRO · 39 KR';
+  proAccessButton.classList.toggle('is-active', billingState.isPro);
+  coachPanel.classList.toggle('is-pro-locked', !hasOnlineAccess);
+  const coachGate = coachPanel.querySelector('#coachProGate');
+  if (coachGate) coachGate.hidden = hasOnlineAccess;
+  coachPanel.querySelectorAll('#coachForm input, #coachForm button, .coach-suggestions button').forEach((control) => {
+    control.disabled = !hasOnlineAccess;
+  });
+  const physiquePanel = document.querySelector('#physique-ai');
+  if (physiquePanel) {
+    physiquePanel.classList.toggle('is-pro-locked', !hasOnlineAccess);
+    const gate = physiquePanel.querySelector('#physiqueProGate');
+    if (gate) gate.hidden = hasOnlineAccess;
+    const analyzeButton = physiquePanel.querySelector('#physiqueAnalyzeBtn');
+    const readyPhotos = [...physiquePanel.querySelectorAll('.physique-angle-card')].filter((card) => card.classList.contains('is-ready')).length;
+    if (analyzeButton) analyzeButton.disabled = !hasOnlineAccess || readyPhotos < 3;
+  }
+  if (!authState.authenticated) {
+    proUsageSummary.hidden = true;
+    proCheckoutButton.textContent = 'Log ind for at fortsætte';
+    proCheckoutButton.disabled = !authState.configured;
+    proCheckoutStatus.textContent = 'En konto sikrer, at abonnementet tilhører dig på tværs af enheder.';
+  } else if (billingState.isPro) {
+    proUsageSummary.hidden = false;
+    proUsageSummary.innerHTML = `<strong>Din Pro-kvote</strong><span>${billingState.remaining.coach} coachbeskeder · ${billingState.remaining.vision} fysikanalyser tilbage</span>`;
+    proCheckoutButton.textContent = 'Administrér Pro';
+    proCheckoutButton.disabled = !billingState.configured;
+    proCheckoutStatus.textContent = 'Se betalinger, skift kort eller opsig sikkert hos Stripe.';
+  } else {
+    proUsageSummary.hidden = true;
+    proCheckoutButton.textContent = 'Start Pro for 39 kr./måned';
+    proCheckoutButton.disabled = !billingState.configured;
+    proCheckoutStatus.textContent = billingState.configured
+      ? 'Sikker betaling håndteres af Stripe. Opsig når som helst.'
+      : 'Betaling klargøres. Ingen betaling kan gennemføres endnu.';
+  }
+  updateAuthUi();
+}
+
+function applyBillingStatus(status) {
+  if (!status) return;
+  billingState.loaded = true;
+  billingState.configured = Boolean(status.configured);
+  billingState.isPro = Boolean(status.is_pro);
+  billingState.priceDkk = Number(status.price_dkk) || 39;
+  billingState.limits = status.limits || billingState.limits;
+  billingState.remaining = status.remaining || billingState.remaining;
+  updateBillingUi();
+}
+
+async function loadBillingStatus() {
+  const params = new URLSearchParams(window.location.search);
+  const checkoutState = params.get('checkout');
+  const sessionId = params.get('session_id');
+  if (!authState.authenticated) {
+    billingState.loaded = true;
+    billingState.isPro = false;
+    updateBillingUi();
+    return;
+  }
+  try {
+    let response;
+    if (checkoutState === 'success' && sessionId) {
+      response = await fetch('/api/billing/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+    } else {
+      response = await fetch('/api/billing/status', { cache: 'no-store' });
+    }
+    const result = await response.json();
+    if (response.status === 401) {
+      requireFreshLogin();
+    }
+    if (!response.ok || !result?.ok) throw new Error(result?.message || 'billing-unavailable');
+    applyBillingStatus(result);
+    if (checkoutState === 'success') {
+      showToast('Pro er aktivt. Velkommen til online coaching.');
+      openProAccess();
+    }
+  } catch {
+    billingState.loaded = true;
+    updateBillingUi();
+    if (checkoutState === 'success') showToast('Betalingen kontrolleres stadig. Prøv igen om lidt.');
+  } finally {
+    if (checkoutState) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('checkout');
+      cleanUrl.searchParams.delete('session_id');
+      history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+    }
+  }
+}
+
+async function loadAuthSession() {
+  try {
+    const response = await fetch('/api/auth/session', { cache: 'no-store' });
+    const result = await response.json();
+    if (!response.ok || !result?.ok) throw new Error('auth-unavailable');
+    authState.loaded = true;
+    authState.configured = Boolean(result.configured);
+    authState.authenticated = Boolean(result.authenticated);
+    authState.user = result.user || null;
+    authState.notice = '';
+    billingState.configured = Boolean(result.billing_configured);
+  } catch {
+    authState.loaded = true;
+    authState.authenticated = false;
+    authState.user = null;
+  }
+  updateBillingUi();
+}
+
+async function loadAccountState() {
+  await loadAuthSession();
+  await loadBillingStatus();
+}
+
+async function consumeAuthRedirect() {
+  if (!window.location.hash.includes('=')) return false;
+  const fragment = new URLSearchParams(window.location.hash.slice(1));
+  const refreshToken = fragment.get('refresh_token');
+  const authError = fragment.get('error_description');
+  if (!refreshToken && !authError) return false;
+  history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}#top`);
+  openProAccess();
+  if (authError) {
+    authState.loaded = true;
+    authState.notice = 'Bekræftelseslinket er ugyldigt eller udløbet. Log ind eller opret kontoen igen.';
+    updateBillingUi();
+    return true;
+  }
+  try {
+    const response = await fetch('/api/auth/exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    const result = await response.json();
+    if (!response.ok || !result?.authenticated) throw new Error('confirmation-failed');
+    authState.loaded = true;
+    authState.configured = true;
+    authState.authenticated = true;
+    authState.user = result.user || null;
+    authState.notice = '';
+    await loadBillingStatus();
+    showToast('Din konto er bekræftet og logget ind.');
+  } catch {
+    authState.loaded = true;
+    authState.notice = 'Bekræftelsen kunne ikke gennemføres. Prøv at logge ind.';
+    updateBillingUi();
+  }
+  return true;
+}
+
+async function initializeAccountState() {
+  const consumedRedirect = await consumeAuthRedirect();
+  if (!consumedRedirect) await loadAccountState();
+}
+
+proAccessButton.addEventListener('click', openProAccess);
+document.querySelectorAll('[data-open-pro]').forEach((button) => button.addEventListener('click', openProAccess));
+proAccessDialog.querySelector('.pro-access-close').addEventListener('click', closeProAccess);
+proAccessDialog.addEventListener('click', (event) => {
+  if (event.target === proAccessDialog) closeProAccess();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !proAccessDialog.hidden) closeProAccess();
+});
+proAccessDialog.querySelectorAll('[data-auth-mode]').forEach((button) => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
+proAuthForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  proAuthSubmit.disabled = true;
+  proAuthSubmit.textContent = authMode === 'signup' ? 'Opretter konto...' : 'Logger ind...';
+  try {
+    const response = await fetch(`/api/auth/${authMode}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: proAuthEmail.value.trim(), password: proAuthPassword.value })
+    });
+    const result = await response.json();
+    if (!response.ok || !result?.ok) throw new Error(result?.message || 'Login kunne ikke gennemføres.');
+    proAuthPassword.value = '';
+    if (result.authenticated) {
+      authState.authenticated = true;
+      authState.user = result.user || null;
+      authState.notice = '';
+      await loadBillingStatus();
+    } else {
+      authState.notice = 'Tjek din e-mail og bekræft kontoen. Åbn derefter appen igen.';
+    }
+  } catch (error) {
+    authState.notice = error.message;
+  } finally {
+    proAuthSubmit.disabled = false;
+    proAuthSubmit.textContent = authMode === 'signup' ? 'Opret gratis konto' : 'Log ind';
+    updateBillingUi();
+  }
+});
+proAuthLogout.addEventListener('click', async () => {
+  proAuthLogout.disabled = true;
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    if (!response.ok) throw new Error('logout-failed');
+    authState.authenticated = false;
+    authState.user = null;
+    billingState.isPro = false;
+    billingState.remaining = { coach: 0, vision: 0 };
+    setAuthMode('login');
+    updateBillingUi();
+  } catch {
+    showToast('Logout kunne ikke gennemføres. Prøv igen.');
+  } finally {
+    proAuthLogout.disabled = false;
+  }
+});
+proCheckoutButton.addEventListener('click', async () => {
+  if (!authState.authenticated) {
+    proAuthEmail.focus();
+    return;
+  }
+  if (!billingState.configured) return;
+  proCheckoutButton.disabled = true;
+  proCheckoutButton.textContent = billingState.isPro ? 'Åbner Pro-indstillinger...' : 'Åbner sikker betaling...';
+  try {
+    const response = await fetch(billingState.isPro ? '/api/billing/portal' : '/api/billing/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const result = await response.json();
+    if (response.status === 401) {
+      requireFreshLogin();
+      return;
+    }
+    if (!response.ok || !result?.url) throw new Error(result?.message || 'checkout-unavailable');
+    window.location.assign(result.url);
+  } catch (error) {
+    proCheckoutStatus.textContent = error.message === 'checkout-unavailable' ? 'Betaling kunne ikke åbnes. Prøv igen.' : error.message;
+    proCheckoutButton.textContent = billingState.isPro ? 'Administrér Pro' : 'Start Pro for 39 kr./måned';
+    proCheckoutButton.disabled = false;
+  }
+});
+initializeAccountState();
 
 const dailyFocusCard = document.createElement('section');
 dailyFocusCard.className = 'daily-focus-card';
@@ -794,6 +1177,11 @@ function getLocalCoachContext() {
 }
 async function askLocalCoach(question, selectedImages = null) {
   const coachStatus = coachPanel.querySelector('#coachStatus');
+  if (!authState.authenticated || !billingState.isPro) {
+    coachStatus.textContent = authState.authenticated ? 'Pro kræves til online AI' : 'Log ind for at bruge online AI';
+    openProAccess();
+    return '';
+  }
   coachStatus.textContent = 'Lokal AI tænker...';
   const physiqueQuestion = /fysik|billede|foto|krop/i.test(question);
   const physiquePhotos = [...JSON.parse(localStorage.getItem('formlyWeightHistory') || '[]')]
@@ -819,9 +1207,27 @@ async function askLocalCoach(question, selectedImages = null) {
       })
     });
 
-    if (!response.ok) throw new Error('local-api-error');
     const result = await response.json();
+    if (response.status === 401) {
+      requireFreshLogin();
+      coachStatus.textContent = 'Log ind for at bruge online AI';
+      return '';
+    }
+    if (response.status === 402) {
+      applyBillingStatus(result.billing);
+      openProAccess();
+      coachStatus.textContent = 'Pro kræves til online AI';
+      return '';
+    }
+    if (response.status === 429) {
+      applyBillingStatus(result.billing);
+      coachStatus.textContent = 'Månedlig Pro-kvote er brugt';
+      showToast(result.message || 'Din månedlige Pro-kvote er brugt');
+      return '';
+    }
+    if (!response.ok) throw new Error('local-api-error');
     if (result?.answer && String(result.answer).trim()) {
+      applyBillingStatus(result.billing);
       coachStatus.textContent = 'AI er klar';
       return String(result.answer).trim();
     }
@@ -855,6 +1261,7 @@ coachPanel.querySelector('#coachForm').addEventListener('submit', async (event) 
   const question = coachPanel.querySelector('#coachQuestion').value.trim();
   if (!question) return;
   const answer = await askLocalCoach(question);
+  if (!answer) return;
   coachAnswer.textContent = answer;
   saveCoachConversation(question, answer);
   coachPanel.querySelector('#coachQuestion').value = '';
@@ -862,6 +1269,7 @@ coachPanel.querySelector('#coachForm').addEventListener('submit', async (event) 
 coachPanel.querySelectorAll('.coach-suggestions button').forEach((button) => button.addEventListener('click', async () => {
   const question = button.dataset.question;
   const answer = await askLocalCoach(question);
+  if (!answer) return;
   coachAnswer.textContent = answer;
   saveCoachConversation(question, answer);
 }));
@@ -1224,6 +1632,10 @@ physiqueAiPanel.innerHTML = `
       <span class="progress-live">3 ANGLE SCAN</span>
     </div>
   </div>
+  <div id="physiqueProGate" class="pro-inline-gate">
+    <div><span>PRO ONLINE</span><strong>3-vinkels AI-analyse</strong><small>4 personlige scanninger hver måned · 39 kr./måned</small></div>
+    <button type="button" data-open-pro>Se Pro</button>
+  </div>
   <div id="physique3dStage" class="physique-3d-stage" role="img" aria-label="Tredimensionel visualisering af AI kropsscanning">
     <canvas id="physique3dCanvas"></canvas>
     <div class="physique-3d-hud"><span>AI MUSCLE MAP</span><strong id="physique3dStatus">AWAITING INPUT</strong></div>
@@ -1300,6 +1712,8 @@ physiqueAiPanel.innerHTML = `
 `;
 trainingProgressPanel.after(physiqueAiPanel);
 physiqueAiPanel.querySelector('#physiqueBackButton').addEventListener('click', () => window.showAppPage?.('overview'));
+physiqueAiPanel.querySelector('[data-open-pro]').addEventListener('click', openProAccess);
+updateBillingUi();
 
 const physiqueHeightInput = physiqueAiPanel.querySelector('#physiqueHeight');
 const physiqueWeightInput = physiqueAiPanel.querySelector('#physiqueWeight');
@@ -1426,7 +1840,7 @@ function updatePhysiqueScanReadiness() {
   });
   physiqueScanReadiness.textContent = `${readyCount}/3 VINKLER KLAR`;
   physiqueScanReadiness.parentElement.classList.toggle('is-ready', readyCount === 3);
-  physiqueAnalyzeBtn.disabled = readyCount < 3;
+  physiqueAnalyzeBtn.disabled = readyCount < 3 || !billingState.isPro;
   if (!physiqueAiStatus.dataset.source) {
     physiqueAiStatus.textContent = readyCount === 3 ? 'BODY SCAN READY' : `MANGLER ${3 - readyCount} VINKEL${readyCount === 2 ? '' : 'ER'}`;
   }
@@ -1584,14 +1998,31 @@ async function requestPhysiqueVisionAnalysis(profile, photos) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question: prompt, context: { physique: profile, photoAngles: ['front', 'right', 'left'] }, images, isPhysiqueQuestion: true })
   });
-  if (!response.ok) throw new Error('physique-ai-unavailable');
   const result = await response.json();
+  if (response.status === 401) {
+    requireFreshLogin();
+    throw new Error('auth-required');
+  }
+  if (response.status === 402) {
+    applyBillingStatus(result.billing);
+    openProAccess();
+    throw new Error('pro-required');
+  }
+  if (response.status === 429) {
+    applyBillingStatus(result.billing);
+    throw new Error('quota-exceeded');
+  }
+  if (!response.ok) throw new Error('physique-ai-unavailable');
   const parsed = parsePhysiqueAiAnswer(result?.answer);
   if (!parsed) throw new Error('physique-ai-invalid');
   return parsed;
 }
 
 physiqueAnalyzeBtn.addEventListener('click', async () => {
+  if (!authState.authenticated || !billingState.isPro) {
+    openProAccess();
+    return;
+  }
   renderPhysiqueAssessment();
   const photos = getPhysiquePhotos();
   if (photos.some((photo) => !photo.data)) {
@@ -1609,7 +2040,22 @@ physiqueAnalyzeBtn.addEventListener('click', async () => {
     renderPhysiqueMuscleAnalysis(analysis, 'vision');
     localStorage.setItem('formlyPhysiqueMuscleAnalysis', JSON.stringify({ ...analysis, source: 'vision', updatedAt: new Date().toISOString() }));
     showToast('3-vinkels AI-analyse er klar');
-  } catch {
+  } catch (error) {
+    if (error.message === 'auth-required') {
+      physiqueAiStatus.textContent = 'LOG IND FOR ONLINE AI';
+      showToast('Log ind for at bruge AI-fysikanalyse');
+      return;
+    }
+    if (error.message === 'pro-required') {
+      physiqueAiStatus.textContent = 'PRO KRÆVES';
+      showToast('Pro kræves til AI-fysikanalyse');
+      return;
+    }
+    if (error.message === 'quota-exceeded') {
+      physiqueAiStatus.textContent = 'MÅNEDLIG KVOTE BRUGT';
+      showToast('Din månedlige fysikanalyse-kvote er brugt');
+      return;
+    }
     renderPhysiqueMuscleAnalysis(fallback, 'fallback');
     localStorage.setItem('formlyPhysiqueMuscleAnalysis', JSON.stringify({ ...fallback, source: 'fallback', updatedAt: new Date().toISOString() }));
     showToast('Vision-AI var offline - din målbaserede plan er klar');
@@ -1872,6 +2318,10 @@ function renderWeightHistory() {
     const resultElement = weightHistoryList.querySelector(`[data-weight-result="${button.dataset.weightIndex}"]`);
     try {
       const answer = await askLocalCoach(`Vurder mit fysikfoto fra ${entry.date || 'denne måling'} sammen med min vægt på ${formatWeight(entry.weight)} kg. Beskriv kun synlige, ikke-medicinske ændringer med respektfuldt sprog. Nævn om der ses tegn på mere muskelmasse eller fedt, men sig tydeligt hvis billedet ikke giver sikkert grundlag.`, [entry.photo]);
+      if (!answer) {
+        button.textContent = 'Vurder foto med AI';
+        return;
+      }
       if (resultElement) resultElement.textContent = answer;
       button.textContent = 'AI-vurdering færdig';
     } catch {

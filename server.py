@@ -5,9 +5,11 @@ import hmac
 import json
 import mimetypes
 import os
+import threading
 import time
 import urllib.error
 import urllib.request
+from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlencode, urlparse
@@ -35,6 +37,13 @@ DEFAULT_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3.2')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 OPENAI_BASE_URL = os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1')
 OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+OPENAI_MAX_OUTPUT_TOKENS = int(os.environ.get('OPENAI_MAX_OUTPUT_TOKENS', '900'))
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
+SUPABASE_PUBLISHABLE_KEY = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '')
+PUBLIC_APP_URL = os.environ.get('PUBLIC_APP_URL', 'https://web-production-2385a.up.railway.app').rstrip('/')
 APP_BUILD = os.environ.get('RAILWAY_GIT_COMMIT_SHA') or os.environ.get('APP_BUILD') or 'local'
 WITHINGS_CLIENT_ID = os.environ.get('WITHINGS_CLIENT_ID')
 WITHINGS_CLIENT_SECRET = os.environ.get('WITHINGS_CLIENT_SECRET')
@@ -50,6 +59,78 @@ WHOOP_TOKEN_URL = os.environ.get('WHOOP_TOKEN_URL', 'https://api-portal.whoop.co
 REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://web-production-2385a.up.railway.app/api/provider/callback')
 RAILWAY_VOLUME_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '').strip()
 TOKEN_STORE_PATH = Path(os.environ.get('TOKEN_STORE_PATH') or (Path(RAILWAY_VOLUME_PATH) / 'withings_tokens.json' if RAILWAY_VOLUME_PATH else ROOT / '.withings_tokens.json'))
+PRO_MONTHLY_PRICE_DKK = 39
+PRO_COACH_MONTHLY_LIMIT = int(os.environ.get('PRO_COACH_MONTHLY_LIMIT', '60'))
+PRO_VISION_MONTHLY_LIMIT = int(os.environ.get('PRO_VISION_MONTHLY_LIMIT', '4'))
+MAX_COACH_REQUEST_BYTES = int(os.environ.get('MAX_COACH_REQUEST_BYTES', str(12 * 1024 * 1024)))
+BILLING_STORE_PATH = Path(os.environ.get('BILLING_STORE_PATH') or (Path(RAILWAY_VOLUME_PATH) / 'billing.json' if RAILWAY_VOLUME_PATH else ROOT / '.billing.json'))
+BILLING_STORE_LOCK = threading.Lock()
+AUTH_ACCESS_COOKIE = 'aio_access_token'
+AUTH_REFRESH_COOKIE = 'aio_refresh_token'
+RATE_LIMIT_WINDOW_SECONDS = max(1, int(os.environ.get('RATE_LIMIT_WINDOW_SECONDS', '60')))
+AUTH_BURST_LIMIT = max(1, int(os.environ.get('AUTH_BURST_LIMIT', '10')))
+BILLING_BURST_LIMIT = max(1, int(os.environ.get('BILLING_BURST_LIMIT', '20')))
+COACH_BURST_LIMIT = max(1, int(os.environ.get('COACH_BURST_LIMIT', '10')))
+RATE_LIMIT_MAX_BUCKETS = max(128, int(os.environ.get('RATE_LIMIT_MAX_BUCKETS', '4096')))
+RATE_LIMIT_LOCK = threading.Lock()
+RATE_LIMIT_BUCKETS = {}
+
+
+def rate_limit_exceeded(scope: str, client_id: str, limit: int) -> bool:
+    now = time.monotonic()
+    cutoff = now - RATE_LIMIT_WINDOW_SECONDS
+    key = (scope, client_id)
+    with RATE_LIMIT_LOCK:
+        if key not in RATE_LIMIT_BUCKETS and len(RATE_LIMIT_BUCKETS) >= RATE_LIMIT_MAX_BUCKETS:
+            stale_keys = [bucket_key for bucket_key, timestamps in RATE_LIMIT_BUCKETS.items() if not timestamps or timestamps[-1] <= cutoff]
+            for stale_key in stale_keys:
+                RATE_LIMIT_BUCKETS.pop(stale_key, None)
+            if len(RATE_LIMIT_BUCKETS) >= RATE_LIMIT_MAX_BUCKETS:
+                oldest_key = min(RATE_LIMIT_BUCKETS, key=lambda bucket_key: RATE_LIMIT_BUCKETS[bucket_key][-1])
+                RATE_LIMIT_BUCKETS.pop(oldest_key, None)
+        requests = [timestamp for timestamp in RATE_LIMIT_BUCKETS.get(key, []) if timestamp > cutoff]
+        if len(requests) >= limit:
+            RATE_LIMIT_BUCKETS[key] = requests
+            return True
+        requests.append(now)
+        RATE_LIMIT_BUCKETS[key] = requests
+        return False
+
+
+class SupabaseAuthError(RuntimeError):
+    def __init__(self, message: str, status: int = 400):
+        super().__init__(message)
+        self.status = status
+
+
+def supabase_auth_request(path: str, method: str = 'GET', payload: dict | None = None, access_token: str = '') -> dict:
+    if not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY:
+        raise RuntimeError('Supabase login er ikke konfigureret endnu.')
+    body = json.dumps(payload).encode('utf-8') if payload is not None else None
+    headers = {
+        'apikey': SUPABASE_PUBLISHABLE_KEY,
+        'Content-Type': 'application/json'
+    }
+    if access_token:
+        headers['Authorization'] = f'Bearer {access_token}'
+    request_obj = urllib.request.Request(
+        f'{SUPABASE_URL}{path}',
+        data=body,
+        headers=headers,
+        method=method
+    )
+    try:
+        with urllib.request.urlopen(request_obj, timeout=15) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        try:
+            error_payload = json.loads(exc.read().decode('utf-8'))
+            message = str(error_payload.get('msg') or error_payload.get('message') or error_payload.get('error_description') or '')
+        except (ValueError, UnicodeDecodeError):
+            message = ''
+        raise SupabaseAuthError(message or 'Supabase kunne ikke gennemføre login.', exc.code) from None
+    except (urllib.error.URLError, TimeoutError):
+        raise RuntimeError('Supabase kunne ikke kontaktes. Prøv igen.') from None
 
 
 def normalize_user_id(value: str | None) -> str:
@@ -58,6 +139,192 @@ def normalize_user_id(value: str | None) -> str:
     if not user_id or user_id == 'default' or len(user_id) > 120 or any(character not in allowed for character in user_id):
         raise ValueError('A unique user_id is required')
     return user_id
+
+
+def read_billing_store() -> dict:
+    if not BILLING_STORE_PATH.exists():
+        return {'users': {}}
+    try:
+        payload = json.loads(BILLING_STORE_PATH.read_text(encoding='utf-8'))
+        return payload if isinstance(payload, dict) else {'users': {}}
+    except (OSError, ValueError):
+        return {'users': {}}
+
+
+def write_billing_store(store: dict):
+    BILLING_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = BILLING_STORE_PATH.with_suffix(f'{BILLING_STORE_PATH.suffix}.tmp')
+    temporary_path.write_text(json.dumps(store, ensure_ascii=False, indent=2), encoding='utf-8')
+    temporary_path.replace(BILLING_STORE_PATH)
+
+
+def billing_period_key() -> str:
+    return time.strftime('%Y-%m', time.gmtime())
+
+
+def get_billing_status(user_id: str) -> dict:
+    user = read_billing_store().get('users', {}).get(normalize_user_id(user_id), {})
+    is_pro = user.get('status') in ('active', 'trialing')
+    usage = user.get('usage', {}).get(billing_period_key(), {}) if is_pro else {}
+    coach_used = max(0, int(usage.get('coach', 0) or 0))
+    vision_used = max(0, int(usage.get('vision', 0) or 0))
+    return {
+        'configured': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+        'plan': 'pro' if is_pro else 'free',
+        'is_pro': is_pro,
+        'price_dkk': PRO_MONTHLY_PRICE_DKK,
+        'period': billing_period_key(),
+        'limits': {'coach': PRO_COACH_MONTHLY_LIMIT, 'vision': PRO_VISION_MONTHLY_LIMIT},
+        'usage': {'coach': coach_used, 'vision': vision_used},
+        'remaining': {
+            'coach': max(0, PRO_COACH_MONTHLY_LIMIT - coach_used),
+            'vision': max(0, PRO_VISION_MONTHLY_LIMIT - vision_used)
+        }
+    }
+
+
+def record_ai_usage(user_id: str, usage_type: str):
+    if usage_type not in ('coach', 'vision'):
+        return
+    with BILLING_STORE_LOCK:
+        store = read_billing_store()
+        users = store.setdefault('users', {})
+        user = users.setdefault(normalize_user_id(user_id), {})
+        period_usage = user.setdefault('usage', {}).setdefault(billing_period_key(), {})
+        period_usage[usage_type] = max(0, int(period_usage.get(usage_type, 0) or 0)) + 1
+        write_billing_store(store)
+
+
+def save_subscription(user_id: str, status: str, customer_id: str = '', subscription_id: str = '', period_end: int = 0):
+    normalized_user_id = normalize_user_id(user_id)
+    with BILLING_STORE_LOCK:
+        store = read_billing_store()
+        user = store.setdefault('users', {}).setdefault(normalized_user_id, {})
+        user.update({
+            'status': status,
+            'customer_id': customer_id or user.get('customer_id', ''),
+            'subscription_id': subscription_id or user.get('subscription_id', ''),
+            'period_end': int(period_end or user.get('period_end', 0)),
+            'updated_at': int(time.time())
+        })
+        write_billing_store(store)
+
+
+def stripe_api_request(method: str, path: str, params: dict | None = None) -> dict:
+    if not STRIPE_SECRET_KEY:
+        raise RuntimeError('Stripe er ikke konfigureret endnu.')
+    body = urlencode(params or {}).encode('utf-8') if params is not None else None
+    request_obj = urllib.request.Request(
+        f'https://api.stripe.com/v1/{path.lstrip("/")}',
+        data=body,
+        headers={
+            'Authorization': f'Bearer {STRIPE_SECRET_KEY}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        method=method
+    )
+    try:
+        with urllib.request.urlopen(request_obj, timeout=20) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        try:
+            message = json.loads(exc.read().decode('utf-8')).get('error', {}).get('message', '')
+        except (ValueError, UnicodeDecodeError):
+            message = ''
+        raise RuntimeError(message or 'Stripe kunne ikke gennemføre handlingen.') from None
+
+
+def create_checkout_session(user_id: str) -> dict:
+    normalized_user_id = normalize_user_id(user_id)
+    if not STRIPE_PRICE_ID or not STRIPE_WEBHOOK_SECRET:
+        raise RuntimeError('Stripe Checkout mangler price-ID eller webhook-secret.')
+    if get_billing_status(normalized_user_id)['is_pro']:
+        raise RuntimeError('Brugeren har allerede Pro.')
+    return stripe_api_request('POST', 'checkout/sessions', {
+        'mode': 'subscription',
+        'client_reference_id': normalized_user_id,
+        'line_items[0][price]': STRIPE_PRICE_ID,
+        'line_items[0][quantity]': '1',
+        'subscription_data[metadata][user_id]': normalized_user_id,
+        'success_url': f'{PUBLIC_APP_URL}/?checkout=success&session_id={{CHECKOUT_SESSION_ID}}#coach',
+        'cancel_url': f'{PUBLIC_APP_URL}/?checkout=cancelled#coach',
+        'allow_promotion_codes': 'true',
+        'locale': 'da'
+    })
+
+
+def confirm_checkout_session(session_id: str, user_id: str) -> dict:
+    normalized_user_id = normalize_user_id(user_id)
+    clean_session_id = (session_id or '').strip()
+    if not clean_session_id.startswith('cs_') or len(clean_session_id) > 160:
+        raise ValueError('Invalid checkout session')
+    session = stripe_api_request('GET', f'checkout/sessions/{clean_session_id}')
+    if session.get('client_reference_id') != normalized_user_id:
+        raise ValueError('Checkout session does not belong to this user')
+    if session.get('status') != 'complete' or session.get('payment_status') not in ('paid', 'no_payment_required'):
+        raise RuntimeError('Betalingen er ikke gennemført endnu.')
+    save_subscription(
+        normalized_user_id,
+        'active',
+        str(session.get('customer') or ''),
+        str(session.get('subscription') or '')
+    )
+    return get_billing_status(normalized_user_id)
+
+
+def create_billing_portal_session(user_id: str) -> dict:
+    normalized_user_id = normalize_user_id(user_id)
+    user = read_billing_store().get('users', {}).get(normalized_user_id, {})
+    customer_id = str(user.get('customer_id') or '')
+    if user.get('status') not in ('active', 'trialing') or not customer_id.startswith('cus_'):
+        raise RuntimeError('Der blev ikke fundet et aktivt Pro-abonnement.')
+    return stripe_api_request('POST', 'billing_portal/sessions', {
+        'customer': customer_id,
+        'return_url': f'{PUBLIC_APP_URL}/#coach'
+    })
+
+
+def verify_stripe_signature(payload: bytes, signature_header: str):
+    if not STRIPE_WEBHOOK_SECRET:
+        raise ValueError('Stripe webhook is not configured')
+    parts = {}
+    for item in (signature_header or '').split(','):
+        key, separator, value = item.partition('=')
+        if separator:
+            parts.setdefault(key, []).append(value)
+    try:
+        timestamp = int(parts.get('t', ['0'])[0])
+    except ValueError:
+        raise ValueError('Invalid Stripe signature') from None
+    if abs(int(time.time()) - timestamp) > 300:
+        raise ValueError('Expired Stripe signature')
+    signed_payload = f'{timestamp}.'.encode('ascii') + payload
+    expected = hmac.new(STRIPE_WEBHOOK_SECRET.encode('utf-8'), signed_payload, hashlib.sha256).hexdigest()
+    if not any(hmac.compare_digest(expected, signature) for signature in parts.get('v1', [])):
+        raise ValueError('Invalid Stripe signature')
+
+
+def handle_stripe_event(event: dict):
+    event_type = str(event.get('type') or '')
+    resource = event.get('data', {}).get('object', {})
+    if event_type == 'checkout.session.completed':
+        user_id = resource.get('client_reference_id') or resource.get('metadata', {}).get('user_id')
+        if user_id and resource.get('payment_status') in ('paid', 'no_payment_required'):
+            save_subscription(user_id, 'active', str(resource.get('customer') or ''), str(resource.get('subscription') or ''))
+        return
+    if event_type in ('customer.subscription.updated', 'customer.subscription.deleted'):
+        user_id = resource.get('metadata', {}).get('user_id')
+        if user_id:
+            status = str(resource.get('status') or 'inactive')
+            if event_type == 'customer.subscription.deleted':
+                status = 'canceled'
+            save_subscription(
+                user_id,
+                status,
+                str(resource.get('customer') or ''),
+                str(resource.get('id') or ''),
+                int(resource.get('current_period_end') or 0)
+            )
 
 
 def create_oauth_state(provider: str, user_id: str) -> str:
@@ -142,7 +409,8 @@ def call_openai(question: str, context: dict | None = None, images: list[str] | 
     payload = {
         'model': OPENAI_MODEL,
         'messages': messages,
-        'temperature': 0.7
+        'temperature': 0.7,
+        'max_tokens': OPENAI_MAX_OUTPUT_TOKENS
     }
     body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
     request_obj = urllib.request.Request(
@@ -503,6 +771,99 @@ class LocalAIHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
+    def client_id(self) -> str:
+        forwarded_for = self.headers.get('X-Forwarded-For', '')
+        return (forwarded_for.split(',', 1)[0].strip() if forwarded_for else '') or self.client_address[0]
+
+    def require_same_origin(self) -> bool:
+        if self.headers.get('Sec-Fetch-Site', '').lower() == 'cross-site':
+            self.send_json({'ok': False, 'message': 'Cross-site request rejected.'}, 403)
+            return False
+        origin = self.headers.get('Origin', '').rstrip('/')
+        if not origin:
+            return True
+        forwarded_host = self.headers.get('X-Forwarded-Host', '').split(',', 1)[0].strip()
+        host = forwarded_host or self.headers.get('Host', '').strip()
+        forwarded_proto = self.headers.get('X-Forwarded-Proto', '').split(',', 1)[0].strip().lower()
+        scheme = forwarded_proto or ('https' if self.headers.get('X-Forwarded-Ssl', '').lower() == 'on' else 'http')
+        allowed_origins = {f'{scheme}://{host}'.rstrip('/'), PUBLIC_APP_URL}
+        if origin not in allowed_origins:
+            self.send_json({'ok': False, 'message': 'Cross-site request rejected.'}, 403)
+            return False
+        return True
+
+    def enforce_rate_limit(self, scope: str, limit: int) -> bool:
+        if rate_limit_exceeded(scope, self.client_id(), limit):
+            self.send_json({'ok': False, 'code': 'rate_limited', 'message': 'For mange forsøg. Vent et øjeblik og prøv igen.'}, 429)
+            return False
+        return True
+
+    def checked_content_length(self, max_bytes: int, too_large_message: str = 'Request body is too large') -> int | None:
+        try:
+            content_length = int(self.headers.get('Content-Length', '0') or 0)
+        except (TypeError, ValueError):
+            self.send_json({'ok': False, 'message': 'Invalid Content-Length'}, 400)
+            return None
+        if content_length <= 0:
+            self.send_json({'ok': False, 'message': 'Invalid request body'}, 400)
+            return None
+        if content_length > max_bytes:
+            self.send_json({'ok': False, 'message': too_large_message}, 413)
+            return None
+        return content_length
+
+    def cookie_value(self, name: str) -> str:
+        cookie = SimpleCookie()
+        try:
+            cookie.load(self.headers.get('Cookie', ''))
+        except CookieError:
+            return ''
+        value = cookie.get(name)
+        return value.value if value else ''
+
+    def queue_cookie(self, name: str, value: str, max_age: int):
+        secure = ' Secure;' if self.headers.get('X-Forwarded-Proto', '').lower() == 'https' else ''
+        cookie = f'{name}={value}; Path=/; Max-Age={max(0, int(max_age))}; HttpOnly; SameSite=Lax;{secure}'
+        self._pending_response_headers = getattr(self, '_pending_response_headers', [])
+        self._pending_response_headers.append(('Set-Cookie', cookie))
+
+    def set_auth_session(self, session: dict):
+        access_token = str(session.get('access_token') or '')
+        refresh_token = str(session.get('refresh_token') or '')
+        if access_token and refresh_token:
+            self.queue_cookie(AUTH_ACCESS_COOKIE, access_token, int(session.get('expires_in') or 3600))
+            self.queue_cookie(AUTH_REFRESH_COOKIE, refresh_token, 60 * 60 * 24 * 30)
+
+    def clear_auth_session(self):
+        self.queue_cookie(AUTH_ACCESS_COOKIE, '', 0)
+        self.queue_cookie(AUTH_REFRESH_COOKIE, '', 0)
+
+    def authenticated_user(self) -> dict:
+        access_token = self.cookie_value(AUTH_ACCESS_COOKIE)
+        if access_token:
+            try:
+                user = supabase_auth_request('/auth/v1/user', access_token=access_token)
+                if user.get('id'):
+                    return user
+            except (SupabaseAuthError, RuntimeError):
+                pass
+
+        refresh_token = self.cookie_value(AUTH_REFRESH_COOKIE)
+        if not refresh_token:
+            return {}
+        try:
+            session = supabase_auth_request(
+                '/auth/v1/token?grant_type=refresh_token',
+                method='POST',
+                payload={'refresh_token': refresh_token}
+            )
+            self.set_auth_session(session)
+            user = session.get('user') or {}
+            return user if user.get('id') else {}
+        except (SupabaseAuthError, RuntimeError):
+            self.clear_auth_session()
+            return {}
+
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == '/api/health':
@@ -517,9 +878,30 @@ class LocalAIHandler(BaseHTTPRequestHandler):
                 'openai_base_url': OPENAI_BASE_URL,
                 'publicly_hosted_ready': bool(OPENAI_API_KEY),
                 'vision_ready': bool(OPENAI_API_KEY),
+                'auth_configured': bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
+                'billing_configured': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
                 'withings_configured': bool(WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET),
                 'persistent_token_store': bool(RAILWAY_VOLUME_PATH or os.environ.get('TOKEN_STORE_PATH'))
             })
+            return
+
+        if parsed.path == '/api/auth/session':
+            user = self.authenticated_user()
+            self.send_json({
+                'ok': True,
+                'configured': bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
+                'billing_configured': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+                'authenticated': bool(user),
+                'user': {'id': user.get('id'), 'email': user.get('email')} if user else None
+            })
+            return
+
+        if parsed.path == '/api/billing/status':
+            user = self.authenticated_user()
+            if not user:
+                self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at se Pro-status.'}, 401)
+                return
+            self.send_json({'ok': True, **get_billing_status(str(user['id']))})
             return
 
         if parsed.path == '/api/provider/status':
@@ -635,6 +1017,116 @@ class LocalAIHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        if parsed.path == '/api/billing/webhook':
+            content_length = self.checked_content_length(1024 * 1024, 'Webhook body is too large')
+            if content_length is None:
+                return
+            raw_body = self.rfile.read(content_length)
+            try:
+                verify_stripe_signature(raw_body, self.headers.get('Stripe-Signature', ''))
+                event = json.loads(raw_body.decode('utf-8'))
+                handle_stripe_event(event)
+                self.send_json({'ok': True})
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                self.send_json({'ok': False, 'message': str(exc)}, 400)
+            return
+
+        if parsed.path.startswith('/api/') and not self.require_same_origin():
+            return
+
+        if parsed.path in ('/api/auth/signup', '/api/auth/login', '/api/auth/logout', '/api/auth/exchange'):
+            if not self.enforce_rate_limit('auth', AUTH_BURST_LIMIT):
+                return
+            if parsed.path == '/api/auth/logout':
+                access_token = self.cookie_value(AUTH_ACCESS_COOKIE)
+                if access_token:
+                    try:
+                        supabase_auth_request('/auth/v1/logout', method='POST', access_token=access_token)
+                    except (SupabaseAuthError, RuntimeError):
+                        pass
+                self.clear_auth_session()
+                self.send_json({'ok': True, 'authenticated': False})
+                return
+
+            content_length = self.checked_content_length(65536)
+            if content_length is None:
+                return
+            try:
+                payload = json.loads(self.rfile.read(content_length).decode('utf-8'))
+                if parsed.path == '/api/auth/exchange':
+                    refresh_token = str(payload.get('refresh_token') or '')
+                    if not refresh_token or len(refresh_token) > 4096:
+                        raise ValueError('Bekræftelseslinket er ugyldigt eller udløbet.')
+                    session = supabase_auth_request(
+                        '/auth/v1/token?grant_type=refresh_token',
+                        method='POST',
+                        payload={'refresh_token': refresh_token}
+                    )
+                else:
+                    email = str(payload.get('email') or '').strip().lower()
+                    password = str(payload.get('password') or '')
+                    if '@' not in email or len(email) > 254:
+                        raise ValueError('Skriv en gyldig e-mailadresse.')
+                    if len(password) < 8 or len(password) > 128:
+                        raise ValueError('Adgangskoden skal være mellem 8 og 128 tegn.')
+                    if parsed.path == '/api/auth/signup':
+                        redirect_query = urlencode({'redirect_to': PUBLIC_APP_URL})
+                        session = supabase_auth_request(
+                            f'/auth/v1/signup?{redirect_query}',
+                            method='POST',
+                            payload={'email': email, 'password': password}
+                        )
+                    else:
+                        session = supabase_auth_request(
+                            '/auth/v1/token?grant_type=password',
+                            method='POST',
+                            payload={'email': email, 'password': password}
+                        )
+                self.set_auth_session(session)
+                user = session.get('user') or session
+                authenticated = bool(session.get('access_token'))
+                self.send_json({
+                    'ok': True,
+                    'authenticated': authenticated,
+                    'confirmation_required': not authenticated,
+                    'user': {'id': user.get('id'), 'email': user.get('email')} if user.get('id') else None
+                })
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                self.send_json({'ok': False, 'message': str(exc)}, 400)
+            except SupabaseAuthError as exc:
+                self.send_json({'ok': False, 'message': str(exc)}, exc.status)
+            except RuntimeError as exc:
+                self.send_json({'ok': False, 'message': str(exc)}, 503)
+            return
+
+        if parsed.path in ('/api/billing/checkout', '/api/billing/confirm', '/api/billing/portal'):
+            if not self.enforce_rate_limit('billing', BILLING_BURST_LIMIT):
+                return
+            user = self.authenticated_user()
+            if not user:
+                self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at administrere Pro.'}, 401)
+                return
+            content_length = self.checked_content_length(65536)
+            if content_length is None:
+                return
+            try:
+                payload = json.loads(self.rfile.read(content_length).decode('utf-8'))
+                user_id = normalize_user_id(str(user['id']))
+                if parsed.path == '/api/billing/checkout':
+                    session = create_checkout_session(user_id)
+                    self.send_json({'ok': True, 'url': session.get('url'), 'session_id': session.get('id')})
+                elif parsed.path == '/api/billing/confirm':
+                    status = confirm_checkout_session(str(payload.get('session_id') or ''), user_id)
+                    self.send_json({'ok': True, **status})
+                else:
+                    session = create_billing_portal_session(user_id)
+                    self.send_json({'ok': True, 'url': session.get('url')})
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                self.send_json({'ok': False, 'message': str(exc)}, 400)
+            except RuntimeError as exc:
+                self.send_json({'ok': False, 'message': str(exc)}, 503)
+            return
+
         if parsed.path == '/api/provider/disconnect':
             params = parse_qs(parsed.query)
             try:
@@ -649,8 +1141,16 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             self.send_error(404, 'Not found')
             return
 
-        content_length = int(self.headers.get('Content-Length', '0'))
-        raw_body = self.rfile.read(content_length) if content_length else b'{}'
+        if not self.enforce_rate_limit('coach', COACH_BURST_LIMIT):
+            return
+        content_length = self.checked_content_length(MAX_COACH_REQUEST_BYTES, 'AI request is too large')
+        if content_length is None:
+            return
+        user = self.authenticated_user()
+        if not user:
+            self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at bruge online AI.'}, 401)
+            return
+        raw_body = self.rfile.read(content_length)
         try:
             payload = json.loads(raw_body.decode('utf-8')) if raw_body else {}
         except json.JSONDecodeError:
@@ -659,8 +1159,29 @@ class LocalAIHandler(BaseHTTPRequestHandler):
         question = str(payload.get('question', '')).strip()
         context = payload.get('context') or {}
         images = payload.get('images') if isinstance(payload.get('images'), list) else []
+        user_id = normalize_user_id(str(user['id']))
+        usage_type = 'vision' if images else 'coach'
+        billing_status = get_billing_status(user_id)
+        if not billing_status['is_pro']:
+            self.send_json({
+                'ok': False,
+                'code': 'pro_required',
+                'message': 'Pro til 39 kr./måned kræves for online AI.',
+                'billing': billing_status
+            }, 402)
+            return
+        if billing_status['remaining'][usage_type] <= 0:
+            self.send_json({
+                'ok': False,
+                'code': 'quota_exceeded',
+                'message': 'Din månedlige Pro-kvote er brugt.',
+                'billing': billing_status
+            }, 429)
+            return
         answer, provider = generate_answer(question, context, images)
-        self.send_json({'answer': answer, 'provider': provider})
+        if provider == 'openai':
+            record_ai_usage(user_id, usage_type)
+        self.send_json({'answer': answer, 'provider': provider, 'billing': get_billing_status(user_id)})
 
     def resolve_static_path(self, requested_path: str):
         if requested_path in ('', '/'):
@@ -680,11 +1201,14 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             candidate = candidate / 'index.html'
         return candidate if candidate.exists() and candidate.is_file() else None
 
-    def send_json(self, payload: dict):
+    def send_json(self, payload: dict, status: int = 200):
         body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        self.send_response(200)
+        self.send_response(status)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
+        for name, value in getattr(self, '_pending_response_headers', []):
+            self.send_header(name, value)
+        self._pending_response_headers = []
         self.end_headers()
         self.wfile.write(body)
 
