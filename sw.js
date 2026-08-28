@@ -1,6 +1,6 @@
-const APP_BUILD = 'formly-v20260828-automatic-updates';
+const APP_BUILD = 'formly-v20260828-aio-home-icon';
 const CACHE_NAME = APP_BUILD;
-const APP_FILES = ['./', './index.html', './styles.css', './app.js', './physique-3d.js', './workout.html', './workout.js', './manifest.json', './sw.js', './favicon.svg', './assets/training-background.jpeg'];
+const APP_FILES = ['./', './index.html', './styles.css', './app.js', './physique-3d.js', './workout.html', './workout.js', './manifest.json', './sw.js', './favicon.svg', './icons/aio-192.png', './icons/aio-512.png', './icons/aio-maskable-512.png', './icons/aio-apple-180.png', './assets/training-background.jpeg'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
