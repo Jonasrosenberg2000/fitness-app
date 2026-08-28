@@ -40,6 +40,7 @@ WITHINGS_CLIENT_ID = os.environ.get('WITHINGS_CLIENT_ID')
 WITHINGS_CLIENT_SECRET = os.environ.get('WITHINGS_CLIENT_SECRET')
 WITHINGS_AUTH_URL = os.environ.get('WITHINGS_AUTH_URL', 'https://account.withings.com/oauth2_user/authorize2')
 WITHINGS_TOKEN_URL = os.environ.get('WITHINGS_TOKEN_URL', 'https://wbsapi.withings.net/v2/oauth2')
+WITHINGS_WEIGHT_URL = os.environ.get('WITHINGS_WEIGHT_URL', 'https://wbsapi.withings.net/measure')
 WITHINGS_MEASURE_URL = os.environ.get('WITHINGS_MEASURE_URL', 'https://wbsapi.withings.net/v2/measure')
 OAUTH_STATE_SECRET = os.environ.get('OAUTH_STATE_SECRET') or WITHINGS_CLIENT_SECRET or 'change-this-oauth-state-secret'
 WHOOP_CLIENT_ID = os.environ.get('WHOOP_CLIENT_ID')
@@ -276,6 +277,17 @@ def delete_provider_token(provider: str, user_id: str):
     write_token_store(store)
 
 
+def withings_error_message(payload: dict, fallback: str) -> str:
+    status = payload.get('status') if isinstance(payload, dict) else None
+    error = payload.get('error') if isinstance(payload, dict) else None
+    if isinstance(error, dict):
+        detail = error.get('message') or error.get('error')
+    else:
+        detail = error
+    suffix = f' (status {status})' if status not in (None, 0) else ''
+    return f'{detail or fallback}{suffix}'
+
+
 def exchange_withings_code(code: str, user_id: str) -> dict:
     if not WITHINGS_CLIENT_ID or not WITHINGS_CLIENT_SECRET:
         raise RuntimeError('WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET must be configured')
@@ -300,8 +312,8 @@ def exchange_withings_code(code: str, user_id: str) -> dict:
         payload = json.loads(response.read().decode('utf-8'))
 
     body = payload.get('body') if isinstance(payload, dict) else None
-    if not isinstance(body, dict):
-        raise RuntimeError('Withings did not return a token body')
+    if payload.get('status') != 0 or not isinstance(body, dict) or not body.get('access_token'):
+        raise RuntimeError(withings_error_message(payload, 'Withings did not return an access token'))
 
     save_provider_token('withings', body, user_id)
     return body
@@ -333,8 +345,8 @@ def refresh_withings_token(user_id: str) -> dict:
         payload = json.loads(response.read().decode('utf-8'))
 
     body = payload.get('body') if isinstance(payload, dict) else None
-    if not isinstance(body, dict) or not body.get('access_token'):
-        raise RuntimeError('Withings token refresh failed')
+    if payload.get('status') != 0 or not isinstance(body, dict) or not body.get('access_token'):
+        raise RuntimeError(withings_error_message(payload, 'Withings token refresh failed'))
     save_provider_token('withings', body, user_id)
     return read_token_store().get('withings_users', {}).get(user_id, body)
 
@@ -351,11 +363,14 @@ def get_withings_access_token(user_id: str) -> str:
 
 
 def request_withings_data(url: str, params: dict, user_id: str, retry: bool = True) -> dict:
-    request_params = {**params, 'access_token': get_withings_access_token(user_id)}
+    access_token = get_withings_access_token(user_id)
     request = urllib.request.Request(
         url,
-        data=urlencode(request_params).encode('utf-8'),
-        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        data=urlencode(params).encode('utf-8'),
+        headers={
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
         method='POST',
     )
     try:
@@ -367,9 +382,12 @@ def request_withings_data(url: str, params: dict, user_id: str, retry: bool = Tr
             return request_withings_data(url, params, user_id, False)
         raise
 
-    if payload.get('status') not in (None, 0) and retry:
-        refresh_withings_token(user_id)
-        return request_withings_data(url, params, user_id, False)
+    status = payload.get('status')
+    if status not in (None, 0):
+        if retry and status in (100, 101, 102, 200, 401):
+            refresh_withings_token(user_id)
+            return request_withings_data(url, params, user_id, False)
+        raise RuntimeError(withings_error_message(payload, 'Withings data request failed'))
     return payload
 
 
@@ -380,7 +398,7 @@ def fetch_withings_latest_weight(user_id: str) -> dict:
         'limit': '100',
         'offset': '0'
     }
-    payload = request_withings_data(WITHINGS_MEASURE_URL, params, user_id)
+    payload = request_withings_data(WITHINGS_WEIGHT_URL, params, user_id)
 
     measure_groups = payload.get('body', {}).get('measuregrps', [])
     if not measure_groups:
