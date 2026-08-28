@@ -45,7 +45,7 @@ WHOOP_CLIENT_ID = os.environ.get('WHOOP_CLIENT_ID')
 WHOOP_CLIENT_SECRET = os.environ.get('WHOOP_CLIENT_SECRET')
 WHOOP_AUTH_URL = os.environ.get('WHOOP_AUTH_URL', 'https://api-portal.whoop.com/oauth/oauth2/auth')
 WHOOP_TOKEN_URL = os.environ.get('WHOOP_TOKEN_URL', 'https://api-portal.whoop.com/oauth/oauth2/token')
-REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://all-in-one-fitness-production.up.railway.app/api/provider/callback')
+REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://web-production-2385a.up.railway.app/api/provider/callback')
 TOKEN_STORE_PATH = ROOT / '.withings_tokens.json'
 
 
