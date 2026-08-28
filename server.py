@@ -47,7 +47,8 @@ WHOOP_CLIENT_SECRET = os.environ.get('WHOOP_CLIENT_SECRET')
 WHOOP_AUTH_URL = os.environ.get('WHOOP_AUTH_URL', 'https://api-portal.whoop.com/oauth/oauth2/auth')
 WHOOP_TOKEN_URL = os.environ.get('WHOOP_TOKEN_URL', 'https://api-portal.whoop.com/oauth/oauth2/token')
 REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://web-production-2385a.up.railway.app/api/provider/callback')
-TOKEN_STORE_PATH = ROOT / '.withings_tokens.json'
+RAILWAY_VOLUME_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '').strip()
+TOKEN_STORE_PATH = Path(os.environ.get('TOKEN_STORE_PATH') or (Path(RAILWAY_VOLUME_PATH) / 'withings_tokens.json' if RAILWAY_VOLUME_PATH else ROOT / '.withings_tokens.json'))
 
 
 def normalize_user_id(value: str | None) -> str:
@@ -203,16 +204,13 @@ def call_ollama(question: str, context: dict | None = None, images: list[str] | 
         method='POST'
     )
 
-    try:
-        with urllib.request.urlopen(request_obj, timeout=30) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            answer = data.get('message', {}).get('content', '').strip()
-            if answer:
-                return answer
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError):
-        pass
+    with urllib.request.urlopen(request_obj, timeout=30) as response:
+        data = json.loads(response.read().decode('utf-8'))
+        answer = data.get('message', {}).get('content', '').strip()
+        if answer:
+            return answer
 
-    return local_fallback_answer(question)
+    raise RuntimeError('Ollama returned an empty response')
 
 
 def generate_answer(question: str, context: dict | None = None, images: list[str] | None = None) -> tuple[str, str]:
@@ -238,7 +236,10 @@ def read_token_store() -> dict:
 
 
 def write_token_store(data: dict):
-    TOKEN_STORE_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+    TOKEN_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = TOKEN_STORE_PATH.with_suffix(f'{TOKEN_STORE_PATH.suffix}.tmp')
+    temporary_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+    temporary_path.replace(TOKEN_STORE_PATH)
 
 
 def normalize_withings_weight(value, unit=None) -> float:
@@ -256,8 +257,18 @@ def normalize_withings_weight(value, unit=None) -> float:
 def save_provider_token(provider: str, token_payload: dict, user_id: str):
     store = read_token_store()
     users = store.setdefault(f'{provider}_users', {})
-    users[user_id] = token_payload
+    stored_token = {**users.get(user_id, {}), **token_payload}
+    stored_token['_saved_at'] = int(time.time())
+    try:
+        expires_in = int(stored_token.get('expires_in', 0) or 0)
+    except (TypeError, ValueError):
+        expires_in = 0
+    if expires_in > 0:
+        stored_token['_expires_at'] = int(time.time()) + expires_in
+    users[user_id] = stored_token
     write_token_store(store)
+
+
 def delete_provider_token(provider: str, user_id: str):
     store = read_token_store()
     users = store.get(f'{provider}_users', {})
@@ -296,33 +307,80 @@ def exchange_withings_code(code: str, user_id: str) -> dict:
     return body
 
 
+def refresh_withings_token(user_id: str) -> dict:
+    if not WITHINGS_CLIENT_ID or not WITHINGS_CLIENT_SECRET:
+        raise RuntimeError('WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET must be configured')
+
+    token = read_token_store().get('withings_users', {}).get(user_id, {})
+    refresh_token = token.get('refresh_token')
+    if not refresh_token:
+        raise RuntimeError('Withings connection must be authorized again')
+
+    data = urlencode({
+        'action': 'requesttoken',
+        'grant_type': 'refresh_token',
+        'client_id': WITHINGS_CLIENT_ID,
+        'client_secret': WITHINGS_CLIENT_SECRET,
+        'refresh_token': refresh_token,
+    }).encode('utf-8')
+    request = urllib.request.Request(
+        WITHINGS_TOKEN_URL,
+        data=data,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        method='POST',
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        payload = json.loads(response.read().decode('utf-8'))
+
+    body = payload.get('body') if isinstance(payload, dict) else None
+    if not isinstance(body, dict) or not body.get('access_token'):
+        raise RuntimeError('Withings token refresh failed')
+    save_provider_token('withings', body, user_id)
+    return read_token_store().get('withings_users', {}).get(user_id, body)
+
+
 def get_withings_access_token(user_id: str) -> str:
     store = read_token_store()
-    token = store.get('withings_users', {}).get(user_id)
+    token = store.get('withings_users', {}).get(user_id) or {}
+    if token and token.get('_expires_at') and int(token['_expires_at']) <= int(time.time()) + 60:
+        token = refresh_withings_token(user_id)
     access_token = token.get('access_token')
     if not access_token:
         raise RuntimeError('No saved Withings access token')
     return str(access_token)
 
 
+def request_withings_data(url: str, params: dict, user_id: str, retry: bool = True) -> dict:
+    request_params = {**params, 'access_token': get_withings_access_token(user_id)}
+    request = urllib.request.Request(
+        url,
+        data=urlencode(request_params).encode('utf-8'),
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        if retry and exc.code in (401, 403):
+            refresh_withings_token(user_id)
+            return request_withings_data(url, params, user_id, False)
+        raise
+
+    if payload.get('status') not in (None, 0) and retry:
+        refresh_withings_token(user_id)
+        return request_withings_data(url, params, user_id, False)
+    return payload
+
+
 def fetch_withings_latest_weight(user_id: str) -> dict:
-    access_token = get_withings_access_token(user_id)
     params = {
         'action': 'getmeas',
-        'access_token': access_token,
         'meastypes': '1',
         'limit': '100',
         'offset': '0'
     }
-    request = urllib.request.Request(
-        WITHINGS_MEASURE_URL,
-        data=urlencode(params).encode('utf-8'),
-        headers={'Content-Type': 'application/x-www-form-urlencoded'},
-        method='POST',
-    )
-
-    with urllib.request.urlopen(request, timeout=30) as response:
-        payload = json.loads(response.read().decode('utf-8'))
+    payload = request_withings_data(WITHINGS_MEASURE_URL, params, user_id)
 
     measure_groups = payload.get('body', {}).get('measuregrps', [])
     if not measure_groups:
@@ -360,25 +418,15 @@ def fetch_withings_latest_weight(user_id: str) -> dict:
 
 
 def fetch_withings_today_activity(user_id: str) -> dict:
-    access_token = get_withings_access_token(user_id)
     today = __import__('datetime').date.today()
     start_date = today - __import__('datetime').timedelta(days=30)
     params = {
         'action': 'getactivity',
-        'access_token': access_token,
         'startdateymd': start_date.isoformat(),
         'enddateymd': today.isoformat(),
         'data_fields': 'steps,distance,calories,active_calories,totalcalories'
     }
-    request = urllib.request.Request(
-        WITHINGS_MEASURE_URL,
-        data=urlencode(params).encode('utf-8'),
-        headers={'Content-Type': 'application/x-www-form-urlencoded'},
-        method='POST',
-    )
-
-    with urllib.request.urlopen(request, timeout=30) as response:
-        payload = json.loads(response.read().decode('utf-8'))
+    payload = request_withings_data(WITHINGS_MEASURE_URL, params, user_id)
 
     if payload.get('status') not in (None, 0):
         error = payload.get('error', {})
@@ -440,14 +488,19 @@ class LocalAIHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == '/api/health':
+            public_host = bool(os.environ.get('RAILWAY_ENVIRONMENT'))
+            ai_provider = 'openai' if OPENAI_API_KEY else ('fallback' if public_host else 'ollama')
             self.send_json({
                 'status': 'ok',
                 'build': APP_BUILD,
                 'model': OPENAI_MODEL if OPENAI_API_KEY else DEFAULT_MODEL,
-                'provider': 'openai' if OPENAI_API_KEY else 'ollama',
+                'provider': ai_provider,
                 'ollama_url': OLLAMA_URL,
                 'openai_base_url': OPENAI_BASE_URL,
-                'publicly_hosted_ready': bool(OPENAI_API_KEY)
+                'publicly_hosted_ready': bool(OPENAI_API_KEY),
+                'vision_ready': bool(OPENAI_API_KEY),
+                'withings_configured': bool(WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET),
+                'persistent_token_store': bool(RAILWAY_VOLUME_PATH or os.environ.get('TOKEN_STORE_PATH'))
             })
             return
 
@@ -460,7 +513,7 @@ class LocalAIHandler(BaseHTTPRequestHandler):
                 return
             withings_token = read_token_store().get('withings_users', {}).get(user_id, {})
             self.send_json({
-                'withings_configured': bool(WITHINGS_CLIENT_ID),
+                'withings_configured': bool(WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET),
                 'withings_connected': bool(withings_token.get('access_token')),
                 'whoop_configured': bool(WHOOP_CLIENT_ID),
                 'redirect_uri': REDIRECT_URI,

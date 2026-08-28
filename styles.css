@@ -6846,3 +6846,97 @@ body .app-shell .training-progress-panel .long-progress-summary small {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+@media (max-width: 700px) {
+	body .app-shell .sidebar {
+		display: block !important;
+		position: fixed !important;
+		inset: 0 auto auto 0 !important;
+		z-index: 70;
+		width: 0 !important;
+		height: 0 !important;
+		min-height: 0 !important;
+		padding: 0 !important;
+		border: 0 !important;
+		background: transparent !important;
+		box-shadow: none !important;
+		overflow: visible !important;
+	}
+
+	body .app-shell .sidebar .brand-wrap {
+		display: flex !important;
+		position: fixed;
+		top: 12px;
+		left: 14px;
+		right: auto;
+		z-index: 71;
+		width: max-content;
+		align-items: center;
+		pointer-events: auto;
+	}
+
+	body .app-shell .sidebar .brand {
+		display: inline-flex !important;
+		align-items: center;
+		gap: 10px;
+		min-height: 40px;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+		text-decoration: none;
+		backdrop-filter: none;
+		animation: none;
+	}
+
+	body .app-shell .sidebar .brand b {
+		display: inline-block;
+		width: auto;
+		height: auto;
+		border: 0;
+		border-radius: 0;
+		background-color: transparent !important;
+		background-image: linear-gradient(90deg, #ff3655, #ff9f43, #67e8ff, #7bffb3, #2cc8ff, #ff3655) !important;
+		background-size: 300% 100% !important;
+		background-clip: text !important;
+		-webkit-background-clip: text !important;
+		color: transparent !important;
+		-webkit-text-fill-color: transparent !important;
+		font: 800 17px 'Space Grotesk', sans-serif;
+		letter-spacing: 0;
+		box-shadow: none;
+		animation: aio-rgb-text 6s linear infinite;
+	}
+
+	body .app-shell .sidebar .brand strong {
+		position: static;
+		padding-left: 0;
+		background-color: transparent !important;
+		background-image: none !important;
+		color: #ffffff !important;
+		-webkit-text-fill-color: #ffffff !important;
+		font: 700 16px 'Space Grotesk', sans-serif;
+		letter-spacing: 0;
+		animation: none;
+	}
+
+	body .app-shell .sidebar .brand strong::before {
+		display: none;
+		content: none;
+	}
+
+	body .app-shell .sidebar .brand:focus-visible {
+		outline: 2px solid #67e8ff;
+		outline-offset: 3px;
+	}
+
+	body .app-shell .sidebar nav,
+	body .app-shell .sidebar .brand-status,
+	body .app-shell .sidebar .sidebar-bottom {
+		display: none !important;
+	}
+}
+
+/* Mobile brand uses the shared aio-rgb-text animation. */
+

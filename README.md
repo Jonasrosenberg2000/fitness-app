@@ -80,3 +80,18 @@ This gives every user access to the same AI backend from anywhere in the world.
 ### Railway
 
 Create a Railway service from this repository. Railway can use `railway.json` and start the app with `python server.py`. Add the variables from `.env.example` in Railway's Variables panel. Set `PORT` to Railway's provided port, set `REDIRECT_URI` to the generated public HTTPS URL plus `/api/provider/callback`, and register that exact callback in the Withings Developer Portal. Add a persistent volume or database before using the service for real users, so user tokens and data survive deployments.
+
+For this deployment, configure these Railway variables directly in the Railway dashboard:
+
+```text
+OPENAI_API_KEY=<secret>
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o-mini
+WITHINGS_CLIENT_ID=<secret>
+WITHINGS_CLIENT_SECRET=<secret>
+OAUTH_STATE_SECRET=<long-random-secret>
+REDIRECT_URI=https://web-production-2385a.up.railway.app/api/provider/callback
+TOKEN_STORE_PATH=/data/withings_tokens.json
+```
+
+Use an OpenAI-compatible model with image input for the three-angle physique analysis. Mount a Railway volume at `/data`; the backend stores Withings refresh tokens there and renews expired access tokens automatically. In the Withings Developer Portal, register the callback URL exactly as shown above. Never paste secret values into source files, commits, issue descriptions, or chat messages.

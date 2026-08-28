@@ -706,7 +706,7 @@ async function updateAiProviderStatus() {
     const data = await response.json();
     if (!data || !data.status) throw new Error('health-missing');
 
-    const providerLabel = data.provider === 'openai' ? 'Global AI aktiv' : data.provider === 'ollama' ? 'Lokal AI aktiv' : 'Fallback aktiv';
+    const providerLabel = data.provider === 'openai' ? 'Global AI aktiv' : data.provider === 'ollama' ? 'Lokal AI aktiv' : 'AI-nøgle mangler';
     const modelLabel = data.model ? ` · ${data.model}` : '';
     providerStatus.textContent = `${providerLabel}${modelLabel}`;
     providerStatus.dataset.provider = data.provider || 'fallback';
