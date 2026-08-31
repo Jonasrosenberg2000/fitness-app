@@ -110,7 +110,9 @@ Use an OpenAI-compatible model with image input for the three-angle physique ana
 
 ## Pro subscription
 
-Online AI is protected by a server-side Pro check. The plan costs 39 DKK per month and includes 60 coach messages and 4 three-angle physique analyses per billing month. Training, food, weight, photos, and Withings remain available without Pro.
+Pro access is protected by server-side checks. Users can choose 20 DKK per week, 39 DKK per month, or 468 DKK per year. The annual offer is 40 percent off the first year, so the first payment is 280.80 DKK; after 12 months it renews automatically at the full 468 DKK yearly price. All plans include 60 app-focused coach messages and 4 three-angle physique analyses per month, linear workout progression, and connected health data such as Withings. Workout logging, food/kcal tracking, manual body weight, and personal progress photos remain available without Pro; AI photo assessment requires Pro.
+
+Set `OWNER_USER_ID` to the owner's verified Supabase user UUID to grant that single account permanent Pro access without a Stripe subscription. Never implement owner access with a browser flag or an email stored in frontend code.
 
 ### Supabase login
 
@@ -126,18 +128,31 @@ Local redirect URL: http://localhost:8010
 
 Keep email confirmation enabled for production. The account currently restores Pro access and quotas across devices; workout, food, weight, and photo records remain local to each browser unless the user exports/imports a backup.
 
-Create a recurring monthly Stripe Price for 39 DKK, enable the Stripe Customer Portal, and add these Railway variables:
+Create these recurring Stripe Prices under the same Pro product:
+
+- weekly: 20 DKK every week
+- monthly: 39 DKK every month
+- annual: 468 DKK every year
+
+Create a Stripe Coupon with `percent_off=40` and `duration=once`. The backend verifies the annual interval, 468 DKK amount, 40 percent discount, and `once` duration before it creates Checkout or an annual plan switch. This makes the first annual invoice 280.80 DKK while later annual invoices use the full 468 DKK price.
+
+Enable subscription updates in the Stripe Customer Portal and make all three Prices available as switch targets. The app uses Stripe's `subscription_update_confirm` flow so Stripe shows prorations, handles payment failures and 3D Secure, and applies the 40 percent Coupon when an existing subscriber switches to annual. Add these Railway variables:
 
 ```text
 STRIPE_SECRET_KEY=<secret>
 STRIPE_PRICE_ID=<price_...>
+STRIPE_WEEKLY_PRICE_ID=<price_...>
+STRIPE_ANNUAL_PRICE_ID=<price_...>
+STRIPE_ANNUAL_DISCOUNT_COUPON_ID=<coupon-id>
 STRIPE_WEBHOOK_SECRET=<whsec_...>
+STRIPE_PORTAL_CONFIGURATION_ID=<bpc_...>
 PUBLIC_APP_URL=https://web-production-2385a.up.railway.app
 BILLING_STORE_PATH=/data/billing.json
 PRO_COACH_MONTHLY_LIMIT=60
 PRO_VISION_MONTHLY_LIMIT=4
 OPENAI_MAX_OUTPUT_TOKENS=900
 MAX_COACH_REQUEST_BYTES=12582912
+OWNER_USER_ID=<owner-supabase-user-uuid>
 RATE_LIMIT_WINDOW_SECONDS=60
 AUTH_BURST_LIMIT=10
 BILLING_BURST_LIMIT=20
@@ -147,4 +162,39 @@ RATE_LIMIT_MAX_BUCKETS=4096
 
 Register `https://web-production-2385a.up.railway.app/api/billing/webhook` as a Stripe webhook for `checkout.session.completed`, `customer.subscription.updated`, and `customer.subscription.deleted`. Keep Stripe test keys and live keys separate; use test mode until checkout, renewal, cancellation, and quota enforcement have all been verified.
 
+### Side-by-side Stripe test environment
+
+Run payment tests in a separate Railway service or environment with its own domain and volume. Do not share production's billing volume. Set these variables on the test service:
+
+```text
+BILLING_ENVIRONMENT=test
+PUBLIC_APP_URL=https://<test-service>.up.railway.app
+BILLING_STORE_PATH=/data/billing-test.json
+OWNER_USER_ID=
+STRIPE_SECRET_KEY=<sk_test_...>
+STRIPE_PRICE_ID=<test monthly price_...>
+STRIPE_WEEKLY_PRICE_ID=<test weekly price_...>
+STRIPE_ANNUAL_PRICE_ID=<test annual price_...>
+STRIPE_ANNUAL_DISCOUNT_COUPON_ID=<test coupon id>
+STRIPE_WEBHOOK_SECRET=<test whsec_...>
+STRIPE_PORTAL_CONFIGURATION_ID=<optional test bpc_...>
+```
+
+Create the product, three recurring prices, first-year coupon, portal configuration, and webhook while the Stripe Dashboard is in test mode. Register `https://<test-service>.up.railway.app/api/billing/webhook` for the same three events as production. Add the test service URL to Supabase Authentication's allowed redirect URLs, or use a separate Supabase test project for full isolation.
+
+The server refuses to start when `BILLING_ENVIRONMENT=test` is combined with a live Stripe key or the production `PUBLIC_APP_URL`. The UI also shows `STRIPE TEST · INGEN RIGTIGE BETALINGER`. Use Stripe's standard test card `4242 4242 4242 4242`, any future expiry, and any three-digit CVC. Verify Free access before checkout, Pro access after checkout, continued access while cancellation is pending, and removal after the test subscription is deleted.
+
+For a local sidecar, copy `.env.test.example` to the ignored `.env.test`, fill it with test-only values, then run:
+
+```powershell
+$env:ENV_FILE='.env.test'
+py -3 server.py
+```
+
+Run the isolated billing regression suite with `py -3 -m unittest discover -s tests -v`.
+
 Cookie-authenticated mutation routes enforce same-origin requests and per-client burst limits. Stripe webhooks are exempt from browser-origin checks and instead require Stripe signature verification.
+
+### Monthly Pro updates
+
+The Pro page includes a monthly release feed. Active Pro members receive a one-time in-app notice when the latest release ID changes, while Free users can see the same update as a preview. Add each real monthly release to the end of `proMonthlyDrops` in `app.js` with a unique ID such as `2026-09-feature-name`, its month, title, and a short description.

@@ -1,4 +1,5 @@
 .env
+.env.test
 .withings_tokens.json
 __pycache__/
 *.pyc

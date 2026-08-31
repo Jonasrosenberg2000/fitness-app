@@ -29,7 +29,7 @@ def load_env_file(path: Path):
             os.environ[key] = value.strip('"\'')
 
 
-load_env_file(ROOT / '.env')
+load_env_file(ROOT / os.environ.get('ENV_FILE', '.env'))
 
 DEFAULT_PORT = int(os.environ.get('PORT', '8000'))
 OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://127.0.0.1:11434/api/chat')
@@ -40,10 +40,16 @@ OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
 OPENAI_MAX_OUTPUT_TOKENS = int(os.environ.get('OPENAI_MAX_OUTPUT_TOKENS', '900'))
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID')
+STRIPE_WEEKLY_PRICE_ID = os.environ.get('STRIPE_WEEKLY_PRICE_ID')
+STRIPE_ANNUAL_PRICE_ID = os.environ.get('STRIPE_ANNUAL_PRICE_ID')
+STRIPE_ANNUAL_DISCOUNT_COUPON_ID = os.environ.get('STRIPE_ANNUAL_DISCOUNT_COUPON_ID')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+STRIPE_PORTAL_CONFIGURATION_ID = os.environ.get('STRIPE_PORTAL_CONFIGURATION_ID')
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
 SUPABASE_PUBLISHABLE_KEY = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '')
-PUBLIC_APP_URL = os.environ.get('PUBLIC_APP_URL', 'https://web-production-2385a.up.railway.app').rstrip('/')
+DEFAULT_PUBLIC_APP_URL = 'https://web-production-2385a.up.railway.app'
+PUBLIC_APP_URL = os.environ.get('PUBLIC_APP_URL', DEFAULT_PUBLIC_APP_URL).rstrip('/')
+BILLING_ENVIRONMENT = os.environ.get('BILLING_ENVIRONMENT', 'live').strip().lower()
 APP_BUILD = os.environ.get('RAILWAY_GIT_COMMIT_SHA') or os.environ.get('APP_BUILD') or 'local'
 WITHINGS_CLIENT_ID = os.environ.get('WITHINGS_CLIENT_ID')
 WITHINGS_CLIENT_SECRET = os.environ.get('WITHINGS_CLIENT_SECRET')
@@ -60,9 +66,14 @@ REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://web-production-2385a.up.r
 RAILWAY_VOLUME_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '').strip()
 TOKEN_STORE_PATH = Path(os.environ.get('TOKEN_STORE_PATH') or (Path(RAILWAY_VOLUME_PATH) / 'withings_tokens.json' if RAILWAY_VOLUME_PATH else ROOT / '.withings_tokens.json'))
 PRO_MONTHLY_PRICE_DKK = 39
+PRO_WEEKLY_PRICE_DKK = 20
+PRO_ANNUAL_PRICE_DKK = PRO_MONTHLY_PRICE_DKK * 12
+PRO_ANNUAL_DISCOUNT_PERCENT = 40
+PRO_ANNUAL_INTRO_PRICE_DKK = PRO_ANNUAL_PRICE_DKK * (100 - PRO_ANNUAL_DISCOUNT_PERCENT) / 100
 PRO_COACH_MONTHLY_LIMIT = int(os.environ.get('PRO_COACH_MONTHLY_LIMIT', '60'))
 PRO_VISION_MONTHLY_LIMIT = int(os.environ.get('PRO_VISION_MONTHLY_LIMIT', '4'))
 MAX_COACH_REQUEST_BYTES = int(os.environ.get('MAX_COACH_REQUEST_BYTES', str(12 * 1024 * 1024)))
+OWNER_USER_ID = os.environ.get('OWNER_USER_ID', '').strip()
 BILLING_STORE_PATH = Path(os.environ.get('BILLING_STORE_PATH') or (Path(RAILWAY_VOLUME_PATH) / 'billing.json' if RAILWAY_VOLUME_PATH else ROOT / '.billing.json'))
 BILLING_STORE_LOCK = threading.Lock()
 AUTH_ACCESS_COOKIE = 'aio_access_token'
@@ -74,6 +85,18 @@ COACH_BURST_LIMIT = max(1, int(os.environ.get('COACH_BURST_LIMIT', '10')))
 RATE_LIMIT_MAX_BUCKETS = max(128, int(os.environ.get('RATE_LIMIT_MAX_BUCKETS', '4096')))
 RATE_LIMIT_LOCK = threading.Lock()
 RATE_LIMIT_BUCKETS = {}
+
+
+def validate_billing_environment():
+    if BILLING_ENVIRONMENT not in ('live', 'test'):
+        raise RuntimeError('BILLING_ENVIRONMENT skal være live eller test.')
+    if BILLING_ENVIRONMENT == 'test':
+        if not STRIPE_SECRET_KEY or not STRIPE_SECRET_KEY.startswith(('sk_test_', 'rk_test_')):
+            raise RuntimeError('Testmiljøet kræver en Stripe testnøgle.')
+        if PUBLIC_APP_URL == DEFAULT_PUBLIC_APP_URL:
+            raise RuntimeError('Testmiljøet må ikke bruge produktionens PUBLIC_APP_URL.')
+    elif STRIPE_SECRET_KEY and STRIPE_SECRET_KEY.startswith(('sk_test_', 'rk_test_')):
+        raise RuntimeError('Stripe testnøgler kræver BILLING_ENVIRONMENT=test.')
 
 
 def rate_limit_exceeded(scope: str, client_id: str, limit: int) -> bool:
@@ -162,17 +185,49 @@ def billing_period_key() -> str:
     return time.strftime('%Y-%m', time.gmtime())
 
 
+def billing_plan_configuration() -> dict:
+    return {
+        'weekly': bool(STRIPE_SECRET_KEY and STRIPE_WEEKLY_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+        'monthly': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+        'annual': bool(STRIPE_SECRET_KEY and STRIPE_ANNUAL_PRICE_ID and STRIPE_ANNUAL_DISCOUNT_COUPON_ID and STRIPE_WEBHOOK_SECRET)
+    }
+
+
+def is_owner_user(user_id: str) -> bool:
+    normalized_user_id = normalize_user_id(user_id)
+    return bool(OWNER_USER_ID) and hmac.compare_digest(normalized_user_id, OWNER_USER_ID)
+
+
 def get_billing_status(user_id: str) -> dict:
-    user = read_billing_store().get('users', {}).get(normalize_user_id(user_id), {})
-    is_pro = user.get('status') in ('active', 'trialing')
+    normalized_user_id = normalize_user_id(user_id)
+    user = read_billing_store().get('users', {}).get(normalized_user_id, {})
+    is_owner = is_owner_user(normalized_user_id)
+    is_pro = is_owner or user.get('status') in ('active', 'trialing')
+    plan_configuration = billing_plan_configuration()
+    monthly_configured = plan_configuration['monthly']
+    annual_configured = plan_configuration['annual']
     usage = user.get('usage', {}).get(billing_period_key(), {}) if is_pro else {}
     coach_used = max(0, int(usage.get('coach', 0) or 0))
     vision_used = max(0, int(usage.get('vision', 0) or 0))
     return {
-        'configured': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+        'configured': monthly_configured or annual_configured,
+        'billing_environment': BILLING_ENVIRONMENT,
+        'test_mode': BILLING_ENVIRONMENT == 'test',
         'plan': 'pro' if is_pro else 'free',
         'is_pro': is_pro,
+        'is_owner': is_owner,
+        'billing_plan': str(user.get('billing_plan') or ''),
         'price_dkk': PRO_MONTHLY_PRICE_DKK,
+        'plans': {
+            'weekly': {'configured': plan_configuration['weekly'], 'price_dkk': PRO_WEEKLY_PRICE_DKK},
+            'monthly': {'configured': monthly_configured, 'price_dkk': PRO_MONTHLY_PRICE_DKK},
+            'annual': {
+                'configured': annual_configured,
+                'price_dkk': PRO_ANNUAL_PRICE_DKK,
+                'intro_price_dkk': PRO_ANNUAL_INTRO_PRICE_DKK,
+                'intro_discount_percent': PRO_ANNUAL_DISCOUNT_PERCENT
+            }
+        },
         'period': billing_period_key(),
         'limits': {'coach': PRO_COACH_MONTHLY_LIMIT, 'vision': PRO_VISION_MONTHLY_LIMIT},
         'usage': {'coach': coach_used, 'vision': vision_used},
@@ -195,7 +250,7 @@ def record_ai_usage(user_id: str, usage_type: str):
         write_billing_store(store)
 
 
-def save_subscription(user_id: str, status: str, customer_id: str = '', subscription_id: str = '', period_end: int = 0):
+def save_subscription(user_id: str, status: str, customer_id: str = '', subscription_id: str = '', period_end: int = 0, billing_plan: str = ''):
     normalized_user_id = normalize_user_id(user_id)
     with BILLING_STORE_LOCK:
         store = read_billing_store()
@@ -205,6 +260,7 @@ def save_subscription(user_id: str, status: str, customer_id: str = '', subscrip
             'customer_id': customer_id or user.get('customer_id', ''),
             'subscription_id': subscription_id or user.get('subscription_id', ''),
             'period_end': int(period_end or user.get('period_end', 0)),
+            'billing_plan': billing_plan or user.get('billing_plan', ''),
             'updated_at': int(time.time())
         })
         write_billing_store(store)
@@ -234,23 +290,82 @@ def stripe_api_request(method: str, path: str, params: dict | None = None) -> di
         raise RuntimeError(message or 'Stripe kunne ikke gennemføre handlingen.') from None
 
 
-def create_checkout_session(user_id: str) -> dict:
+def validate_annual_checkout_offer():
+    annual_price = stripe_api_request('GET', f'prices/{STRIPE_ANNUAL_PRICE_ID}')
+    recurring = annual_price.get('recurring') or {}
+    valid_annual_price = (
+        annual_price.get('active') is True
+        and str(annual_price.get('currency') or '').lower() == 'dkk'
+        and int(annual_price.get('unit_amount') or 0) == PRO_ANNUAL_PRICE_DKK * 100
+        and recurring.get('interval') == 'year'
+        and int(recurring.get('interval_count') or 0) == 1
+    )
+    annual_coupon = stripe_api_request('GET', f'coupons/{STRIPE_ANNUAL_DISCOUNT_COUPON_ID}')
+    valid_annual_coupon = (
+        annual_coupon.get('valid') is True
+        and float(annual_coupon.get('percent_off') or 0) == PRO_ANNUAL_DISCOUNT_PERCENT
+        and annual_coupon.get('duration') == 'once'
+    )
+    if not valid_annual_price or not valid_annual_coupon:
+        raise RuntimeError('Årstilbuddet skal være 468 DKK/år med 40 procent rabat på første faktura.')
+
+
+def validate_weekly_checkout_price():
+    weekly_price = stripe_api_request('GET', f'prices/{STRIPE_WEEKLY_PRICE_ID}')
+    recurring = weekly_price.get('recurring') or {}
+    if not (
+        weekly_price.get('active') is True
+        and str(weekly_price.get('currency') or '').lower() == 'dkk'
+        and int(weekly_price.get('unit_amount') or 0) == PRO_WEEKLY_PRICE_DKK * 100
+        and recurring.get('interval') == 'week'
+        and int(recurring.get('interval_count') or 0) == 1
+    ):
+        raise RuntimeError('Ugeabonnementet skal være 20 DKK pr. uge.')
+
+
+def create_checkout_session(user_id: str, billing_plan: str = 'monthly') -> dict:
     normalized_user_id = normalize_user_id(user_id)
-    if not STRIPE_PRICE_ID or not STRIPE_WEBHOOK_SECRET:
-        raise RuntimeError('Stripe Checkout mangler price-ID eller webhook-secret.')
+    normalized_plan = (billing_plan or 'monthly').strip().lower()
+    if normalized_plan not in ('weekly', 'monthly', 'annual'):
+        raise ValueError('Vælg uge-, måneds- eller årsabonnement.')
+    if not STRIPE_SECRET_KEY or not STRIPE_WEBHOOK_SECRET:
+        raise RuntimeError('Stripe Checkout mangler secret key eller webhook-secret.')
+    if normalized_plan == 'annual':
+        if not STRIPE_ANNUAL_PRICE_ID or not STRIPE_ANNUAL_DISCOUNT_COUPON_ID:
+            raise RuntimeError('Årsabonnementet klargøres stadig.')
+        price_id = STRIPE_ANNUAL_PRICE_ID
+    elif normalized_plan == 'weekly':
+        if not STRIPE_WEEKLY_PRICE_ID:
+            raise RuntimeError('Ugeabonnementet klargøres stadig.')
+        price_id = STRIPE_WEEKLY_PRICE_ID
+    else:
+        if not STRIPE_PRICE_ID:
+            raise RuntimeError('Månedsabonnementet klargøres stadig.')
+        price_id = STRIPE_PRICE_ID
     if get_billing_status(normalized_user_id)['is_pro']:
         raise RuntimeError('Brugeren har allerede Pro.')
-    return stripe_api_request('POST', 'checkout/sessions', {
+    if normalized_plan == 'annual':
+        validate_annual_checkout_offer()
+    elif normalized_plan == 'weekly':
+        validate_weekly_checkout_price()
+    checkout_params = {
         'mode': 'subscription',
         'client_reference_id': normalized_user_id,
-        'line_items[0][price]': STRIPE_PRICE_ID,
+        'line_items[0][price]': price_id,
         'line_items[0][quantity]': '1',
+        'metadata[user_id]': normalized_user_id,
+        'metadata[billing_plan]': normalized_plan,
         'subscription_data[metadata][user_id]': normalized_user_id,
-        'success_url': f'{PUBLIC_APP_URL}/?checkout=success&session_id={{CHECKOUT_SESSION_ID}}#coach',
-        'cancel_url': f'{PUBLIC_APP_URL}/?checkout=cancelled#coach',
-        'allow_promotion_codes': 'true',
+        'subscription_data[metadata][billing_plan]': normalized_plan,
+        'success_url': f'{PUBLIC_APP_URL}/?checkout=success&session_id={{CHECKOUT_SESSION_ID}}#pro',
+        'cancel_url': f'{PUBLIC_APP_URL}/?checkout=cancelled#pro',
         'locale': 'da'
-    })
+    }
+    if normalized_plan == 'annual':
+        checkout_params['discounts[0][coupon]'] = STRIPE_ANNUAL_DISCOUNT_COUPON_ID
+    else:
+        checkout_params['allow_promotion_codes'] = 'true'
+    return stripe_api_request('POST', 'checkout/sessions', checkout_params)
 
 
 def confirm_checkout_session(session_id: str, user_id: str) -> dict:
@@ -267,21 +382,78 @@ def confirm_checkout_session(session_id: str, user_id: str) -> dict:
         normalized_user_id,
         'active',
         str(session.get('customer') or ''),
-        str(session.get('subscription') or '')
+        str(session.get('subscription') or ''),
+        billing_plan=str(session.get('metadata', {}).get('billing_plan') or '')
     )
     return get_billing_status(normalized_user_id)
 
 
-def create_billing_portal_session(user_id: str) -> dict:
+def create_billing_portal_session(user_id: str, billing_plan: str = '') -> dict:
     normalized_user_id = normalize_user_id(user_id)
+    if is_owner_user(normalized_user_id):
+        raise RuntimeError('Ejeradgangen er permanent og har intet Stripe-abonnement.')
     user = read_billing_store().get('users', {}).get(normalized_user_id, {})
     customer_id = str(user.get('customer_id') or '')
-    if user.get('status') not in ('active', 'trialing') or not customer_id.startswith('cus_'):
+    subscription_id = str(user.get('subscription_id') or '')
+    if user.get('status') not in ('active', 'trialing') or not customer_id.startswith('cus_') or not subscription_id.startswith('sub_'):
         raise RuntimeError('Der blev ikke fundet et aktivt Pro-abonnement.')
-    return stripe_api_request('POST', 'billing_portal/sessions', {
+    portal_params = {
         'customer': customer_id,
-        'return_url': f'{PUBLIC_APP_URL}/#coach'
-    })
+        'return_url': f'{PUBLIC_APP_URL}/#pro'
+    }
+    if STRIPE_PORTAL_CONFIGURATION_ID:
+        portal_params['configuration'] = STRIPE_PORTAL_CONFIGURATION_ID
+    normalized_plan = (billing_plan or '').strip().lower()
+    if normalized_plan:
+        plan_prices = {
+            'weekly': STRIPE_WEEKLY_PRICE_ID,
+            'monthly': STRIPE_PRICE_ID,
+            'annual': STRIPE_ANNUAL_PRICE_ID
+        }
+        if normalized_plan not in plan_prices:
+            raise ValueError('Vælg uge-, måneds- eller årsabonnement.')
+        if not billing_plan_configuration()[normalized_plan] or not plan_prices[normalized_plan]:
+            raise RuntimeError('Den valgte abonnementsplan klargøres stadig.')
+        if normalized_plan == 'annual':
+            validate_annual_checkout_offer()
+        elif normalized_plan == 'weekly':
+            validate_weekly_checkout_price()
+        subscription = stripe_api_request('GET', f'subscriptions/{subscription_id}')
+        subscription_items = subscription.get('items', {}).get('data', [])
+        if len(subscription_items) != 1:
+            raise RuntimeError('Abonnementet kan ikke skiftes automatisk. Åbn den almindelige Stripe-portal.')
+        subscription_item = subscription_items[0]
+        current_price = subscription_item.get('price') or {}
+        current_price_id = str(current_price.get('id') if isinstance(current_price, dict) else current_price)
+        if current_price_id != plan_prices[normalized_plan]:
+            portal_params.update({
+                'flow_data[type]': 'subscription_update_confirm',
+                'flow_data[subscription_update_confirm][subscription]': subscription_id,
+                'flow_data[subscription_update_confirm][items][0][id]': str(subscription_item.get('id') or ''),
+                'flow_data[subscription_update_confirm][items][0][quantity]': '1',
+                'flow_data[subscription_update_confirm][items][0][price]': plan_prices[normalized_plan],
+                'flow_data[after_completion][type]': 'redirect',
+                'flow_data[after_completion][redirect][return_url]': f'{PUBLIC_APP_URL}/?plan_changed=1#pro'
+            })
+            if normalized_plan == 'annual':
+                portal_params['flow_data[subscription_update_confirm][discounts][0][coupon]'] = STRIPE_ANNUAL_DISCOUNT_COUPON_ID
+    return stripe_api_request('POST', 'billing_portal/sessions', portal_params)
+
+
+def subscription_billing_plan(subscription: dict) -> str:
+    items = subscription.get('items', {}).get('data', [])
+    if items:
+        price = items[0].get('price') or {}
+        price_id = str(price.get('id') if isinstance(price, dict) else price)
+        for plan_name, configured_price_id in (
+            ('weekly', STRIPE_WEEKLY_PRICE_ID),
+            ('monthly', STRIPE_PRICE_ID),
+            ('annual', STRIPE_ANNUAL_PRICE_ID)
+        ):
+            if configured_price_id and hmac.compare_digest(price_id, configured_price_id):
+                return plan_name
+    metadata_plan = str(subscription.get('metadata', {}).get('billing_plan') or '')
+    return metadata_plan if metadata_plan in ('weekly', 'monthly', 'annual') else ''
 
 
 def verify_stripe_signature(payload: bytes, signature_header: str):
@@ -310,7 +482,13 @@ def handle_stripe_event(event: dict):
     if event_type == 'checkout.session.completed':
         user_id = resource.get('client_reference_id') or resource.get('metadata', {}).get('user_id')
         if user_id and resource.get('payment_status') in ('paid', 'no_payment_required'):
-            save_subscription(user_id, 'active', str(resource.get('customer') or ''), str(resource.get('subscription') or ''))
+            save_subscription(
+                user_id,
+                'active',
+                str(resource.get('customer') or ''),
+                str(resource.get('subscription') or ''),
+                billing_plan=str(resource.get('metadata', {}).get('billing_plan') or '')
+            )
         return
     if event_type in ('customer.subscription.updated', 'customer.subscription.deleted'):
         user_id = resource.get('metadata', {}).get('user_id')
@@ -323,7 +501,8 @@ def handle_stripe_event(event: dict):
                 status,
                 str(resource.get('customer') or ''),
                 str(resource.get('id') or ''),
-                int(resource.get('current_period_end') or 0)
+                int(resource.get('current_period_end') or 0),
+                subscription_billing_plan(resource)
             )
 
 
@@ -352,11 +531,10 @@ def read_oauth_state(state: str, expected_provider: str) -> str:
 def local_fallback_answer(question: str) -> str:
     question_text = (question or '').strip()
     if not question_text:
-        return 'Jeg er klar til at besvare spørgsmål. Skriv et spørgsmål, så jeg svarer lokalt.'
+        return 'Spørg mig om træning, mad, kcal, vægt, billeder eller andre funktioner i All In One Fitness.'
     return (
-        f"Jeg er den lokale AI i All In One Fitness. Du spurgte: '{question_text}'. "
-        "Jeg kan svare på generel viden, planlægning, træning, kost, sundhed og hverdagsspørgsmål. "
-        "Ollama-modellen er ikke tilgængelig lige nu, så dette er et lokalt fallback-svar."
+        "Jeg kan kun hjælpe med funktionerne og dine registreringer i All In One Fitness: "
+        "træning, mad, kcal, vægt, kropsbilleder og tilknyttede sundhedsdata."
     )
 
 
@@ -367,7 +545,7 @@ def call_openai(question: str, context: dict | None = None, images: list[str] | 
     user_content = question
     if images:
         user_content = [{'type': 'text', 'text': question}]
-        for image in images[:3]:
+        for image in images[:6]:
             image_value = str(image or '').strip()
             if not image_value:
                 continue
@@ -386,8 +564,9 @@ def call_openai(question: str, context: dict | None = None, images: list[str] | 
         {
             'role': 'system',
             'content': (
-                'Du er en lokal, hjælpsom dansk AI-assistent for alle brugere af All In One Fitness. '
-                'Svar på generelle spørgsmål, praktisk hjælp, viden, planlægning, træning, mad, vægt, søvn og restitution. '
+                'Du er den danske AI-coach inde i All In One Fitness. '
+                'Besvar kun spørgsmål om appens funktioner eller brugerens medsendte appdata om træning, mad, kcal, vægt, kropsbilleder, søvn, restitution og tilknyttede sundhedsdata. '
+                'Hvis spørgsmålet ikke handler om All In One Fitness eller disse data, skal du kort forklare, at du kun kan hjælpe inde i appens område. '
                 'Brug kun brugerens medsendte appdata, når spørgsmålet handler om dem. Opfind aldrig personlige tal. '
                 'Ved kropsbilleder må du kun beskrive synlige muskelgrupper og træningsrelevante proportioner. '
                 'Gæt aldrig identitet, køn, etnicitet, sygdom eller præcis fedtprocent, og giv ikke medicinske diagnoser. '
@@ -443,8 +622,9 @@ def call_ollama(question: str, context: dict | None = None, images: list[str] | 
             {
                 'role': 'system',
                 'content': (
-                    'Du er den lokale AI-assistent for alle brugere af All In One Fitness. '
-                    'Svar på ethvert almindeligt spørgsmål samt spørgsmål om træning, kost, vægt, søvn, restitution og planlægning. '
+                    'Du er den lokale AI-coach inde i All In One Fitness. '
+                    'Besvar kun spørgsmål om appens funktioner eller brugerens medsendte appdata om træning, mad, kcal, vægt, kropsbilleder, søvn, restitution og tilknyttede sundhedsdata. '
+                    'Afvis kort spørgsmål uden for appens område. '
                     'Brug kun de appdata, der følger med dette spørgsmål, og bland aldrig data mellem brugere. '
                     'Opfind aldrig personlige tal. Giv ikke medicinske diagnoser. Svar klart og brugbart på dansk.'
                 )
@@ -864,6 +1044,23 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             self.clear_auth_session()
             return {}
 
+    def require_pro_user(self) -> str | None:
+        user = self.authenticated_user()
+        if not user:
+            self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at forbinde sundhedsdata.'}, 401)
+            return None
+        user_id = normalize_user_id(str(user['id']))
+        billing_status = get_billing_status(user_id)
+        if not billing_status['is_pro']:
+            self.send_json({
+                'ok': False,
+                'code': 'pro_required',
+                'message': 'KRÆVER PRO: sundhedsdata og Withings er låst.',
+                'billing': billing_status
+            }, 402)
+            return None
+        return user_id
+
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == '/api/health':
@@ -879,7 +1076,9 @@ class LocalAIHandler(BaseHTTPRequestHandler):
                 'publicly_hosted_ready': bool(OPENAI_API_KEY),
                 'vision_ready': bool(OPENAI_API_KEY),
                 'auth_configured': bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
-                'billing_configured': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+                'billing_configured': any(billing_plan_configuration().values()),
+                'billing_environment': BILLING_ENVIRONMENT,
+                'billing_test_mode': BILLING_ENVIRONMENT == 'test',
                 'withings_configured': bool(WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET),
                 'persistent_token_store': bool(RAILWAY_VOLUME_PATH or os.environ.get('TOKEN_STORE_PATH'))
             })
@@ -890,7 +1089,9 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             self.send_json({
                 'ok': True,
                 'configured': bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
-                'billing_configured': bool(STRIPE_SECRET_KEY and STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET),
+                'billing_configured': any(billing_plan_configuration().values()),
+                'billing_environment': BILLING_ENVIRONMENT,
+                'test_mode': BILLING_ENVIRONMENT == 'test',
                 'authenticated': bool(user),
                 'user': {'id': user.get('id'), 'email': user.get('email')} if user else None
             })
@@ -905,14 +1106,12 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == '/api/provider/status':
-            params = parse_qs(parsed.query)
-            try:
-                user_id = normalize_user_id(params.get('user_id', [''])[0])
-            except ValueError as exc:
-                self.send_json({'ok': False, 'message': str(exc)})
+            user_id = self.require_pro_user()
+            if not user_id:
                 return
             withings_token = read_token_store().get('withings_users', {}).get(user_id, {})
             self.send_json({
+                'ok': True,
                 'withings_configured': bool(WITHINGS_CLIENT_ID and WITHINGS_CLIENT_SECRET),
                 'withings_connected': bool(withings_token.get('access_token')),
                 'whoop_configured': bool(WHOOP_CLIENT_ID),
@@ -924,8 +1123,10 @@ class LocalAIHandler(BaseHTTPRequestHandler):
         if parsed.path.startswith('/api/provider/start'):
             params = parse_qs(parsed.query)
             provider = (params.get('provider', [''])[0] or '').strip().lower()
+            user_id = self.require_pro_user()
+            if not user_id:
+                return
             try:
-                user_id = normalize_user_id(params.get('user_id', [''])[0])
                 url, provider_key = build_provider_auth_url(provider, user_id)
                 self.send_json({'ok': True, 'provider': provider_key, 'url': url, 'message': f'{provider_key} auth URL generated'})
             except RuntimeError as exc:
@@ -944,6 +1145,11 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             try:
                 if provider == 'withings':
                     user_id = read_oauth_state(state, 'withings')
+                    if not get_billing_status(user_id)['is_pro']:
+                        self.send_response(302)
+                        self.send_header('Location', '/?provider=withings&pro_required=1#pro')
+                        self.end_headers()
+                        return
                     exchange_withings_code(code, user_id)
                     try:
                         latest = fetch_withings_latest_weight(user_id)
@@ -968,8 +1174,10 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             params = parse_qs(parsed.query)
             provider = (params.get('provider', ['withings'])[0] or 'withings').strip().lower()
             if provider == 'withings':
+                user_id = self.require_pro_user()
+                if not user_id:
+                    return
                 try:
-                    user_id = normalize_user_id(params.get('user_id', [''])[0])
                     result = fetch_withings_latest_weight(user_id)
                     self.send_json({'ok': True, 'provider': 'withings', **result})
                 except Exception as exc:
@@ -982,8 +1190,10 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             params = parse_qs(parsed.query)
             provider = (params.get('provider', ['withings'])[0] or 'withings').strip().lower()
             if provider == 'withings':
+                user_id = self.require_pro_user()
+                if not user_id:
+                    return
                 try:
-                    user_id = normalize_user_id(params.get('user_id', [''])[0])
                     self.send_json({'ok': True, **fetch_withings_today_activity(user_id)})
                 except Exception as exc:
                     self.send_json({'ok': False, 'provider': 'withings', 'message': str(exc)})
@@ -1113,13 +1323,13 @@ class LocalAIHandler(BaseHTTPRequestHandler):
                 payload = json.loads(self.rfile.read(content_length).decode('utf-8'))
                 user_id = normalize_user_id(str(user['id']))
                 if parsed.path == '/api/billing/checkout':
-                    session = create_checkout_session(user_id)
+                    session = create_checkout_session(user_id, str(payload.get('plan') or 'monthly'))
                     self.send_json({'ok': True, 'url': session.get('url'), 'session_id': session.get('id')})
                 elif parsed.path == '/api/billing/confirm':
                     status = confirm_checkout_session(str(payload.get('session_id') or ''), user_id)
                     self.send_json({'ok': True, **status})
                 else:
-                    session = create_billing_portal_session(user_id)
+                    session = create_billing_portal_session(user_id, str(payload.get('plan') or ''))
                     self.send_json({'ok': True, 'url': session.get('url')})
             except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
                 self.send_json({'ok': False, 'message': str(exc)}, 400)
@@ -1128,13 +1338,12 @@ class LocalAIHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == '/api/provider/disconnect':
-            params = parse_qs(parsed.query)
-            try:
-                user_id = normalize_user_id(params.get('user_id', [''])[0])
-                delete_provider_token('withings', user_id)
-            except ValueError as exc:
-                self.send_json({'ok': False, 'message': str(exc)})
+            user = self.authenticated_user()
+            if not user:
+                self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at fjerne sundhedsdata.'}, 401)
                 return
+            user_id = normalize_user_id(str(user['id']))
+            delete_provider_token('withings', user_id)
             self.send_json({'ok': True, 'provider': 'withings', 'disconnected': True})
             return
         if parsed.path != '/api/coach':
@@ -1158,7 +1367,7 @@ class LocalAIHandler(BaseHTTPRequestHandler):
 
         question = str(payload.get('question', '')).strip()
         context = payload.get('context') or {}
-        images = payload.get('images') if isinstance(payload.get('images'), list) else []
+        images = payload.get('images')[:6] if isinstance(payload.get('images'), list) else []
         user_id = normalize_user_id(str(user['id']))
         usage_type = 'vision' if images else 'coach'
         billing_status = get_billing_status(user_id)
@@ -1214,6 +1423,7 @@ class LocalAIHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    validate_billing_environment()
     host = '0.0.0.0'
     server = ThreadingHTTPServer((host, DEFAULT_PORT), LocalAIHandler)
     print(f'Local AI app server running on http://{host}:{DEFAULT_PORT}')

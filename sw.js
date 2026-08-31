@@ -1,6 +1,6 @@
-const APP_BUILD = 'formly-v20260828-pro-auth-3';
+const APP_BUILD = 'formly-v20260830-pro-training-16';
 const CACHE_NAME = APP_BUILD;
-const APP_FILES = ['./', './index.html', './styles.css', './app.js', './physique-3d.js', './workout.html', './workout.js', './manifest.json', './sw.js', './favicon.svg', './icons/aio-192.png', './icons/aio-512.png', './icons/aio-maskable-512.png', './icons/aio-apple-180.png', './assets/training-background.jpeg'];
+const APP_FILES = ['./', './index.html', './styles.css', './app.js', './physique-3d.js', './assets/three.module.js', './assets/three.core.js', './workout.html', './workout.js', './manifest.json', './sw.js', './favicon.svg', './icons/aio-192.png', './icons/aio-512.png', './icons/aio-maskable-512.png', './icons/aio-apple-180.png', './assets/training-background.jpeg'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -45,7 +45,10 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then((cachedResponse) => cachedResponse || caches.match('./index.html')))
+      .catch(() => caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return event.request.mode === 'navigate' ? caches.match('./index.html') : Response.error();
+      }))
   );
 });
 

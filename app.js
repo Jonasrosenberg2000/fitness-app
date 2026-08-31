@@ -12,7 +12,16 @@ const billingState = {
   loaded: false,
   configured: false,
   isPro: false,
+  isOwner: false,
+  billingEnvironment: 'live',
+  testMode: false,
+  billingPlan: '',
   priceDkk: 39,
+  plans: {
+    weekly: { configured: false, priceDkk: 20 },
+    monthly: { configured: false, priceDkk: 39 },
+    annual: { configured: false, priceDkk: 468, introPriceDkk: 280.8, introDiscountPercent: 40 }
+  },
   limits: { coach: 60, vision: 4 },
   remaining: { coach: 0, vision: 0 }
 };
@@ -520,16 +529,33 @@ const syncHealth = document.querySelector('#syncHealth');
 const healthStatus = document.querySelector('#healthStatus');
 const healthSteps = document.querySelector('#healthSteps');
 const sessionComplete = document.querySelector('#sessionComplete');
+
+function calculateMaintenanceCalories(weight, height, age, sex, steps, trainingDays) {
+  if (weight <= 0 || height <= 0 || age <= 0) return 0;
+  const bmr = sex === 'male'
+    ? (10 * weight) + (6.25 * height) - (5 * age) + 5
+    : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+  const normalizedSteps = Math.max(0, Math.min(20000, Number(steps) || 0));
+  const normalizedTrainingDays = Math.max(0, Math.min(7, Number(trainingDays) || 0));
+  const dailyActivity = bmr * (1.2 + ((normalizedSteps / 20000) * 0.4));
+  const caloriesPerWorkout = weight * 60 * 5 * 0.0175;
+  const dailyTrainingAverage = (caloriesPerWorkout * normalizedTrainingDays) / 7;
+  return Math.round(dailyActivity + dailyTrainingAverage);
+}
+
 function updateMaintenance() {
   const weight = Number(profileWeight.value) || 0;
   const height = Number(profileHeight.value) || 0;
   const age = Number(profileAge.value) || 0;
   const sex = profileSex.value === 'male' ? 'male' : 'female';
-  const baseTdee = sex === 'male'
-    ? (10 * weight) + (6.25 * height) - (5 * age) + 5
-    : (10 * weight) + (6.25 * height) - (5 * age) - 161;
-  const activityBoost = Math.min(Number(stepsInput.value || 0), 20000) / 20000;
-  const maintenanceEstimate = Math.round(baseTdee * (1.1 + activityBoost * 0.4));
+  const maintenanceEstimate = calculateMaintenanceCalories(
+    weight,
+    height,
+    age,
+    sex,
+    stepsInput.value,
+    getSelectedTrainingDays()
+  );
   maintenanceInput.value = maintenanceEstimate;
   if (weight > 0) localStorage.setItem('formlyProfileWeight', String(profileWeight.value || ''));
   localStorage.setItem('formlyProfileHeight', String(profileHeight.value || ''));
@@ -572,7 +598,8 @@ coachPanel.innerHTML = `
     <div id="aiProviderStatus" class="coach-provider-status">Kontrollerer AI-status...</div>
   </div>
   <div id="coachProGate" class="pro-inline-gate">
-    <div><span>PRO ONLINE</span><strong>AI-coach kræver Pro</strong><small>Personlig AI og billedanalyse · 39 kr./måned</small></div>
+    <span class="pro-gate-lock" aria-hidden="true"></span>
+    <div><span>KRÆVER PRO</span><strong>Personlig AI-coach</strong><small>Års-Pro 280,80 kr. første år · eller 39 kr./måned</small></div>
     <button type="button" data-open-pro>Se Pro</button>
   </div>
   <div class="coach-layout">
@@ -611,7 +638,7 @@ const proAccessButton = document.createElement('button');
 proAccessButton.type = 'button';
 proAccessButton.id = 'proAccessButton';
 proAccessButton.className = 'pro-access-button';
-proAccessButton.textContent = 'PRO · 39 KR';
+proAccessButton.textContent = 'PRO · 40 % ÅR 1';
 document.body.append(proAccessButton);
 
 const proAccessDialog = document.createElement('div');
@@ -621,16 +648,95 @@ proAccessDialog.hidden = true;
 proAccessDialog.innerHTML = `
   <section class="pro-access-sheet" role="dialog" aria-modal="true" aria-labelledby="proAccessTitle">
     <button type="button" class="pro-access-close" aria-label="Luk">×</button>
+    <div class="billing-test-badge" role="status" hidden>STRIPE TEST · INGEN RIGTIGE BETALINGER</div>
     <div class="pro-access-heading">
       <span>AIO PRO</span>
-      <h2 id="proAccessTitle">Online coaching, på din konto</h2>
-      <p>Gratisdelen fortsætter som før. Pro åbner de funktioner, der bruger online AI.</p>
+      <h2 id="proAccessTitle">Pro-funktioner, på din konto</h2>
+      <p>Workout-log, mad/kcal, manuel vægt og egne billeder er gratis. Pro åbner AI, lineær progression og sundhedssynk.</p>
     </div>
-    <div class="pro-access-price"><strong>39</strong><span>kr.<small>pr. måned</small></span></div>
+    <section class="pro-demo" aria-labelledby="proDemoTitle">
+      <header class="pro-demo-header">
+        <div><span id="proDemoEyebrow">INTERAKTIV 3D</span><h3 id="proDemoTitle">Se din udvikling fra alle vinkler</h3></div>
+        <button type="button" id="proDemoToggle" class="pro-demo-toggle" aria-label="Sæt demo på pause" aria-pressed="false" title="Pause">Ⅱ</button>
+      </header>
+      <div class="pro-demo-player" data-demo-scene="physique">
+        <div class="pro-demo-scene pro-demo-scene-physique" data-demo-panel="physique">
+          <div class="pro-demo-appbar"><b>AIO</b><span>3D MUSCLE MAP</span><i>LIVE</i></div>
+          <div class="pro-demo-hologram">
+            <canvas id="proDemo3dCanvas" aria-hidden="true"></canvas>
+            <div class="pro-demo-scanline" aria-hidden="true"></div>
+            <div class="pro-demo-hud"><span>FRONT</span><strong>3/3 VINKLER</strong><small>AI MUSCLE MAP ACTIVE</small></div>
+          </div>
+        </div>
+        <div class="pro-demo-scene pro-demo-scene-coach" data-demo-panel="coach" hidden>
+          <div class="pro-demo-appbar"><b>AIO</b><span>AI-COACH</span><i>ONLINE</i></div>
+          <div class="pro-demo-chat">
+            <p><small>DIT SPØRGSMÅL</small>Hvordan øger jeg min bænkpres uden et ekstra træningspas?</p>
+            <p><small>AI-COACH</small>Behold tre pas. Læg 2,5 kg på dit topsæt og stop med to reps i reserve.</p>
+          </div>
+          <div class="pro-demo-metrics"><span><b>+2,5 kg</b>næste topsæt</span><span><b>2 RIR</b>intensitet</span><span><b>3 pas</b>pr. uge</span></div>
+        </div>
+        <div class="pro-demo-scene pro-demo-scene-analysis" data-demo-panel="analysis" hidden>
+          <div class="pro-demo-appbar"><b>AIO</b><span>FYSIKANALYSE</span><i>KLAR</i></div>
+          <div class="pro-demo-angles"><span>FRONT<i></i></span><span>HØJRE<i></i></span><span>VENSTRE<i></i></span></div>
+          <div class="pro-demo-result"><b>Fokus de næste 4 uger</b><span>Øvre ryg · Skulderkontrol · Symmetri</span></div>
+        </div>
+        <div class="pro-demo-scene pro-demo-scene-training" data-demo-panel="training" hidden>
+          <div class="pro-demo-appbar"><b>AIO</b><span>DAGENS TRÆNING</span><i>67%</i></div>
+          <div class="pro-demo-workout"><p><span>01</span><b>Bench press</b><small>62,5 kg · 8 reps · 3 sæt</small><i>✓</i></p><p><span>02</span><b>Barbell row</b><small>55 kg · 10 reps · 3 sæt</small><i>✓</i></p><p><span>03</span><b>Shoulder press</b><small>32,5 kg · 8 reps · 3 sæt</small><i></i></p></div>
+        </div>
+        <div class="pro-demo-scene pro-demo-scene-progress" data-demo-panel="progress" hidden>
+          <div class="pro-demo-appbar"><b>AIO</b><span>DIN UDVIKLING</span><i>+12%</i></div>
+          <div class="pro-demo-chart" aria-hidden="true"><i style="--value:34%"></i><i style="--value:43%"></i><i style="--value:48%"></i><i style="--value:60%"></i><i style="--value:72%"></i><i style="--value:88%"></i></div>
+          <div class="pro-demo-metrics"><span><b>82,5 kg</b>bedste 1RM</span><span><b>+8,5 kg</b>siden start</span><span><b>12 uger</b>registreret</span></div>
+        </div>
+        <div class="pro-demo-scene pro-demo-scene-food" data-demo-panel="food" hidden>
+          <div class="pro-demo-appbar"><b>AIO</b><span>MAD & KCal</span><i>I DAG</i></div>
+          <div class="pro-demo-food"><div><strong>1.842</strong><small>af 2.200 kcal</small></div><p><span style="--fill:78%"><b>156 g</b>Protein</span><span style="--fill:64%"><b>210 g</b>Kulhydrat</span><span style="--fill:52%"><b>58 g</b>Fedt</span></p></div>
+        </div>
+      </div>
+      <p id="proDemoCaption" class="pro-demo-caption">Se den levende 3D-krop fremhæve de muskelgrupper, din analyse finder.</p>
+      <div class="pro-demo-controls">
+        <div class="pro-demo-progress" aria-hidden="true"><i></i></div>
+        <div class="pro-demo-dots" aria-label="Vælg scene">
+          <button type="button" class="active" data-demo-target="physique" aria-label="3D-krop"></button>
+          <button type="button" data-demo-target="coach" aria-label="AI-coach"></button>
+          <button type="button" data-demo-target="analysis" aria-label="Fysikanalyse"></button>
+          <button type="button" data-demo-target="training" aria-label="Træning"></button>
+          <button type="button" data-demo-target="progress" aria-label="Progression"></button>
+          <button type="button" data-demo-target="food" aria-label="Mad og kcal"></button>
+        </div>
+      </div>
+    </section>
+    <section class="pro-monthly-news" aria-labelledby="proMonthlyNewsTitle">
+      <header>
+        <div><span>NYT HVER MÅNED</span><h3 id="proMonthlyNewsTitle">Nye Pro-funktioner gennem hele året</h3></div>
+        <b>INKLUDERET I PRO</b>
+      </header>
+      <div id="proMonthlyNewsList" class="pro-monthly-news-list"></div>
+      <p>Den næste opdatering offentliggøres her. Alle månedlige Pro-opdateringer er med i abonnementet uden ekstra køb.</p>
+    </section>
+    <div class="pro-plan-grid" role="radiogroup" aria-label="Vælg Pro-abonnement">
+      <button type="button" class="pro-plan-card pro-plan-annual is-recommended is-selected" data-pro-plan="annual" role="radio" aria-checked="true">
+        <span>40 PROCENT PÅ FØRSTE ÅR</span><h3>Årlig Pro</h3><div><strong>280,80</strong> kr. første år</div>
+        <p>Alt i Pro i 12 måneder · AI-coach · 3D-analyse · progression · sundhedssynk</p>
+        <small><s>468 kr.</s> første år · derefter 468 kr./år · automatisk fornyelse</small>
+      </button>
+      <button type="button" class="pro-plan-card pro-plan-month" data-pro-plan="monthly" role="radio" aria-checked="false">
+        <span>FLEKSIBEL</span><h3>Månedlig Pro</h3><div><strong>39</strong> kr./md.</div>
+        <p>60 AI-svar · 4 fysikanalyser · progression · Withings og sundhedsdata</p>
+        <small>39 kr. hver måned · automatisk fornyelse · opsig når som helst</small>
+      </button>
+      <button type="button" class="pro-plan-card pro-plan-week" data-pro-plan="weekly" role="radio" aria-checked="false">
+        <span>7 DAGE AD GANGEN</span><h3>1 uges Pro</h3><div><strong>20</strong> kr./uge</div>
+        <p>Alle Pro-funktioner · fuld adgang i hver betalingsuge</p>
+        <small>Fornyes hver 7. dag · skift plan eller opsig når som helst</small>
+      </button>
+    </div>
     <ul class="pro-access-features">
-      <li><b>60</b><span>personlige AI-coachbeskeder hver måned</span></li>
-      <li><b>4</b><span>3-vinkels fysikanalyser hver måned</span></li>
-      <li><b>Fri</b><span>træning, mad, vægt og Withings uden abonnement</span></li>
+      <li><b>AI</b><span>personlig coaching ud fra dine mål og registreringer</span></li>
+      <li><b>3D</b><span>visuelt muskelkort fra din 3-vinkels fysikanalyse</span></li>
+      <li><b>Fri</b><span>workout-log, mad/kcal, manuel vægt og egne billeder uden abonnement</span></li>
     </ul>
     <div class="pro-auth-panel">
       <div id="proAuthGuest">
@@ -651,11 +757,12 @@ proAccessDialog.innerHTML = `
       <small id="proAuthStatus" class="pro-auth-status" role="status">Log ind for at aktivere eller administrere Pro.</small>
     </div>
     <div id="proUsageSummary" class="pro-usage-summary" hidden></div>
-    <button type="button" id="startProCheckout" class="pro-checkout-button">Start Pro for 39 kr./måned</button>
+    <button type="button" id="startProCheckout" class="pro-checkout-button">Start års-Pro for 280,80 kr.</button>
     <small id="proCheckoutStatus" class="pro-checkout-status">Sikker betaling håndteres af Stripe. Opsig når som helst.</small>
   </section>`;
-document.body.append(proAccessDialog);
+document.querySelector('.content').append(proAccessDialog);
 
+const billingTestBadge = proAccessDialog.querySelector('.billing-test-badge');
 const proCheckoutButton = proAccessDialog.querySelector('#startProCheckout');
 const proCheckoutStatus = proAccessDialog.querySelector('#proCheckoutStatus');
 const proUsageSummary = proAccessDialog.querySelector('#proUsageSummary');
@@ -668,17 +775,122 @@ const proAuthSubmit = proAccessDialog.querySelector('#proAuthSubmit');
 const proAuthEmailLabel = proAccessDialog.querySelector('#proAuthEmailLabel');
 const proAuthStatus = proAccessDialog.querySelector('#proAuthStatus');
 const proAuthLogout = proAccessDialog.querySelector('#proAuthLogout');
+const proDemoPlayer = proAccessDialog.querySelector('.pro-demo-player');
+const proDemoToggle = proAccessDialog.querySelector('#proDemoToggle');
+const proDemoEyebrow = proAccessDialog.querySelector('#proDemoEyebrow');
+const proDemoTitle = proAccessDialog.querySelector('#proDemoTitle');
+const proDemoCaption = proAccessDialog.querySelector('#proDemoCaption');
+const proDemoProgress = proAccessDialog.querySelector('.pro-demo-progress i');
+const proPlanCards = [...proAccessDialog.querySelectorAll('[data-pro-plan]')];
+const proMonthlyNewsList = proAccessDialog.querySelector('#proMonthlyNewsList');
 let authMode = 'login';
+let selectedProPlan = 'annual';
+let proStartWasAutomatic = !window.location.hash || window.location.hash === '#top';
+let pendingAccountLandingPage = '';
+
+function showAccountLanding(pageName) {
+  if (typeof window.showAppPage === 'function') {
+    window.showAppPage(pageName);
+    return;
+  }
+  pendingAccountLandingPage = pageName;
+}
+
+const proMonthlyDrops = [
+  {
+    id: '2026-08-3d-pro-preview',
+    month: 'August 2026',
+    label: 'MÅNEDENS NYHED',
+    title: 'Mandlig 3D Body Scan',
+    text: 'En levende anatomisk 3D-model viser kropsvinkler og muskelområder. Free-brugere kan se funktionen bag en tydelig Pro-lås.'
+  }
+];
+
+function renderProMonthlyNews() {
+  proMonthlyNewsList.innerHTML = [...proMonthlyDrops].reverse().slice(0, 3).map((drop, index) => `
+    <article class="${index === 0 ? 'is-latest' : ''}">
+      <span>${drop.label}</span><small>${drop.month}</small>
+      <h4>${drop.title}</h4><p>${drop.text}</p>
+    </article>`).join('');
+}
+
+function announceLatestProDrop(hasOnlineAccess) {
+  const latestDrop = proMonthlyDrops.at(-1);
+  if (!hasOnlineAccess || !latestDrop) return;
+  const seenKey = 'formlyLatestProDrop';
+  if (localStorage.getItem(seenKey) === latestDrop.id) return;
+  localStorage.setItem(seenKey, latestDrop.id);
+  showToast(`Nyt i Pro: ${latestDrop.title}`);
+}
+
+renderProMonthlyNews();
+
+const proDemoScenes = [
+  { key: 'physique', eyebrow: 'INTERAKTIV 3D', title: 'Se din udvikling fra alle vinkler', caption: 'Se den levende 3D-krop fremhæve de muskelgrupper, din analyse finder.' },
+  { key: 'coach', eyebrow: 'PERSONLIG AI-COACH', title: 'Få et konkret næste skridt', caption: 'AI-coachen bruger dine mål, træningspas og registreringer til et personligt svar.' },
+  { key: 'analysis', eyebrow: '3-VINKELS ANALYSE', title: 'Gør billeder til et træningsfokus', caption: 'Front, højre og venstre vinkel samles i synlige prioriteter og en praktisk plan.' },
+  { key: 'training', eyebrow: 'TRÆNINGSLOG', title: 'Registrér hvert arbejdssæt', caption: 'Vægt, reps og sæt samles i én rolig træningsoversigt.' },
+  { key: 'progress', eyebrow: 'PROGRESSION', title: 'Se styrken bevæge sig', caption: 'Følg volumen, personlige rekorder og estimeret 1RM på tværs af uger.' },
+  { key: 'food', eyebrow: 'MAD & KCAL', title: 'Hold styr på dagens mål', caption: 'Kalorier og makroer opdateres, når du registrerer dagens måltider.' }
+];
+let proDemoIndex = 0;
+let proDemoPaused = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let proDemoTimer = null;
+
+function renderProDemo(index, restart = true) {
+  proDemoIndex = (index + proDemoScenes.length) % proDemoScenes.length;
+  const scene = proDemoScenes[proDemoIndex];
+  proDemoPlayer.dataset.demoScene = scene.key;
+  proAccessDialog.querySelectorAll('[data-demo-panel]').forEach((panel) => {
+    panel.hidden = panel.dataset.demoPanel !== scene.key;
+  });
+  proAccessDialog.querySelectorAll('[data-demo-target]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.demoTarget === scene.key);
+  });
+  proDemoEyebrow.textContent = scene.eyebrow;
+  proDemoTitle.textContent = scene.title;
+  proDemoCaption.textContent = scene.caption;
+  proDemoProgress.classList.remove('is-running');
+  void proDemoProgress.offsetWidth;
+  if (!proDemoPaused) proDemoProgress.classList.add('is-running');
+  if (restart) scheduleProDemo();
+}
+
+function scheduleProDemo() {
+  window.clearTimeout(proDemoTimer);
+  if (!proDemoPaused) proDemoTimer = window.setTimeout(() => renderProDemo(proDemoIndex + 1), 5200);
+}
+
+function setProDemoPaused(paused) {
+  proDemoPaused = paused;
+  proDemoToggle.setAttribute('aria-pressed', String(paused));
+  proDemoToggle.setAttribute('aria-label', paused ? 'Afspil demo' : 'Sæt demo på pause');
+  proDemoToggle.title = paused ? 'Afspil' : 'Pause';
+  proDemoToggle.textContent = paused ? '▶' : 'Ⅱ';
+  renderProDemo(proDemoIndex);
+}
+
+proDemoToggle.addEventListener('click', () => setProDemoPaused(!proDemoPaused));
+proAccessDialog.querySelectorAll('[data-demo-target]').forEach((button) => button.addEventListener('click', () => {
+  renderProDemo(proDemoScenes.findIndex((scene) => scene.key === button.dataset.demoTarget));
+}));
+setProDemoPaused(proDemoPaused);
 
 function openProAccess() {
-  proAccessDialog.hidden = false;
-  document.body.classList.add('pro-dialog-open');
-  proAccessDialog.querySelector('.pro-access-close').focus();
+  proStartWasAutomatic = false;
+  if (typeof window.showAppPage === 'function') {
+    window.showAppPage('pro');
+  } else {
+    history.replaceState({}, '', '#pro');
+  }
 }
 
 function closeProAccess() {
-  proAccessDialog.hidden = true;
-  document.body.classList.remove('pro-dialog-open');
+  if (typeof window.showAppPage === 'function') {
+    window.showAppPage('overview');
+  } else {
+    history.replaceState({}, '', '#top');
+  }
 }
 
 function setAuthMode(mode) {
@@ -717,15 +929,67 @@ function requireFreshLogin() {
   authState.user = null;
   authState.notice = 'Din session er udløbet. Log ind igen.';
   billingState.isPro = false;
+  billingState.isOwner = false;
   updateBillingUi();
   openProAccess();
   proAuthEmail.focus();
 }
 
+function selectProPlan(plan) {
+  if (!billingState.plans[plan]) return;
+  selectedProPlan = plan;
+  updateBillingUi();
+}
+
+proPlanCards.forEach((card) => card.addEventListener('click', () => selectProPlan(card.dataset.proPlan)));
+
+function formatDkk(value) {
+  const amount = Number(value) || 0;
+  return new Intl.NumberFormat('da-DK', {
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
+
+function getProCheckoutLabel(plan = selectedProPlan) {
+  const details = billingState.plans[plan];
+  if (plan === 'annual') return `Start års-Pro for ${formatDkk(details?.introPriceDkk || 280.8)} kr.`;
+  if (plan === 'weekly') return `Start 1 uges Pro for ${formatDkk(details?.priceDkk || 20)} kr.`;
+  return `Start Pro for ${formatDkk(details?.priceDkk || 39)} kr./måned`;
+}
+
+function getProPlanName(plan = selectedProPlan) {
+  if (plan === 'annual') return 'års-Pro';
+  if (plan === 'weekly') return '1 uges Pro';
+  return 'månedlig Pro';
+}
+
+function applyBillingEnvironment(status) {
+  const environment = String(status?.billing_environment || '').toLowerCase();
+  if (environment === 'live' || environment === 'test') billingState.billingEnvironment = environment;
+  billingState.testMode = Boolean(status?.test_mode) || billingState.billingEnvironment === 'test';
+}
+
 function updateBillingUi() {
   const hasOnlineAccess = authState.authenticated && billingState.isPro;
+  const selectedPlan = billingState.plans[selectedProPlan];
+  const planAvailabilityKnown = authState.authenticated && billingState.loaded;
+  proPlanCards.forEach((card) => {
+    const selected = card.dataset.proPlan === selectedProPlan;
+    const current = hasOnlineAccess && card.dataset.proPlan === billingState.billingPlan;
+    const available = billingState.plans[card.dataset.proPlan]?.configured;
+    card.classList.toggle('is-selected', selected);
+    card.classList.toggle('is-current', current);
+    card.classList.toggle('is-unavailable', planAvailabilityKnown && !available);
+    card.setAttribute('aria-checked', String(selected));
+    card.setAttribute('aria-disabled', String(planAvailabilityKnown && !available));
+  });
   document.body.classList.toggle('has-pro-access', hasOnlineAccess);
-  proAccessButton.textContent = !authState.authenticated ? 'LOG IND · PRO' : hasOnlineAccess ? 'PRO AKTIV' : 'PRO · 39 KR';
+  document.body.classList.toggle('billing-test-mode', billingState.testMode);
+  billingTestBadge.hidden = !billingState.testMode;
+  proAccessButton.textContent = billingState.testMode
+    ? (hasOnlineAccess ? 'TEST · PRO AKTIV' : 'TEST · PRO')
+    : (hasOnlineAccess ? 'PRO AKTIV' : 'PRO · 40 % ÅR 1');
   proAccessButton.classList.toggle('is-active', billingState.isPro);
   coachPanel.classList.toggle('is-pro-locked', !hasOnlineAccess);
   const coachGate = coachPanel.querySelector('#coachProGate');
@@ -738,38 +1002,121 @@ function updateBillingUi() {
     physiquePanel.classList.toggle('is-pro-locked', !hasOnlineAccess);
     const gate = physiquePanel.querySelector('#physiqueProGate');
     if (gate) gate.hidden = hasOnlineAccess;
+    const previewLock = physiquePanel.querySelector('#physiquePreviewLock');
+    if (previewLock) previewLock.hidden = hasOnlineAccess;
+    physiquePanel.querySelectorAll('.physique-scan-row input, .physique-angle-card input[type="file"]').forEach((control) => {
+      control.disabled = !hasOnlineAccess;
+    });
     const analyzeButton = physiquePanel.querySelector('#physiqueAnalyzeBtn');
     const readyPhotos = [...physiquePanel.querySelectorAll('.physique-angle-card')].filter((card) => card.classList.contains('is-ready')).length;
     if (analyzeButton) analyzeButton.disabled = !hasOnlineAccess || readyPhotos < 3;
+  }
+  const progressPanel = document.querySelector('.training-progress-panel');
+  if (progressPanel) {
+    progressPanel.classList.toggle('is-pro-locked', !hasOnlineAccess);
+    const gate = progressPanel.querySelector('#progressProGate');
+    if (gate) gate.hidden = hasOnlineAccess;
+    progressPanel.querySelectorAll('.training-tabs button, .progress-range-tabs button, .progress-period-nav button, .progress-year-nav button, #progressExercisePicker').forEach((control) => {
+      control.disabled = !hasOnlineAccess;
+    });
+    const liveBadge = progressPanel.querySelector('.progress-live');
+    if (liveBadge) liveBadge.textContent = hasOnlineAccess ? 'LIVE DATA' : 'PRO DATA';
+    if (typeof renderTrainingProgress === 'function') renderTrainingProgress();
+  }
+  const healthPanel = document.querySelector('.health-providers');
+  if (healthPanel) {
+    healthPanel.classList.toggle('is-pro-locked', !hasOnlineAccess);
+    const gate = healthPanel.querySelector('#healthProGate');
+    if (gate) gate.hidden = hasOnlineAccess;
+    healthPanel.querySelectorAll('.provider-grid button').forEach((control) => {
+      control.disabled = !hasOnlineAccess;
+    });
+    if (typeof applyWithingsConnectionState === 'function') {
+      applyWithingsConnectionState(localStorage.getItem('formlyWithingsConnected') === '1');
+    }
+    if (hasOnlineAccess && typeof refreshHealthProviderStatus === 'function') refreshHealthProviderStatus();
+  }
+  if (syncHealth) syncHealth.disabled = !hasOnlineAccess;
+  const sourcePicker = document.querySelector('#weightSource');
+  if (sourcePicker) {
+    [...sourcePicker.options].forEach((option) => {
+      option.disabled = option.value !== 'manual' && !hasOnlineAccess;
+    });
+    if (!hasOnlineAccess && sourcePicker.value !== 'manual') {
+      sourcePicker.value = 'manual';
+      localStorage.setItem('formlyWeightSource', 'manual');
+    }
   }
   if (!authState.authenticated) {
     proUsageSummary.hidden = true;
     proCheckoutButton.textContent = 'Log ind for at fortsætte';
     proCheckoutButton.disabled = !authState.configured;
     proCheckoutStatus.textContent = 'En konto sikrer, at abonnementet tilhører dig på tværs af enheder.';
+  } else if (billingState.isOwner) {
+    proUsageSummary.hidden = false;
+    proUsageSummary.innerHTML = '<strong>Permanent ejeradgang</strong><span>Alle Pro-funktioner er aktive uden Stripe-abonnement.</span>';
+    proCheckoutButton.textContent = 'Ejeradgang aktiv';
+    proCheckoutButton.disabled = true;
+    proCheckoutStatus.textContent = 'Denne verificerede konto er registreret som ejer.';
   } else if (billingState.isPro) {
+    const isChangingPlan = Boolean(billingState.billingPlan) && selectedProPlan !== billingState.billingPlan;
     proUsageSummary.hidden = false;
     proUsageSummary.innerHTML = `<strong>Din Pro-kvote</strong><span>${billingState.remaining.coach} coachbeskeder · ${billingState.remaining.vision} fysikanalyser tilbage</span>`;
-    proCheckoutButton.textContent = 'Administrér Pro';
+    proCheckoutButton.textContent = isChangingPlan ? `Skift til ${getProPlanName()}` : 'Administrér abonnement';
     proCheckoutButton.disabled = !billingState.configured;
-    proCheckoutStatus.textContent = 'Se betalinger, skift kort eller opsig sikkert hos Stripe.';
+    proCheckoutStatus.textContent = isChangingPlan
+      ? `Stripe viser pris, eventuel forholdsmæssig betaling og bekræftelse for skift til ${getProPlanName()}.`
+      : 'Vælg en anden plan ovenfor for at skifte, eller administrér kort og opsigelse hos Stripe.';
   } else {
     proUsageSummary.hidden = true;
-    proCheckoutButton.textContent = 'Start Pro for 39 kr./måned';
-    proCheckoutButton.disabled = !billingState.configured;
-    proCheckoutStatus.textContent = billingState.configured
-      ? 'Sikker betaling håndteres af Stripe. Opsig når som helst.'
-      : 'Betaling klargøres. Ingen betaling kan gennemføres endnu.';
+    const selectedPlanConfigured = Boolean(selectedPlan?.configured);
+    proCheckoutButton.textContent = getProCheckoutLabel();
+    proCheckoutButton.disabled = !billingState.configured || !selectedPlanConfigured;
+    if (!selectedPlanConfigured) {
+      const unavailablePlanName = selectedProPlan === 'annual' ? 'Årsabonnementet' : selectedProPlan === 'weekly' ? 'Ugeabonnementet' : 'Månedsabonnementet';
+      proCheckoutStatus.textContent = `${unavailablePlanName} klargøres i Stripe. Vælg en anden plan for at fortsætte.`;
+    } else if (selectedProPlan === 'annual') {
+      proCheckoutStatus.textContent = `40 PROCENT PÅ FØRSTE ÅR: Du betaler ${formatDkk(selectedPlan.introPriceDkk)} kr. nu. Abonnementet fornyes automatisk til ${formatDkk(selectedPlan.priceDkk)} kr./år efter 12 måneder.`;
+    } else if (selectedProPlan === 'weekly') {
+      proCheckoutStatus.textContent = `Du betaler ${formatDkk(selectedPlan.priceDkk)} kr. nu. Abonnementet fornyes automatisk hver 7. dag, indtil du skifter eller opsiger.`;
+    } else {
+      proCheckoutStatus.textContent = 'Sikker betaling håndteres af Stripe. 39 kr. trækkes hver måned. Opsig når som helst.';
+    }
+  }
+  if (billingState.testMode) {
+    proCheckoutStatus.textContent = `TESTMILJØ: Ingen rigtige penge trækkes. ${proCheckoutStatus.textContent}`;
   }
   updateAuthUi();
+  announceLatestProDrop(hasOnlineAccess);
 }
 
 function applyBillingStatus(status) {
   if (!status) return;
+  applyBillingEnvironment(status);
   billingState.loaded = true;
   billingState.configured = Boolean(status.configured);
   billingState.isPro = Boolean(status.is_pro);
+  billingState.isOwner = Boolean(status.is_owner);
+  billingState.billingPlan = String(status.billing_plan || '');
   billingState.priceDkk = Number(status.price_dkk) || 39;
+  const planStatus = status.plans || {};
+  billingState.plans = {
+    weekly: {
+      configured: Boolean(planStatus.weekly?.configured),
+      priceDkk: Number(planStatus.weekly?.price_dkk) || 20
+    },
+    monthly: {
+      configured: Boolean(planStatus.monthly?.configured ?? status.configured),
+      priceDkk: Number(planStatus.monthly?.price_dkk) || 39
+    },
+    annual: {
+      configured: Boolean(planStatus.annual?.configured),
+      priceDkk: Number(planStatus.annual?.price_dkk) || 468,
+      introPriceDkk: Number(planStatus.annual?.intro_price_dkk) || 280.8,
+      introDiscountPercent: Number(planStatus.annual?.intro_discount_percent) || 40
+    }
+  };
+  if (billingState.isPro && billingState.plans[billingState.billingPlan]) selectedProPlan = billingState.billingPlan;
   billingState.limits = status.limits || billingState.limits;
   billingState.remaining = status.remaining || billingState.remaining;
   updateBillingUi();
@@ -779,6 +1126,7 @@ async function loadBillingStatus() {
   const params = new URLSearchParams(window.location.search);
   const checkoutState = params.get('checkout');
   const sessionId = params.get('session_id');
+  const planChanged = params.get('plan_changed') === '1';
   if (!authState.authenticated) {
     billingState.loaded = true;
     billingState.isPro = false;
@@ -802,19 +1150,24 @@ async function loadBillingStatus() {
     }
     if (!response.ok || !result?.ok) throw new Error(result?.message || 'billing-unavailable');
     applyBillingStatus(result);
+    if (billingState.isPro && (proStartWasAutomatic || checkoutState === 'success')) {
+      proStartWasAutomatic = false;
+      showAccountLanding('training');
+    }
     if (checkoutState === 'success') {
       showToast('Pro er aktivt. Velkommen til online coaching.');
-      openProAccess();
     }
+    if (planChanged) showToast('Dit Pro-abonnement er skiftet hos Stripe.');
   } catch {
     billingState.loaded = true;
     updateBillingUi();
     if (checkoutState === 'success') showToast('Betalingen kontrolleres stadig. Prøv igen om lidt.');
   } finally {
-    if (checkoutState) {
+    if (checkoutState || planChanged) {
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete('checkout');
       cleanUrl.searchParams.delete('session_id');
+      cleanUrl.searchParams.delete('plan_changed');
       history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
     }
   }
@@ -830,6 +1183,7 @@ async function loadAuthSession() {
     authState.authenticated = Boolean(result.authenticated);
     authState.user = result.user || null;
     authState.notice = '';
+    applyBillingEnvironment(result);
     billingState.configured = Boolean(result.billing_configured);
   } catch {
     authState.loaded = true;
@@ -889,11 +1243,8 @@ async function initializeAccountState() {
 proAccessButton.addEventListener('click', openProAccess);
 document.querySelectorAll('[data-open-pro]').forEach((button) => button.addEventListener('click', openProAccess));
 proAccessDialog.querySelector('.pro-access-close').addEventListener('click', closeProAccess);
-proAccessDialog.addEventListener('click', (event) => {
-  if (event.target === proAccessDialog) closeProAccess();
-});
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !proAccessDialog.hidden) closeProAccess();
+  if (event.key === 'Escape' && !document.querySelector('#featureHelpDialog:not([hidden])') && !proAccessDialog.hidden) closeProAccess();
 });
 proAccessDialog.querySelectorAll('[data-auth-mode]').forEach((button) => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
 proAuthForm.addEventListener('submit', async (event) => {
@@ -954,7 +1305,7 @@ proCheckoutButton.addEventListener('click', async () => {
     const response = await fetch(billingState.isPro ? '/api/billing/portal' : '/api/billing/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}'
+      body: JSON.stringify({ plan: selectedProPlan })
     });
     const result = await response.json();
     if (response.status === 401) {
@@ -965,7 +1316,7 @@ proCheckoutButton.addEventListener('click', async () => {
     window.location.assign(result.url);
   } catch (error) {
     proCheckoutStatus.textContent = error.message === 'checkout-unavailable' ? 'Betaling kunne ikke åbnes. Prøv igen.' : error.message;
-    proCheckoutButton.textContent = billingState.isPro ? 'Administrér Pro' : 'Start Pro for 39 kr./måned';
+    proCheckoutButton.textContent = billingState.isPro ? 'Administrér abonnement' : getProCheckoutLabel();
     proCheckoutButton.disabled = false;
   }
 });
@@ -1109,9 +1460,24 @@ overviewQuickLinks.querySelectorAll('[data-quick-target]').forEach((button) => b
 const overviewStatsGrid = document.querySelector('.stats-grid');
 const overviewCategories = document.createElement('section');
 overviewCategories.className = 'overview-categories';
-overviewCategories.innerHTML = '<div class="overview-categories-heading"><p class="eyebrow">OVERSIGT</p><h2>Vælg en kategori</h2></div><div class="overview-category-grid"><button type="button" data-category-target="#workout"><strong>Træning</strong><span>Start session og markér øvelser</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="push"><strong>Push</strong><span>Bryst, skuldre og triceps</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="pull"><strong>Pull</strong><span>Ryg, biceps og træk</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="legs"><strong>Ben</strong><span>Lår, baller og lægge</span></button><button type="button" data-category-target="#food"><strong>Mad &amp; kcal</strong><span>Mad, makroer, steps og mål</span></button><button type="button" data-category-target="#weight"><strong>Krop</strong><span>Fysikudvikling, vægt og billeder</span></button><button type="button" data-category-target=".training-progress-panel"><strong>Progression</strong><span>Lineær udvikling i kg og 1RM</span></button><button type="button" data-category-target="#library"><strong>Øvelser</strong><span>Bibliotek, sessioner og log</span></button><button type="button" data-category-target=".coach-panel"><strong>AI-coach</strong><span>Vurdering, pros, cons og næste skridt</span></button></div>';
+overviewCategories.innerHTML = '<div class="overview-categories-heading"><div><p class="eyebrow">OVERSIGT</p><h2>Vælg en kategori</h2></div><button type="button" class="overview-help-button" data-open-feature-help aria-label="Hjælp til funktionerne" title="Hjælp til funktionerne">?</button></div><div class="overview-category-grid"><button type="button" data-category-target="#workout"><strong>Træning</strong><span>Start session og markér øvelser</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="push"><strong>Push</strong><span>Bryst, skuldre og triceps</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="pull"><strong>Pull</strong><span>Ryg, biceps og træk</span></button><button type="button" data-category-target=".training-progress-panel" data-category-muscle="legs"><strong>Ben</strong><span>Lår, baller og lægge</span></button><button type="button" data-category-target="#food"><strong>Mad &amp; kcal</strong><span>Mad, makroer, steps og mål</span></button><button type="button" data-category-target="#weight"><strong>Krop</strong><span>Fysikudvikling, vægt og billeder</span></button><button type="button" data-category-target=".training-progress-panel"><strong>Progression</strong><span>Lineær udvikling i kg og 1RM</span></button><button type="button" data-category-target="#library"><strong>Øvelser</strong><span>Bibliotek, sessioner og log</span></button><button type="button" data-category-target=".coach-panel"><strong>AI-coach</strong><span>Vurdering, pros, cons og næste skridt</span></button></div>';
 const overviewCategoryGrid = overviewCategories.querySelector('.overview-category-grid');
 overviewCategoryGrid.insertAdjacentHTML('beforeend', '<button type="button" data-category-target="#profile"><strong>Kcal-beregner</strong><span>Personlige mål og kalorier</span></button><button type="button" data-category-target="#weight"><strong>Kropsvægt</strong><span>Vejninger og vægtudvikling</span></button><button type="button" data-category-target=".coach-panel"><strong>Coach</strong><span>AI-hjælp til hele din træning</span></button><button type="button" data-category-target="#physique-ai"><strong>Fysik vurdering AI</strong><span>Scan et billede og få en fysikvurdering</span></button>');
+const proPreviewTargets = new Set(['.training-progress-panel', '.coach-panel', '#physique-ai']);
+function labelProPreviewControls(root) {
+  root?.querySelectorAll('[data-category-target], [data-quick-target]').forEach((button) => {
+    const target = button.dataset.categoryTarget || button.dataset.quickTarget;
+    if (!proPreviewTargets.has(target)) return;
+    button.classList.add('requires-pro-access');
+    button.insertAdjacentHTML('beforeend', '<small class="feature-pro-badge">KRÆVER PRO</small>');
+  });
+}
+labelProPreviewControls(overviewQuickLinks);
+labelProPreviewControls(overviewCategories);
+document.querySelectorAll('[data-app-page-target="coach"], [data-app-page-target="progress"]').forEach((link) => {
+  link.classList.add('requires-pro-access');
+  link.insertAdjacentHTML('beforeend', '<small class="nav-pro-access">KRÆVER PRO</small>');
+});
 const trainingCategoryGroup = document.createElement('div');
 trainingCategoryGroup.className = 'overview-training-category-group';
 trainingCategoryGroup.innerHTML = '<p class="eyebrow">TRÆNING OPDELT</p><h3>Vælg fokusområde</h3><div class="overview-training-grid"></div>';
@@ -1126,6 +1492,72 @@ overviewCategories.querySelectorAll('[data-category-target]').forEach((button) =
   const muscle = button.dataset.categoryMuscle;
   if (muscle) document.querySelector(`.training-progress-panel .training-tabs [data-muscle="${muscle}"]`)?.click();
 }));
+const proOverviewCategories = overviewCategories.cloneNode(true);
+proOverviewCategories.classList.add('pro-overview-categories');
+proOverviewCategories.setAttribute('aria-label', 'Oversigt over appens funktioner');
+proOverviewCategories.querySelector('.overview-categories-heading .eyebrow').textContent = 'APP OVERSIGT';
+proOverviewCategories.querySelector('.overview-categories-heading h2').textContent = 'Fortsæt til en funktion';
+proAccessDialog.append(proOverviewCategories);
+const trainingOverviewCategories = overviewCategories.cloneNode(true);
+trainingOverviewCategories.classList.add('training-overview-categories');
+trainingOverviewCategories.setAttribute('aria-label', 'Oversigt over appens funktioner');
+trainingOverviewCategories.querySelector('.overview-categories-heading .eyebrow').textContent = 'OVERSIGT';
+trainingOverviewCategories.querySelector('.overview-categories-heading h2').textContent = 'Vælg en funktion';
+const workoutSection = document.querySelector('#workout');
+const exerciseLibrarySection = document.querySelector('#library');
+if (workoutSection) {
+  if (exerciseLibrarySection) workoutSection.after(exerciseLibrarySection, trainingOverviewCategories);
+  else workoutSection.after(trainingOverviewCategories);
+}
+const featureHelpItems = [
+  { name: 'Træning', access: 'Gratis', page: 'training', text: 'Se dagens træning, åbn øvelserne og registrér sæt, reps og vægt.' },
+  { name: 'Mad & kcal', access: 'Gratis', page: 'food', text: 'Registrér måltider og følg kalorier, protein, kulhydrat og fedt.' },
+  { name: 'Krop', access: 'Gratis', page: 'weight', text: 'Saml din fase, dine kropsmål, vejninger og udviklingsbilleder.' },
+  { name: 'Progression', access: 'KRÆVER PRO', page: 'progress', text: 'Lås lineær udvikling, volumen, rekorder og beregnet 1RM op fra din gratis workout-log.' },
+  { name: 'Øvelser', access: 'Gratis', page: 'library', text: 'Byg dit øvelsesbibliotek og vælg de bevægelser, du vil træne.' },
+  { name: 'AI-coach', access: 'KRÆVER PRO', page: 'coach', text: 'Få personlige AI-svar ud fra dine mål, måltider og træningsdata.' },
+  { name: 'Kcal-beregner', access: 'Gratis', page: 'profile', text: 'Beregn et personligt kaloriemål ud fra krop, aktivitet og mål.' },
+  { name: 'Kropsvægt', access: 'Gratis', page: 'weight', text: 'Registrér vejninger og se den langsigtede vægttrend uge for uge.' },
+  { name: 'Coach', access: 'KRÆVER PRO', page: 'coach', text: 'Åbn coachens samtale, forslag og tidligere personlige svar.' },
+  { name: 'Fysik vurdering AI', access: 'KRÆVER PRO', page: 'physique', text: 'Upload tre vinkler og få fokusområder, træningsplan og 3D-muskelkort.' }
+];
+const featureHelpDialog = document.createElement('div');
+featureHelpDialog.id = 'featureHelpDialog';
+featureHelpDialog.className = 'feature-help-dialog';
+featureHelpDialog.hidden = true;
+featureHelpDialog.innerHTML = `
+  <section class="feature-help-sheet" role="dialog" aria-modal="true" aria-labelledby="featureHelpTitle">
+    <header><div><span>HJÆLP</span><h2 id="featureHelpTitle">Hvad kan funktionerne?</h2><p>Vælg en funktion for at gå direkte til den.</p></div><button type="button" class="feature-help-close" aria-label="Luk hjælpen">×</button></header>
+    <ol class="feature-help-list">${featureHelpItems.map((item, index) => `<li><span>${String(index + 1).padStart(2, '0')}</span><div><div><strong>${item.name}</strong><small class="${item.access.includes('Pro') ? 'is-pro' : ''}">${item.access}</small></div><p>${item.text}</p></div><button type="button" data-help-page="${item.page}">Åbn</button></li>`).join('')}</ol>
+  </section>`;
+document.body.append(featureHelpDialog);
+let featureHelpTrigger = null;
+
+function closeFeatureHelp(restoreFocus = true) {
+  featureHelpDialog.hidden = true;
+  document.body.classList.remove('feature-help-open');
+  if (restoreFocus) featureHelpTrigger?.focus();
+}
+
+document.addEventListener('click', (event) => {
+  const trigger = event.target.closest('[data-open-feature-help]');
+  if (!trigger) return;
+  featureHelpTrigger = trigger;
+  featureHelpDialog.hidden = false;
+  document.body.classList.add('feature-help-open');
+  featureHelpDialog.querySelector('.feature-help-close').focus();
+});
+featureHelpDialog.querySelector('.feature-help-close').addEventListener('click', () => closeFeatureHelp());
+featureHelpDialog.addEventListener('click', (event) => {
+  if (event.target === featureHelpDialog) closeFeatureHelp();
+});
+featureHelpDialog.querySelectorAll('[data-help-page]').forEach((button) => button.addEventListener('click', () => {
+  closeFeatureHelp(false);
+  window.showAppPage?.(button.dataset.helpPage);
+}));
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !featureHelpDialog.hidden) closeFeatureHelp();
+});
 const coachAnswer = coachPanel.querySelector('#coachAnswer');
 const coachConversationKey = 'formlyCoachConversation';
 const coachConversation = JSON.parse(localStorage.getItem(coachConversationKey) || '[]');
@@ -1178,7 +1610,7 @@ function getLocalCoachContext() {
 async function askLocalCoach(question, selectedImages = null) {
   const coachStatus = coachPanel.querySelector('#coachStatus');
   if (!authState.authenticated || !billingState.isPro) {
-    coachStatus.textContent = authState.authenticated ? 'Pro kræves til online AI' : 'Log ind for at bruge online AI';
+    coachStatus.textContent = authState.authenticated ? 'KRÆVER PRO · ONLINE AI' : 'Log ind for at bruge online AI';
     openProAccess();
     return '';
   }
@@ -1216,7 +1648,7 @@ async function askLocalCoach(question, selectedImages = null) {
     if (response.status === 402) {
       applyBillingStatus(result.billing);
       openProAccess();
-      coachStatus.textContent = 'Pro kræves til online AI';
+      coachStatus.textContent = 'KRÆVER PRO · ONLINE AI';
       return '';
     }
     if (response.status === 429) {
@@ -1240,7 +1672,7 @@ async function askLocalCoach(question, selectedImages = null) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: coachController.signal,
-        body: JSON.stringify({ model: physiqueQuestion && imageData.length ? 'llava' : 'llama3.2', stream: false, messages: [{ role: 'system', content: 'Du er en hjælpsom dansk AI-assistent, der kan svare på almindelige spørgsmål om viden, hverdagen, planlægning, idéer og problemløsning. Du er samtidig specialiseret i træning, styrke, kondition, mobilitet, restitution, søvn, kost, kalorier, makroer, vægttab, muskelopbygning, øvelsesteknik og programmering. Brug kun de gemte app-data til personlige svar, når spørgsmålet handler om brugerens træning eller sundhed. Skeln mellem generel viden og brugerens faktiske data. Opfind aldrig personlige tal; sig tydeligt hvis en personlig oplysning mangler. Giv et konkret svar i passende længde. Giv ikke medicinsk diagnose. Data: ' + JSON.stringify(getLocalCoachContext()) }, { role: 'user', content: question, ...(physiqueQuestion && imageData.length ? { images: imageData } : {}) }] })
+        body: JSON.stringify({ model: physiqueQuestion && imageData.length ? 'llava' : 'llama3.2', stream: false, messages: [{ role: 'system', content: 'Du er den danske AI-coach inde i All In One Fitness. Besvar kun spørgsmål om appens funktioner eller brugerens medsendte appdata om træning, mad, kcal, vægt, kropsbilleder, søvn, restitution og tilknyttede sundhedsdata. Afvis kort spørgsmål uden for appens område. Opfind aldrig personlige tal, bland aldrig brugeres data og giv ikke medicinske diagnoser. Data: ' + JSON.stringify(getLocalCoachContext()) }, { role: 'user', content: question, ...(physiqueQuestion && imageData.length ? { images: imageData } : {}) }] })
       });
       window.clearTimeout(coachTimeout);
       if (!response.ok) throw new Error('ollama-error');
@@ -1276,7 +1708,8 @@ coachPanel.querySelectorAll('.coach-suggestions button').forEach((button) => but
 
 const trainingProgressPanel = document.createElement('section');
 trainingProgressPanel.className = 'training-progress-panel';
-trainingProgressPanel.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">STYRKE & PERFORMANCE</p><h2>Progression i træningen</h2><p>Følg dine løft og se udviklingen fra træning til træning.</p></div><span class="progress-live">LIVE DATA</span></div><div class="training-tabs"><button type="button" class="active" data-muscle="push">Pres</button><button type="button" data-muscle="pull">Træk</button><button type="button" data-muscle="legs">Ben</button></div><div class="training-progress-content"><div><h3 id="progressExerciseName">Bench press</h3><p id="progressExerciseMeta">Seneste træningsblok og udvikling</p><div id="progressChart" class="progress-chart"></div></div><div class="progress-callout"><strong id="progressChange">+0 kg</strong><span>udvikling siden sidste træning</span><small id="progressNext">Registrér din næste træning for at fortsætte grafen.</small></div></div>';
+trainingProgressPanel.innerHTML = '<div class="training-progress-header"><div><p class="eyebrow">STYRKE & PERFORMANCE</p><h2>Progression i træningen</h2><p>Workout-loggen er gratis. Pro omsætter dine registreringer til lineær udvikling.</p></div><span class="progress-live">PRO DATA</span></div><div id="progressProGate" class="pro-inline-gate"><span class="pro-gate-lock" aria-hidden="true"></span><div><span>KRÆVER PRO</span><strong>Grøn lineær progression</strong><small>Fortsæt gratis med at logge sæt, reps og vægt. Dataene ligger klar efter køb.</small></div><button type="button">Se Pro</button></div><div class="training-tabs"><button type="button" class="active" data-muscle="push">Pres</button><button type="button" data-muscle="pull">Træk</button><button type="button" data-muscle="legs">Ben</button></div><div class="training-progress-content"><div><h3 id="progressExerciseName">Lineær progression</h3><p id="progressExerciseMeta">Aktivér Pro for at vise udviklingen fra din workout-log.</p><div id="progressChart" class="progress-chart"></div></div><div class="progress-callout"><strong id="progressChange">PRO</strong><span>grafen er låst</span><small id="progressNext">Dine workout-data gemmes stadig gratis.</small></div></div>';
+trainingProgressPanel.querySelector('#progressProGate button').addEventListener('click', openProAccess);
 const librarySection = document.querySelector('#library');
 if (librarySection) {
   librarySection.after(trainingProgressPanel);
@@ -1457,6 +1890,16 @@ progressExercisePicker.addEventListener('change', () => {
   renderTrainingProgress();
 });
 function renderTrainingProgress(muscle = 'push') {
+  if (!authState.authenticated || !billingState.isPro) {
+    trainingProgressPanel.querySelector('#progressExerciseName').textContent = 'Lineær progression';
+    trainingProgressPanel.querySelector('#progressExerciseMeta').textContent = 'Aktivér Pro for at vise udviklingen fra din workout-log.';
+    trainingProgressPanel.querySelector('#progressChange').textContent = 'PRO';
+    trainingProgressPanel.querySelector('.progress-callout span').textContent = 'grafen er låst';
+    trainingProgressPanel.querySelector('#progressNext').textContent = 'Sæt, reps og vægt gemmes stadig gratis og ligger klar efter køb.';
+    trainingProgressPanel.querySelectorAll('.long-progress-summary strong').forEach((value) => { value.textContent = '-'; });
+    progressChart.innerHTML = '<div class="progress-locked-chart"><span>WORKOUT-LOG GEMMES</span><strong>Den grønne kurve starter med Pro</strong><p>Fortsæt med at registrere din træning. Ingen af dine data går tabt.</p></div>';
+    return;
+  }
   syncProgressExerciseOptions();
   const exercise = progressExercisePicker.value || progressExercises[muscle][0];
   const entries = workoutLog.filter((entry) => entry.exercise.toLowerCase() === exercise.toLowerCase() && (progressRange !== 'year' || new Date(getProgressTimestamp(entry)).getFullYear() === selectedProgressYear)).map((entry) => ({ ...entry, weight: Number(entry.weight) || 0, reps: Number(entry.reps) || 0 }));
@@ -1633,13 +2076,23 @@ physiqueAiPanel.innerHTML = `
     </div>
   </div>
   <div id="physiqueProGate" class="pro-inline-gate">
-    <div><span>PRO ONLINE</span><strong>3-vinkels AI-analyse</strong><small>4 personlige scanninger hver måned · 39 kr./måned</small></div>
+    <span class="pro-gate-lock" aria-hidden="true"></span>
+    <div><span>KRÆVER PRO</span><strong>3-vinkels AI Body Scan</strong><small>4 personlige scanninger hver måned · års-Pro 280,80 kr. første år</small></div>
     <button type="button" data-open-pro>Se Pro</button>
   </div>
-  <div id="physique3dStage" class="physique-3d-stage" role="img" aria-label="Tredimensionel visualisering af AI kropsscanning">
-    <canvas id="physique3dCanvas"></canvas>
-    <div class="physique-3d-hud"><span>AI MUSCLE MAP</span><strong id="physique3dStatus">AWAITING INPUT</strong></div>
-    <div class="physique-3d-angles" aria-hidden="true"><span>FRONT</span><span>RIGHT</span><span>LEFT</span></div>
+  <div id="physique3dStage" class="physique-3d-stage" role="group" aria-label="Interaktiv tredimensionel visualisering af AI kropsscanning">
+    <canvas id="physique3dCanvas" aria-hidden="true"></canvas>
+    <div id="physiquePreviewLock" class="pro-preview-lock">
+      <span class="pro-gate-lock" aria-hidden="true"></span>
+      <div><small>LEVENDE 3D PREVIEW</small><strong>KRÆVER PRO</strong><span>Se din krop fra tre vinkler og få muskelområder fremhævet af AI.</span></div>
+      <button type="button" data-open-pro>Se Pro</button>
+    </div>
+    <div class="physique-3d-hud"><span>AI BODY MATRIX</span><strong id="physique3dStatus">AWAITING INPUT</strong><small>LIVE ANATOMY MESH</small></div>
+    <div class="physique-3d-angles" role="group" aria-label="Vælg kropsvinkel">
+      <button type="button" data-physique-view="front" class="active" aria-pressed="true"><span>Front</span><small>0°</small></button>
+      <button type="button" data-physique-view="right" aria-pressed="false"><span>Højre</span><small>90°</small></button>
+      <button type="button" data-physique-view="left" aria-pressed="false"><span>Venstre</span><small>-90°</small></button>
+    </div>
   </div>
   <div class="physique-ai-grid">
     <div class="physique-ai-card">
@@ -1707,12 +2160,17 @@ physiqueAiPanel.innerHTML = `
       <div class="physique-plan-head"><span>Øvelse</span><span>Fokus</span><span>Sæt × reps</span><span>Pause</span><span>Pr. uge</span></div>
       <div id="physiqueExercisePlan" class="physique-exercise-plan"></div>
     </section>
+    <section class="physique-analysis-block physique-history-block">
+      <div class="physique-analysis-heading"><span>04</span><div><small>90 DAY PROGRESS</small><h3>Fremgang i svage muskelgrupper</h3></div></div>
+      <p id="physiqueProgressStatus" class="physique-progress-status"></p>
+      <ul id="physiqueProgressFindings"></ul>
+    </section>
     <p id="physiqueAnalysisNote" class="physique-analysis-note"></p>
   </div>
 `;
 trainingProgressPanel.after(physiqueAiPanel);
 physiqueAiPanel.querySelector('#physiqueBackButton').addEventListener('click', () => window.showAppPage?.('overview'));
-physiqueAiPanel.querySelector('[data-open-pro]').addEventListener('click', openProAccess);
+physiqueAiPanel.querySelectorAll('[data-open-pro]').forEach((button) => button.addEventListener('click', openProAccess));
 updateBillingUi();
 
 const physiqueHeightInput = physiqueAiPanel.querySelector('#physiqueHeight');
@@ -1738,6 +2196,8 @@ const physiqueMuscleAnalysis = physiqueAiPanel.querySelector('#physiqueMuscleAna
 const physiqueStrengths = physiqueAiPanel.querySelector('#physiqueStrengths');
 const physiquePriorities = physiqueAiPanel.querySelector('#physiquePriorities');
 const physiqueExercisePlan = physiqueAiPanel.querySelector('#physiqueExercisePlan');
+const physiqueProgressStatus = physiqueAiPanel.querySelector('#physiqueProgressStatus');
+const physiqueProgressFindings = physiqueAiPanel.querySelector('#physiqueProgressFindings');
 const physiqueAnalysisNote = physiqueAiPanel.querySelector('#physiqueAnalysisNote');
 
 function clampPhysiqueValue(value, min, max) {
@@ -1825,6 +2285,135 @@ function getPhysiquePhotos() {
   return physiquePhotoAngles.map((angle) => ({ ...angle, data: localStorage.getItem(angle.key) || '' }));
 }
 
+const physiqueAssessmentHistoryKey = 'formlyPhysiqueAssessmentHistory';
+const physiqueHistoryDatabaseName = 'formlyPhysiqueHistory';
+const physiqueHistoryStoreName = 'scans';
+const physiqueComparisonIntervalMs = 90 * 24 * 60 * 60 * 1000;
+
+function getPhysiqueAssessmentTimestamp(assessment) {
+  return Number(assessment?.timestamp) || Date.parse(assessment?.createdAt || '') || 0;
+}
+
+function getPhysiqueHistoryOwnerId() {
+  return authState.authenticated && authState.user?.id ? `account:${authState.user.id}` : `device:${userId}`;
+}
+
+function getPhysiqueAssessmentHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem(physiqueAssessmentHistoryKey) || '[]');
+    return Array.isArray(history)
+      ? history.filter((assessment) => getPhysiqueAssessmentTimestamp(assessment) > 0).sort((a, b) => getPhysiqueAssessmentTimestamp(a) - getPhysiqueAssessmentTimestamp(b))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function openPhysiqueHistoryDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error('physique-history-unavailable'));
+      return;
+    }
+    const request = indexedDB.open(physiqueHistoryDatabaseName, 1);
+    request.addEventListener('upgradeneeded', () => {
+      if (!request.result.objectStoreNames.contains(physiqueHistoryStoreName)) {
+        request.result.createObjectStore(physiqueHistoryStoreName, { keyPath: 'id' });
+      }
+    });
+    request.addEventListener('success', () => resolve(request.result));
+    request.addEventListener('error', () => reject(request.error || new Error('physique-history-unavailable')));
+  });
+}
+
+async function savePhysiqueAssessmentPhotos(id, photos) {
+  const database = await openPhysiqueHistoryDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(physiqueHistoryStoreName, 'readwrite');
+    transaction.objectStore(physiqueHistoryStoreName).put({
+      id,
+      photos: photos.map((photo) => ({ name: photo.name, data: photo.data })),
+      savedAt: new Date().toISOString()
+    });
+    transaction.addEventListener('complete', () => {
+      database.close();
+      resolve();
+    });
+    transaction.addEventListener('error', () => {
+      database.close();
+      reject(transaction.error || new Error('physique-history-write-failed'));
+    });
+    transaction.addEventListener('abort', () => {
+      database.close();
+      reject(transaction.error || new Error('physique-history-write-failed'));
+    });
+  });
+}
+
+async function getPhysiqueAssessmentPhotos(id) {
+  const database = await openPhysiqueHistoryDatabase();
+  return new Promise((resolve, reject) => {
+    const request = database.transaction(physiqueHistoryStoreName, 'readonly').objectStore(physiqueHistoryStoreName).get(id);
+    request.addEventListener('success', () => {
+      database.close();
+      resolve(Array.isArray(request.result?.photos) ? request.result.photos : []);
+    });
+    request.addEventListener('error', () => {
+      database.close();
+      reject(request.error || new Error('physique-history-read-failed'));
+    });
+  });
+}
+
+async function findPhysiqueComparisonBaseline(timestamp) {
+  const ownerId = getPhysiqueHistoryOwnerId();
+  const eligible = getPhysiqueAssessmentHistory()
+    .filter((assessment) => assessment.ownerId === ownerId && assessment.source === 'vision' && assessment.photosStored && timestamp - getPhysiqueAssessmentTimestamp(assessment) >= physiqueComparisonIntervalMs)
+    .sort((a, b) => getPhysiqueAssessmentTimestamp(b) - getPhysiqueAssessmentTimestamp(a));
+  for (const assessment of eligible) {
+    try {
+      const photos = await getPhysiqueAssessmentPhotos(assessment.id);
+      if (photos.length === 3 && photos.every((photo) => photo.data)) return { assessment, photos };
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function archivePhysiqueAssessment(analysis, profile, photos, timestamp, baseline) {
+  const idSuffix = globalThis.crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  const id = `physique-${timestamp}-${idSuffix}`;
+  let photosStored = false;
+  try {
+    await savePhysiqueAssessmentPhotos(id, photos);
+    photosStored = true;
+  } catch {
+    photosStored = false;
+  }
+  const assessment = {
+    id,
+    ownerId: getPhysiqueHistoryOwnerId(),
+    timestamp,
+    createdAt: new Date(timestamp).toISOString(),
+    source: 'vision',
+    profile,
+    analysis,
+    photosStored,
+    baselineId: baseline?.assessment.id || '',
+    baselineDate: baseline?.assessment.createdAt || ''
+  };
+  const history = getPhysiqueAssessmentHistory();
+  history.push(assessment);
+  localStorage.setItem(physiqueAssessmentHistoryKey, JSON.stringify(history));
+  return assessment;
+}
+
+function formatPhysiqueAssessmentDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'ukendt dato' : date.toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 function updatePhysiqueScanReadiness() {
   const photos = getPhysiquePhotos();
   const readyCount = photos.filter((photo) => photo.data).length;
@@ -1888,11 +2477,13 @@ physiquePhotoAngles.forEach((angle) => angle.input.addEventListener('change', as
     }
     localStorage.setItem(angle.key, photoData);
     localStorage.removeItem('formlyPhysiqueMuscleAnalysis');
+    window.updatePhysique3DMuscles?.([]);
     delete physiqueAiStatus.dataset.source;
     physiqueMuscleAnalysis.hidden = true;
     angle.preview.src = photoData;
     angle.preview.hidden = false;
     updatePhysiqueScanReadiness();
+    window.__physique3d?.setView(angle.name);
     showToast(`${angle.label}-foto er klar`);
   } catch (error) {
     showToast(error.name === 'QuotaExceededError' ? 'Billederne fylder for meget' : 'Fotoet kunne ikke læses');
@@ -1943,19 +2534,32 @@ function normalizePhysiqueAnalysis(value, fallback) {
   const normalizeItems = (items, fallbackItems, keys, maximum) => Array.isArray(items) && items.length
     ? items.slice(0, maximum).map((item) => Object.fromEntries(keys.map((key) => [key, String(item?.[key] || '')])))
     : fallbackItems;
+  const priorities = normalizeItems(data.priorities, fallback.priorities, ['muscle', 'reason', 'priority'], 4);
+  const priorityNames = new Set(priorities.map((item) => item.muscle.trim().toLowerCase()));
+  const progress = Array.isArray(data.progress)
+    ? data.progress.slice(0, 6).map((item) => {
+      const muscle = String(item?.muscle || '').trim();
+      let status = String(item?.status || '').trim().toLowerCase();
+      if (!['improved', 'still_priority', 'uncertain'].includes(status)) status = 'uncertain';
+      if (status === 'improved' && priorityNames.has(muscle.toLowerCase())) status = 'still_priority';
+      return { muscle, status, reason: String(item?.reason || '').trim() };
+    }).filter((item) => item.muscle)
+    : [];
   return {
     summary: String(data.summary || fallback.summary),
     strengths: normalizeItems(data.strengths, fallback.strengths, ['muscle', 'reason'], 4),
-    priorities: normalizeItems(data.priorities, fallback.priorities, ['muscle', 'reason', 'priority'], 4),
+    priorities,
+    progress,
     plan: normalizeItems(data.plan, fallback.plan, ['exercise', 'target', 'sets', 'reps', 'rest', 'frequency'], 7),
     note: String(data.note || fallback.note)
   };
 }
 
-function appendPhysiqueFinding(list, title, description, badge = '') {
+function appendPhysiqueFinding(list, title, description, badge = '', state = '') {
   const item = document.createElement('li');
   const heading = document.createElement('strong');
   const copy = document.createElement('p');
+  if (state) item.dataset.state = state;
   heading.textContent = title;
   copy.textContent = description;
   item.append(heading, copy);
@@ -1967,7 +2571,50 @@ function appendPhysiqueFinding(list, title, description, badge = '') {
   list.append(item);
 }
 
-function renderPhysiqueMuscleAnalysis(analysis, source) {
+function getNextPhysiqueComparisonAt(timestamp) {
+  const ownerId = getPhysiqueHistoryOwnerId();
+  const nextDates = getPhysiqueAssessmentHistory()
+    .filter((assessment) => assessment.ownerId === ownerId && assessment.source === 'vision' && assessment.photosStored)
+    .map((assessment) => getPhysiqueAssessmentTimestamp(assessment) + physiqueComparisonIntervalMs)
+    .filter((nextTimestamp) => nextTimestamp > timestamp)
+    .sort((a, b) => a - b);
+  return nextDates[0] || timestamp + physiqueComparisonIntervalMs;
+}
+
+function renderPhysiqueProgress(analysis, source, comparison) {
+  physiqueProgressFindings.replaceChildren();
+  if (source !== 'vision') {
+    physiqueProgressStatus.textContent = 'Online billed-AI kræves for at gemme og sammenligne en 90-dages udvikling.';
+    return;
+  }
+  if (!comparison?.baselineDate) {
+    const assessmentDate = comparison?.assessmentDate || new Date().toISOString();
+    const nextComparisonAt = comparison?.nextComparisonAt || new Date(Date.parse(assessmentDate) + physiqueComparisonIntervalMs).toISOString();
+    physiqueProgressStatus.textContent = comparison?.photosStored === false
+      ? 'Vurderingen er færdig, men billederne kunne ikke arkiveres på denne enhed.'
+      : `Baseline gemt ${formatPhysiqueAssessmentDate(assessmentDate)}. AI kan lave første sammenligning fra ${formatPhysiqueAssessmentDate(nextComparisonAt)}.`;
+    analysis.priorities.forEach((item) => appendPhysiqueFinding(physiqueProgressFindings, item.muscle, 'Startpunkt gemt til næste 90-dages vurdering.', 'BASELINE', 'baseline'));
+    return;
+  }
+  const improved = analysis.progress.filter((item) => item.status === 'improved');
+  const days = Number(comparison.daysSinceBaseline) || 90;
+  physiqueProgressStatus.textContent = `Sammenlignet med ${formatPhysiqueAssessmentDate(comparison.baselineDate)} over ${days} dage. ${improved.length ? `${improved.length} muskelgruppe${improved.length === 1 ? '' : 'r'} viser fremgang.` : 'Ingen tidligere svag muskel er sikkert forbedret endnu.'}`;
+  if (!analysis.progress.length) {
+    appendPhysiqueFinding(physiqueProgressFindings, 'Sammenligning usikker', 'AI kunne ikke sammenligne muskelgrupperne sikkert. De tidligere fokusområder forbliver røde.', 'BEHOLD FOKUS', 'uncertain');
+    return;
+  }
+  const progressLabels = {
+    improved: ['FORBEDRET', 'improved'],
+    still_priority: ['FORTSAT FOKUS', 'still-priority'],
+    uncertain: ['USIKKER', 'uncertain']
+  };
+  analysis.progress.forEach((item) => {
+    const [badge, state] = progressLabels[item.status] || progressLabels.uncertain;
+    appendPhysiqueFinding(physiqueProgressFindings, item.muscle, item.reason || 'Ingen sikker visuel konklusion.', badge, state);
+  });
+}
+
+function renderPhysiqueMuscleAnalysis(analysis, source, comparison = null) {
   physiqueStrengths.replaceChildren();
   physiquePriorities.replaceChildren();
   physiqueExercisePlan.replaceChildren();
@@ -1987,16 +2634,26 @@ function renderPhysiqueMuscleAnalysis(analysis, source) {
   physiqueAiStatus.textContent = source === 'vision' ? '3-ANGLE ANALYSIS COMPLETE' : 'OFFLINE PROGRAM ACTIVE';
   physiqueAiStatus.dataset.source = source;
   physiqueMuscleAnalysis.hidden = false;
-  window.updatePhysique3DMuscles?.(analysis.priorities.map((item) => item.muscle));
+  renderPhysiqueProgress(analysis, source, comparison);
+  const improvedMuscles = analysis.progress.filter((item) => item.status === 'improved').map((item) => item.muscle);
+  const unresolvedMuscles = analysis.progress.filter((item) => item.status !== 'improved').map((item) => item.muscle);
+  window.updatePhysique3DMuscles?.([...analysis.priorities.map((item) => item.muscle), ...unresolvedMuscles], improvedMuscles);
 }
 
-async function requestPhysiqueVisionAnalysis(profile, photos) {
-  const images = photos.map((photo) => photo.data.includes(',') ? photo.data.split(',')[1] : photo.data);
-  const prompt = `Du modtager tre fotos i denne faste rækkefølge: 1) front, 2) højre side, 3) venstre side. Sammenlign alle vinkler som en forsigtig træningscoach. Vurder kun synlige muskelgrupper, proportioner og sideforskelle. Gæt ikke identitet, køn, etnicitet, sygdom eller præcis fedtprocent, og opfind ikke observationer om muskler som vinklerne ikke viser. Tag højde for lys, pose, tøj og kameravinkel. Mål: ${JSON.stringify(profile)}. Returnér KUN gyldig JSON: {"summary":"samlet vurdering med usikkerhed","strengths":[{"muscle":"muskelgruppe","reason":"synligt grundlag på tværs af vinkler"}],"priorities":[{"muscle":"muskelgruppe","reason":"hvorfor den bør prioriteres","priority":"Høj eller Mellem"}],"plan":[{"exercise":"øvelse","target":"muskelgruppe","sets":4,"reps":"8-12","rest":"90 sek","frequency":"2 gange"}],"note":"begrænsning og progressionsregel"}. Giv 2-4 styrker, 2-4 fokusområder og 5-7 øvelser med konkrete sæt, reps, pause og ugentlig frekvens.`;
+async function requestPhysiqueVisionAnalysis(profile, photos, baseline = null) {
+  const toBase64 = (photo) => photo.data.includes(',') ? photo.data.split(',')[1] : photo.data;
+  const currentImages = photos.map(toBase64);
+  const hasBaseline = Boolean(baseline?.assessment && baseline.photos?.length === 3);
+  const images = hasBaseline ? [...baseline.photos.map(toBase64), ...currentImages] : currentImages;
+  const baselinePriorities = hasBaseline ? baseline.assessment.analysis?.priorities || [] : [];
+  const photoOrder = hasBaseline
+    ? `Du modtager seks fotos i denne faste rækkefølge: 1-3 er baseline fra ${formatPhysiqueAssessmentDate(baseline.assessment.createdAt)} (front, højre, venstre), og 4-6 er den nye scanning (front, højre, venstre). Sammenlign samme synlige muskelgruppe på tværs af de to tidspunkter. Baselines svage muskelgrupper er: ${JSON.stringify(baselinePriorities)}. Returnér én progress-post for hver af disse grupper med præcis status "improved", "still_priority" eller "uncertain". Brug kun "improved", når sammenlignelige vinkler tydeligt viser positiv udvikling; brug "still_priority", hvis området fortsat bør prioriteres, og "uncertain", hvis lys, pose, tøj eller vinkel ikke giver sikkert grundlag.`
+    : 'Du modtager tre fotos i denne faste rækkefølge: 1) front, 2) højre side, 3) venstre side. Dette er brugerens første baseline, så progress skal være en tom liste.';
+  const prompt = `${photoOrder} Vurder alle vinkler som en forsigtig træningscoach. Vurder kun synlige muskelgrupper, proportioner og sideforskelle. Gæt ikke identitet, køn, etnicitet, sygdom eller præcis fedtprocent, og opfind ikke observationer om muskler som vinklerne ikke viser. Tag højde for lys, pose, tøj og kameravinkel. Nye mål: ${JSON.stringify(profile)}.${hasBaseline ? ` Baseline-mål: ${JSON.stringify(baseline.assessment.profile || {})}.` : ''} Returnér KUN gyldig JSON: {"summary":"samlet vurdering med usikkerhed","strengths":[{"muscle":"muskelgruppe","reason":"synligt grundlag på tværs af vinkler"}],"priorities":[{"muscle":"muskelgruppe","reason":"hvorfor den bør prioriteres","priority":"Høj eller Mellem"}],"progress":[{"muscle":"tidligere svag muskelgruppe","status":"improved, still_priority eller uncertain","reason":"synligt sammenligningsgrundlag"}],"plan":[{"exercise":"øvelse","target":"muskelgruppe","sets":4,"reps":"8-12","rest":"90 sek","frequency":"2 gange"}],"note":"begrænsning og progressionsregel"}. Giv 2-4 styrker, 2-4 fokusområder og 5-7 øvelser med konkrete sæt, reps, pause og ugentlig frekvens.`;
   const response = await fetch(getCoachEndpoint(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: prompt, context: { physique: profile, photoAngles: ['front', 'right', 'left'] }, images, isPhysiqueQuestion: true })
+    body: JSON.stringify({ question: prompt, context: { physique: profile, photoAngles: ['front', 'right', 'left'], baselineId: baseline?.assessment.id || null }, images, isPhysiqueQuestion: true })
   });
   const result = await response.json();
   if (response.status === 401) {
@@ -2035,11 +2692,22 @@ physiqueAnalyzeBtn.addEventListener('click', async () => {
   physiqueAnalyzeBtn.textContent = 'Scanner 3 vinkler...';
   physiqueAiStatus.textContent = 'ANALYSERER MUSKELGRUPPER';
   try {
-    const aiResult = await requestPhysiqueVisionAnalysis(profile, photos);
+    const assessmentTimestamp = Date.now();
+    const baseline = await findPhysiqueComparisonBaseline(assessmentTimestamp);
+    const aiResult = await requestPhysiqueVisionAnalysis(profile, photos, baseline);
     const analysis = normalizePhysiqueAnalysis(aiResult, fallback);
-    renderPhysiqueMuscleAnalysis(analysis, 'vision');
-    localStorage.setItem('formlyPhysiqueMuscleAnalysis', JSON.stringify({ ...analysis, source: 'vision', updatedAt: new Date().toISOString() }));
-    showToast('3-vinkels AI-analyse er klar');
+    if (!baseline) analysis.progress = [];
+    const assessment = await archivePhysiqueAssessment(analysis, profile, photos, assessmentTimestamp, baseline);
+    const comparison = {
+      assessmentDate: assessment.createdAt,
+      baselineDate: assessment.baselineDate,
+      daysSinceBaseline: baseline ? Math.round((assessmentTimestamp - getPhysiqueAssessmentTimestamp(baseline.assessment)) / 86400000) : 0,
+      nextComparisonAt: baseline ? '' : new Date(getNextPhysiqueComparisonAt(assessmentTimestamp)).toISOString(),
+      photosStored: assessment.photosStored
+    };
+    renderPhysiqueMuscleAnalysis(analysis, 'vision', comparison);
+    localStorage.setItem('formlyPhysiqueMuscleAnalysis', JSON.stringify({ ...analysis, source: 'vision', ownerId: assessment.ownerId, updatedAt: assessment.createdAt, assessmentId: assessment.id, comparison }));
+    showToast(baseline ? '90-dages AI-sammenligning er klar' : '3-vinkels baseline er gemt');
   } catch (error) {
     if (error.message === 'auth-required') {
       physiqueAiStatus.textContent = 'LOG IND FOR ONLINE AI';
@@ -2047,8 +2715,8 @@ physiqueAnalyzeBtn.addEventListener('click', async () => {
       return;
     }
     if (error.message === 'pro-required') {
-      physiqueAiStatus.textContent = 'PRO KRÆVES';
-      showToast('Pro kræves til AI-fysikanalyse');
+      physiqueAiStatus.textContent = 'KRÆVER PRO';
+      showToast('KRÆVER PRO · AI-fysikanalyse');
       return;
     }
     if (error.message === 'quota-exceeded') {
@@ -2083,7 +2751,7 @@ updatePhysiqueScanReadiness();
 const savedMuscleAnalysis = JSON.parse(localStorage.getItem('formlyPhysiqueMuscleAnalysis') || 'null');
 if (savedMuscleAnalysis) {
   const fallback = getFallbackMuscleAnalysis(getPhysiqueProfile());
-  renderPhysiqueMuscleAnalysis(normalizePhysiqueAnalysis(savedMuscleAnalysis, fallback), savedMuscleAnalysis.source || 'fallback');
+  renderPhysiqueMuscleAnalysis(normalizePhysiqueAnalysis(savedMuscleAnalysis, fallback), savedMuscleAnalysis.source || 'fallback', savedMuscleAnalysis.comparison || null);
 }
 renderPhysiqueAssessment();
 
@@ -2195,7 +2863,7 @@ function renderFysikGoal() {
     { label: 'Vedligehold', data: goalData.maintain.moderate, look: 'Vægten er stabil, mens styrketræning kan give langsom forbedring af kropssammensætningen.' }
   ] : [];
   const modeSummary = modes.map((mode) => {
-    const modeDifference = Math.round(mode.data.amount * getTrainingDayFactor());
+    const modeDifference = Math.round((maintenance * mode.data.rate) / 10) * 10;
     const modeRate = Math.abs(modeDifference) * 7 / 7700;
     const modeWeeks = modeRate ? Math.ceil(Math.abs(weightDifference) / modeRate) : 0;
     const timing = modeDifference ? `Ca. ${modeWeeks} uger (${Math.ceil(modeWeeks / 4.345)} måneder)` : 'Ingen planlagt vægtændring';
@@ -2405,6 +3073,11 @@ weightTracker.querySelector('#weightPhotoInput').addEventListener('change', (eve
   });
 });
 weightTracker.querySelector('#weightWithingsConnect').addEventListener('click', () => {
+  if (!authState.authenticated || !billingState.isPro) {
+    openProAccess();
+    showToast('KRÆVER PRO · Withings');
+    return;
+  }
   localStorage.setItem('formlyHealthProvider', 'withings');
   document.querySelector('.health-providers [data-provider="withings"]')?.click();
 });
@@ -2422,7 +3095,8 @@ const fatGramsByGoal = { cut: 65, maintain: 85, bulk: 85 };
 
 function calculateCalorieTarget() {
   const maintenance = Number(maintenanceInput.value || 0);
-  const adjustment = getGoalAdjustment(selectedGoal, intensitySelect.value, getSelectedTrainingDays());
+  if (maintenance <= 0) return 0;
+  const adjustment = getGoalAdjustment(selectedGoal, intensitySelect.value);
   return maintenance + adjustment;
 }
 
@@ -2907,7 +3581,14 @@ const weightSource = weightDevicePanel.querySelector('#weightSource');
 const syncWeight = weightDevicePanel.querySelector('#syncWeight');
 const savedWeightSource = localStorage.getItem('formlyWeightSource');
 if (savedWeightSource) weightSource.value = savedWeightSource;
-weightSource.addEventListener('change', () => localStorage.setItem('formlyWeightSource', weightSource.value));
+weightSource.addEventListener('change', () => {
+  if (weightSource.value !== 'manual' && (!authState.authenticated || !billingState.isPro)) {
+    weightSource.value = 'manual';
+    openProAccess();
+    showToast('KRÆVER PRO · automatiske sundhedsdata');
+  }
+  localStorage.setItem('formlyWeightSource', weightSource.value);
+});
 const savedWeight = localStorage.getItem('formlyWeight');
 if (savedWeight) {
   profileWeight.value = savedWeight;
@@ -2916,9 +3597,19 @@ if (savedWeight) {
 }
 
 async function syncWithingsWeightFromBackend() {
+  if (!authState.authenticated || !billingState.isPro) return;
   try {
-    const response = await fetch(`/api/provider/weight?provider=withings&user_id=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+    const response = await fetch('/api/provider/weight?provider=withings', { cache: 'no-store' });
     const data = await response.json();
+    if (response.status === 401) {
+      requireFreshLogin();
+      return;
+    }
+    if (response.status === 402) {
+      applyBillingStatus(data.billing);
+      openProAccess();
+      return;
+    }
     if (!data || !data.ok || !Number(data.weight_kg)) {
       throw new Error(data?.message || 'Ingen vægt tilgængelig');
     }
@@ -2982,19 +3673,21 @@ window.addEventListener('message', (event) => {
 
 const healthProviders = document.createElement('div');
 healthProviders.className = 'health-providers';
-healthProviders.innerHTML = '<p class="eyebrow">FLERE SUNDHEDSKILDER</p><div class="provider-grid"><button type="button" data-provider="apple">Forbind Apple Health</button><button type="button" data-provider="oura">Forbind Oura</button><button type="button" data-provider="whoop">Forbind WHOOP</button><button type="button" data-provider="withings">Forbind Withings</button></div><small id="providerStatus">Vælg en kilde for at forbinde recovery, søvn og puls.</small><button type="button" id="withingsDisconnect" hidden>Deaktivér Withings</button>';
+healthProviders.innerHTML = '<p class="eyebrow">FLERE SUNDHEDSKILDER</p><div id="healthProGate" class="pro-inline-gate"><span class="pro-gate-lock" aria-hidden="true"></span><div><span>KRÆVER PRO</span><strong>Automatisk sundhedssynk</strong><small>Withings, Apple Health, Oura og WHOOP. Manuel vægt og egne billeder er stadig gratis.</small></div><button type="button">Se Pro</button></div><div class="provider-grid"><button type="button" data-provider="apple">Forbind Apple Health</button><button type="button" data-provider="oura">Forbind Oura</button><button type="button" data-provider="whoop">Forbind WHOOP</button><button type="button" data-provider="withings">Forbind Withings</button></div><small id="providerStatus">Vælg en kilde for at forbinde recovery, søvn og puls.</small><button type="button" id="withingsDisconnect" hidden>Deaktivér Withings</button>';
 profileSection.append(healthProviders);
+healthProviders.querySelector('#healthProGate button').addEventListener('click', openProAccess);
 const withingsButton = healthProviders.querySelector('[data-provider="withings"]');
 const withingsDisconnect = healthProviders.querySelector('#withingsDisconnect');
 function applyWithingsConnectionState(connected) {
-  withingsButton.textContent = connected ? 'Withings forbundet' : 'Forbind Withings';
+  const connectionActive = connected && authState.authenticated && billingState.isPro;
+  withingsButton.textContent = connectionActive ? 'Withings forbundet' : 'Forbind Withings';
   withingsDisconnect.hidden = !connected;
-  profileWeight.readOnly = connected;
-  weightEntry.disabled = connected;
-  weightEntry.placeholder = connected ? 'Withings styrer vægten' : 'Fx 82,4';
+  profileWeight.readOnly = connectionActive;
+  weightEntry.disabled = connectionActive;
+  weightEntry.placeholder = connectionActive ? 'Withings styrer vægten' : 'Fx 82,4';
 }
 withingsDisconnect.addEventListener('click', async () => {
-  await fetch(`/api/provider/disconnect?user_id=${encodeURIComponent(userId)}`, { method: 'POST' });
+  await fetch('/api/provider/disconnect', { method: 'POST' });
   localStorage.removeItem('formlyWithingsConnected');
   applyWithingsConnectionState(false);
   healthProviders.querySelector('#providerStatus').textContent = 'Withings er deaktiveret. Indtast vægt manuelt.';
@@ -3007,19 +3700,33 @@ if (providerCallbackParams.get('provider') === 'withings' && providerCallbackPar
   localStorage.setItem('formlyWithingsConnected', '1');
   applyWithingsConnectionState(true);
   healthProviders.querySelector('#providerStatus').textContent = 'Forbundet med Withings. Henter seneste vægt...';
-  window.setTimeout(() => syncWithingsWeightFromBackend(), 0);
+  window.setTimeout(() => autoSyncWithingsWeight(), 0);
   window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
+}
+else if (providerCallbackParams.get('provider') === 'withings' && providerCallbackParams.get('pro_required') === '1') {
+  openProAccess();
+  showToast('KRÆVER PRO · Withings');
+  window.history.replaceState({}, document.title, `${window.location.pathname}#pro`);
 }
 else if (localStorage.getItem('formlyWithingsConnected') === '1') {
   applyWithingsConnectionState(true);
-  healthProviders.querySelector('#providerStatus').textContent = 'Forbundet med Withings. Henter seneste vægt...';
-  window.setTimeout(() => syncWithingsWeightFromBackend(), 0);
+  healthProviders.querySelector('#providerStatus').textContent = billingState.isPro ? 'Forbundet med Withings. Henter seneste vægt...' : 'KRÆVER PRO · Withings er gemt, men synkronisering er låst.';
+  window.setTimeout(() => autoSyncWithingsWeight(), 0);
 }
 
 async function syncWithingsActivityFromBackend() {
+  if (!authState.authenticated || !billingState.isPro) return;
   try {
-    const response = await fetch(`/api/provider/activity?provider=withings&user_id=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+    const response = await fetch('/api/provider/activity?provider=withings', { cache: 'no-store' });
     const data = await response.json();
+    if (response.status === 401) {
+      requireFreshLogin();
+      return;
+    }
+    if (response.status === 402) {
+      applyBillingStatus(data.billing);
+      return;
+    }
     if (!data?.ok) throw new Error(data?.message || 'Ingen steps tilgængelige');
     const activityStats = weightDevicePanel.querySelector('#withingsActivityStats');
     if (activityStats) {
@@ -3035,23 +3742,35 @@ async function syncWithingsActivityFromBackend() {
 }
 
 const autoSyncWithingsWeight = () => {
-  if (localStorage.getItem('formlyWithingsConnected') === '1') {
+  if (authState.authenticated && billingState.isPro && localStorage.getItem('formlyWithingsConnected') === '1') {
     syncWithingsWeightFromBackend();
     syncWithingsActivityFromBackend();
   }
 };
-fetch(`/api/provider/status?user_id=${encodeURIComponent(userId)}`, { cache: 'no-store' })
-  .then((response) => response.json())
-  .then((data) => {
+let healthProviderStatusRequest = null;
+function refreshHealthProviderStatus() {
+  if (!authState.authenticated || !billingState.isPro || healthProviderStatusRequest) return healthProviderStatusRequest;
+  healthProviderStatusRequest = fetch('/api/provider/status', { cache: 'no-store' })
+    .then((response) => response.json())
+    .then((data) => {
     if (data?.withings_connected) {
       localStorage.setItem('formlyWithingsConnected', '1');
       applyWithingsConnectionState(true);
       healthProviders.querySelector('#providerStatus').textContent = 'Forbundet med Withings. Henter seneste vægt...';
       syncWithingsWeightFromBackend();
       syncWithingsActivityFromBackend();
+    } else if (data?.ok) {
+      localStorage.removeItem('formlyWithingsConnected');
+      applyWithingsConnectionState(false);
+      healthProviders.querySelector('#providerStatus').textContent = 'Ingen sundhedskilde er forbundet endnu.';
     }
+    return data;
   })
-  .catch(() => {});
+    .catch(() => null)
+    .finally(() => { healthProviderStatusRequest = null; });
+  return healthProviderStatusRequest;
+}
+updateBillingUi();
 window.addEventListener('pageshow', autoSyncWithingsWeight);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') autoSyncWithingsWeight();
@@ -3060,6 +3779,11 @@ window.setInterval(autoSyncWithingsWeight, 60000);
 
 window.AIOHealthKitBridge = window.AIOHealthKitBridge || {
   requestHealthData: function requestHealthData() {
+    if (!authState.authenticated || !billingState.isPro) {
+      openProAccess();
+      showToast('KRÆVER PRO · Apple Health');
+      return false;
+    }
     const bridge = window.HealthKitBridge || (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.healthKitBridge);
     if (!bridge) {
       return false;
@@ -3083,6 +3807,11 @@ window.AIOHealthKitBridge = window.AIOHealthKitBridge || {
     return false;
   },
   handleIncomingData: function handleIncomingData(payload) {
+    if (!authState.authenticated || !billingState.isPro) {
+      openProAccess();
+      showToast('KRÆVER PRO · sundhedsdata');
+      return false;
+    }
     const data = payload && typeof payload === 'object' ? payload : {};
     const stepCount = Number(data.steps || 0);
     const weight = Number(data.weight || 0);
@@ -3111,6 +3840,7 @@ window.AIOHealthKitBridge = window.AIOHealthKitBridge || {
     }
 
     showToast('Apple Health-data importeret');
+    return true;
   }
 };
 
@@ -3126,6 +3856,8 @@ function showToast(message) {
 
 function renderWorkoutOverview() {
   const rows = [...document.querySelectorAll('#exerciseList .exercise-row')];
+  const nextExerciseRow = rows.find((row) => !row.classList.contains('completed')) || rows[0];
+  const nextExerciseName = nextExerciseRow?.querySelector('h3')?.textContent?.trim() || 'Din første øvelse';
   const sessionEntries = workoutLog.filter((entry) => Number(entry.session || 1) === activeWorkoutSession);
   const completedExercises = rows.filter((row) => row.classList.contains('completed')).length;
   const isSessionComplete = localStorage.getItem(`formlyWorkoutSessionComplete:${activeWorkoutSession}`) === 'true';
@@ -3136,8 +3868,8 @@ function renderWorkoutOverview() {
 
   document.querySelector('#workoutSessionBadge').textContent = `SESSION ${String(activeWorkoutSession).padStart(2, '0')}`;
   document.querySelector('#workoutStatusLabel').textContent = isSessionComplete ? 'Session gennemført' : sessionEntries.length ? 'Træning i gang' : 'Klar til at starte';
-  document.querySelector('#workoutOverviewTitle').textContent = isSessionComplete ? 'Dagens arbejde er gemt' : sessionEntries.length ? 'Fortsæt hvor du slap' : 'Byg videre på din styrke';
-  document.querySelector('#workoutOverviewLead').textContent = isSessionComplete ? `${loggedSets} arbejdssæt og ${sessionVolume.toLocaleString('da-DK')} kg volumen er registreret.` : sessionEntries.length ? `${loggedSets} arbejdssæt er logget. Fortsæt med næste øvelse.` : 'Dit program er klar. Åbn øvelserne og registrér dagens arbejdssæt.';
+  document.querySelector('#workoutOverviewTitle').textContent = isSessionComplete ? 'Dagens arbejde er gemt' : sessionEntries.length ? 'Fortsæt hvor du slap' : `${nextExerciseName} er klar`;
+  document.querySelector('#workoutOverviewLead').textContent = isSessionComplete ? `${loggedSets} arbejdssæt og ${sessionVolume.toLocaleString('da-DK')} kg volumen er registreret.` : sessionEntries.length ? `${loggedSets} arbejdssæt er logget. Fortsæt med næste øvelse.` : `Start med ${nextExerciseName}, og registrér derefter dagens arbejdssæt.`;
   document.querySelector('#workoutExerciseTotal').textContent = String(rows.length);
   document.querySelector('#workoutLoggedSets').textContent = String(loggedSets);
   document.querySelector('#workoutSessionVolume').textContent = `${sessionVolume.toLocaleString('da-DK')} kg`;
@@ -3287,25 +4019,19 @@ profileWeight.addEventListener('input', () => {
 
 const goalData = {
   cut: {
-    low: { amount: -150, pros: 'Meget skånsomt fedttab med minimal risiko for at miste muskelmasse.', cons: 'Langsom fremgang - kræver tålmodighed.' },
-    moderate: { amount: -300, pros: 'Fedttab med et roligt tempo og god chance for at bevare muskelmasse.', cons: 'Mindre energi og langsommere styrkefremgang kan forekomme.' },
-    moderateHigh: { amount: -450, pros: 'Tydeligt kalorieunderskud med stadig rimelig energi til træning.', cons: 'Mere sult og øget risiko for at miste lidt muskelmasse.' },
-    high: { amount: -600, pros: 'Hurtigt vægttab og et stort kalorieunderskud.', cons: 'Mere sult, lavere energi og større risiko for tab af muskelmasse.' },
-    failure: { amount: -750, pros: 'Maksimalt tempo på vægttabet.', cons: 'Høj risiko for udbrændthed, muskeltab og lavt energiniveau - kun til korte perioder.' }
+    low: { rate: -0.1, label: 'Lav', pros: 'Roligt fedttab med god energi og lav risiko for tab af muskelmasse.', cons: 'Fremgangen er langsommere og kræver tålmodighed.' },
+    moderate: { rate: -0.15, label: 'Moderat', pros: 'Et balanceret fedttab med god mulighed for at bevare styrke og muskelmasse.', cons: 'Sult og lidt lavere træningsenergi kan forekomme.' },
+    moderateHigh: { rate: -0.2, label: 'Moderat til høj', pros: 'Et tydeligt kalorieunderskud og hurtigere vægttab.', cons: 'Kræver fokus på protein, søvn og styrketræning for at bevare muskelmasse.' },
+    high: { rate: -0.25, label: 'Høj', pros: 'Hurtigt vægttab i en kortere periode.', cons: 'Større risiko for sult, lav energi og tab af muskelmasse; bør ikke bruges længe.' }
   },
   maintain: {
-    low: { amount: 0, pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' },
-    moderate: { amount: 0, pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' },
-    moderateHigh: { amount: 0, pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' },
-    high: { amount: 0, pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' },
-    failure: { amount: 0, pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' }
+    moderate: { rate: 0, label: 'Vedligehold', pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' }
   },
   bulk: {
-    low: { amount: 100, pros: 'Meget kontrolleret muskelopbygning med minimal fedtøgning.', cons: 'Langsom vægtstigning.' },
-    moderate: { amount: 250, pros: 'Kontrolleret muskelopbygning med mindre ekstra fedt over tid.', cons: 'Muskelopbygningen går langsommere end ved et stort overskud.' },
-    moderateHigh: { amount: 350, pros: 'God balance mellem muskelopbygning og et rimeligt overskud.', cons: 'Lidt større risiko for fedtøgning.' },
-    high: { amount: 450, pros: 'Mere energi til hård træning og hurtigere vægtstigning.', cons: 'Større risiko for fedtøgning og længere efterfølgende cut.' },
-    failure: { amount: 550, pros: 'Maksimalt tempo på vægtstigningen.', cons: 'Størst risiko for fedtøgning - kun til korte perioder.' }
+    low: { rate: 0.05, label: 'Lav', pros: 'Langsom, kontrolleret vægtstigning med minimal unødig fedtøgning.', cons: 'Muskel- og vægtstigningen går langsomt.' },
+    moderate: { rate: 0.08, label: 'Moderat', pros: 'Et moderat overskud med god balance mellem muskelopbygning og fedtøgning.', cons: 'Kræver løbende vægtkontrol for at ramme det ønskede tempo.' },
+    moderateHigh: { rate: 0.1, label: 'Moderat til høj', pros: 'Mere energi til træning og et tydeligt, men stadig rimeligt kalorieoverskud.', cons: 'Risikoen for fedtøgning er højere end ved et forsigtigt bulk.' },
+    high: { rate: 0.15, label: 'Høj', pros: 'Hurtigere vægtstigning og rigeligt med energi til hård træning.', cons: 'En større del af vægtstigningen kan være fedt frem for muskelmasse.' }
   }
 };
 // Falls back safely if a stale/unknown intensity value ever lingers (e.g. from an older cached version).
@@ -3348,41 +4074,29 @@ function applyTrainingDaySelection(days) {
   updateMaintenance();
 }
 
-function getTrainingDayFactor(trainingDays = getSelectedTrainingDays()) {
-  if (trainingDays <= 1) return 0.82;
-  if (trainingDays === 2) return 0.9;
-  if (trainingDays === 3) return 1;
-  if (trainingDays === 4) return 1.06;
-  if (trainingDays === 5) return 1.12;
-  if (trainingDays === 6) return 1.18;
-  return 1.24;
-}
-
-function getGoalAdjustment(goalKey = selectedGoal, intensityKey = intensitySelect.value, trainingDays = getSelectedTrainingDays()) {
+function getGoalAdjustment(goalKey = selectedGoal, intensityKey = intensitySelect.value) {
   const safeGoal = goalData[goalKey] ? goalKey : 'cut';
   const safeIntensity = goalData[safeGoal][intensityKey] ? intensityKey : 'moderate';
-  const baseAmount = goalData[safeGoal][safeIntensity]?.amount ?? goalData[safeGoal].moderate.amount ?? 0;
-  const dayFactor = getTrainingDayFactor(trainingDays);
+  const rate = goalData[safeGoal][safeIntensity]?.rate ?? goalData[safeGoal].moderate.rate ?? 0;
   if (safeGoal === 'maintain') return 0;
-  return Math.round(baseAmount * dayFactor);
+  const maintenance = Math.max(0, Number(maintenanceInput.value) || 0);
+  return Math.round((maintenance * rate) / 10) * 10;
 }
 
 function updateIntensityLabels() {
-  const labels = {
-    low: 'Lavt alene',
-    moderate: 'Moderat alene',
-    moderateHigh: 'Moderat-Stor (blandet)',
-    high: 'Højt alene',
-    failure: 'Failure'
-  };
-  const values = Object.keys(labels);
-  values.forEach((value) => {
-    const option = [...intensitySelect.options].find((item) => item.value === value);
-    if (!option) return;
-    const adjustedAmount = getGoalAdjustment(selectedGoal, value, getSelectedTrainingDays());
+  const safeGoal = getSafeGoal(selectedGoal);
+  const selectedIntensity = getValidIntensityForGoal(safeGoal, intensitySelect.value || 'moderate');
+  intensitySelect.replaceChildren();
+  Object.entries(goalData[safeGoal]).forEach(([value, data]) => {
+    const option = document.createElement('option');
+    const adjustedAmount = getGoalAdjustment(safeGoal, value);
     const sign = adjustedAmount > 0 ? '+' : '';
-    option.text = `${labels[value]} (${sign}${adjustedAmount} kcal)`;
+    const percentage = Math.round(Math.abs(data.rate) * 100);
+    option.value = value;
+    option.text = `${data.label} · ${percentage} % (${sign}${adjustedAmount} kcal)`;
+    intensitySelect.append(option);
   });
+  intensitySelect.value = selectedIntensity;
   if (intensitySelect.value && intensitySelect.selectedIndex >= 0) {
     const selectedOption = intensitySelect.options[intensitySelect.selectedIndex];
     intensitySelect.title = selectedOption?.text || 'Intensitet';
@@ -3541,6 +4255,12 @@ startScanner.addEventListener('click', async () => {
 
 healthProviders.querySelectorAll('[data-provider]').forEach((button) => {
   button.addEventListener('click', () => {
+    if (!authState.authenticated || !billingState.isPro) {
+      healthProviders.querySelector('#providerStatus').textContent = 'KRÆVER PRO · Automatiske sundhedsdata er låst. Manuel vægt og egne billeder er stadig gratis.';
+      openProAccess();
+      showToast('KRÆVER PRO · sundhedsdata');
+      return;
+    }
     const providerNames = { apple: 'Apple Health', oura: 'Oura', whoop: 'WHOOP', withings: 'Withings' };
     const provider = providerNames[button.dataset.provider] || button.dataset.provider;
     const providerKey = button.dataset.provider;
@@ -3564,9 +4284,10 @@ healthProviders.querySelectorAll('[data-provider]').forEach((button) => {
     }
 
     if (providerKey === 'withings' || providerKey === 'whoop') {
-      fetch(`/api/provider/start?provider=${providerKey}&user_id=${encodeURIComponent(userId)}`)
+      fetch(`/api/provider/start?provider=${providerKey}`)
         .then((response) => response.json())
         .then((data) => {
+          if (data?.billing && !data.billing.is_pro) applyBillingStatus(data.billing);
           if (data && data.ok && data.url) {
             localStorage.setItem(`formly${providerKey}AuthUrl`, data.url);
             healthProviders.querySelector('#providerStatus').textContent = `${provider} er valgt. OAuth-flow åbner nu via din backend.`;
@@ -3575,8 +4296,8 @@ healthProviders.querySelectorAll('[data-provider]').forEach((button) => {
             return;
           }
 
-          healthProviders.querySelector('#providerStatus').textContent = `${provider} kræver OAuth-credentials i backend. Sæt ${providerKey.toUpperCase()}_CLIENT_ID og ${providerKey.toUpperCase()}_CLIENT_SECRET i .env før login.`;
-          showToast(`${provider}-credentials mangler`);
+          healthProviders.querySelector('#providerStatus').textContent = data?.message || `${provider} kunne ikke forbindes.`;
+          showToast(data?.code === 'pro_required' ? 'KRÆVER PRO · sundhedsdata' : `${provider}-credentials mangler`);
         })
         .catch(() => {
           healthProviders.querySelector('#providerStatus').textContent = `${provider} kunne ikke starte. Tjek backend og OAuth-konfigurationen.`;
@@ -3677,7 +4398,10 @@ trainingWeekSelect.addEventListener('change', () => {
   localStorage.setItem('formlyTrainingDays', String(selectedDays));
   applyTrainingDaySelection(selectedDays);
 });
-maintenanceInput.addEventListener('input', updateGoal);
+maintenanceInput.addEventListener('input', () => {
+  updateIntensityLabels();
+  updateGoal();
+});
 goalTabs.forEach((tab) => tab.addEventListener('click', () => {
   syncGoalState(tab.dataset.goal);
 }));
@@ -4203,15 +4927,16 @@ if (document.readyState === 'loading') {
 }
 
 const appPageTargets = {
-  overview: ['.welcome', '.daily-focus-card', '.daily-quick-actions', '.overview-quick-links', '.overview-categories', '.hero-grid', '.stats-grid'],
-  training: ['#workout'],
+  overview: ['.welcome', '.daily-focus-card', '.daily-quick-actions', '.overview-quick-links', '.overview-categories:not(.pro-overview-categories):not(.training-overview-categories)', '.hero-grid', '.stats-grid'],
+  training: ['#workout', '.training-overview-categories'],
   food: ['#food'],
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
   progress: ['#progress', '.training-progress-panel'],
   physique: ['#physique-ai'],
-  library: ['#library']
+  library: ['#library'],
+  pro: ['#proAccessDialog']
 };
 const appContent = document.querySelector('.content');
 document.querySelector('.sidebar-bottom')?.remove();
@@ -4245,13 +4970,18 @@ if (appContent) {
 
   const showAppPage = (pageName, updateHash = true) => {
     const selectedPage = appPageTargets[pageName] ? pageName : 'overview';
+    const renderedPage = selectedPage === 'overview' && billingState.isPro ? 'training' : selectedPage;
+    if (selectedPage === 'pro' && updateHash) proStartWasAutomatic = false;
     appContent.dataset.activeAppPage = selectedPage;
     appContent.classList.add('app-pages-mode');
-    document.body.classList.toggle('app-overview-active', selectedPage === 'overview');
-      backToOverviewButton.hidden = selectedPage === 'overview';
+    document.body.classList.toggle('app-overview-active', renderedPage === 'overview');
+    document.body.classList.toggle('app-paid-overview-active', selectedPage === 'overview' && renderedPage === 'training');
+    document.body.classList.toggle('app-pro-active', selectedPage === 'pro');
+      backToOverviewButton.hidden = selectedPage === 'overview' || (selectedPage === 'training' && billingState.isPro);
     appContent.querySelectorAll(':scope > [data-app-page]').forEach((element) => {
-      element.hidden = element.dataset.appPage !== selectedPage;
-      if (element.dataset.appPage === selectedPage && element.parentElement === appContent) element.scrollTop = 0;
+      const isTrainingExerciseLibrary = renderedPage === 'training' && element.id === 'library';
+      element.hidden = element.dataset.appPage !== renderedPage && !isTrainingExerciseLibrary;
+      if (element.dataset.appPage === renderedPage && element.parentElement === appContent) element.scrollTop = 0;
     });
     document.querySelectorAll('.nav-link[data-app-page-target]').forEach((link) => {
       link.classList.toggle('active', link.dataset.appPageTarget === selectedPage);
@@ -4269,8 +4999,14 @@ if (appContent) {
     });
   });
 
-  showAppPage('overview');
+  const initialPage = window.location.hash.slice(1);
+  showAppPage(appPageTargets[initialPage] ? initialPage : 'pro', false);
   window.showAppPage = showAppPage;
+  if (pendingAccountLandingPage) {
+    const landingPage = pendingAccountLandingPage;
+    pendingAccountLandingPage = '';
+    showAppPage(landingPage);
+  }
 
   const pageForTarget = (target) => {
     if (!target) return 'overview';
@@ -4282,6 +5018,7 @@ if (appContent) {
     if (target.includes('workout')) return 'training';
     if (target.includes('library')) return 'library';
     if (target.includes('progress')) return 'progress';
+    if (target.includes('pro')) return 'pro';
     return 'overview';
   };
   document.addEventListener('click', (event) => {
