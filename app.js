@@ -1152,7 +1152,7 @@ async function loadBillingStatus() {
     applyBillingStatus(result);
     if (billingState.isPro && (proStartWasAutomatic || checkoutState === 'success')) {
       proStartWasAutomatic = false;
-      showAccountLanding('training');
+      showAccountLanding('overview');
     }
     if (checkoutState === 'success') {
       showToast('Pro er aktivt. Velkommen til online coaching.');
