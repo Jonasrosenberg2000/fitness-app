@@ -25,24 +25,25 @@ async function initPhysiqueHologram() {
       demoRenderer.toneMapping = THREE.ACESFilmicToneMapping;
       demoRenderer.toneMappingExposure = 1.25;
     }
-    scene.add(new THREE.HemisphereLight(0x8aeaff, 0x020812, 1.8));
-    const keyLight = new THREE.PointLight(0x32dcff, 34, 18);
+    scene.add(new THREE.HemisphereLight(0xf2f5f7, 0x0a0d11, 1.2));
+    const keyLight = new THREE.PointLight(0xe6edf3, 14, 18);
     keyLight.position.set(3.4, 3.8, 4.8);
     scene.add(keyLight);
-    const rimLight = new THREE.PointLight(0x00f58a, 26, 16);
+    const rimLight = new THREE.PointLight(0xcfd7df, 12, 16);
     rimLight.position.set(-3.8, 1.2, -3.5);
     scene.add(rimLight);
-    const lowerLight = new THREE.PointLight(0xff4d7a, 18, 12);
+    const lowerLight = new THREE.PointLight(0xe8edf2, 10, 12);
     lowerLight.position.set(1.8, -2.2, 2.2);
     scene.add(lowerLight);
 
     const body = new THREE.Group();
+    const bodyBaseScales = new Map();
     body.scale.setScalar(0.94);
     body.position.y = -0.04;
     scene.add(body);
     const shellUniforms = {
       time: { value: 0 },
-      color: { value: new THREE.Color(0x58ddff) }
+      color: { value: new THREE.Color(0xdfe3e8) }
     };
     const shellMaterial = new THREE.ShaderMaterial({
       uniforms: shellUniforms,
@@ -72,22 +73,22 @@ async function initPhysiqueHologram() {
         void main() {
           vec3 normal = normalize(vNormal);
           float facing = clamp(dot(normal, normalize(vViewDirection)), 0.0, 1.0);
-          float edge = pow(1.0 - facing, 2.6);
+          float edge = pow(1.0 - facing, 2.2);
           float softLight = 0.5 + 0.5 * dot(normal, normalize(vec3(-0.35, 0.7, 0.62)));
           float movingBand = smoothstep(0.88, 1.0, sin((vWorldY * 22.0) - (time * 3.1)) * 0.5 + 0.5);
-          vec3 base = mix(vec3(0.014, 0.075, 0.095), color, 0.34);
-          vec3 hologram = base * (0.66 + softLight * 0.62);
-          hologram += color * edge * 0.92;
-          hologram += vec3(0.0, 0.74, 0.46) * movingBand * 0.1;
-          float alpha = clamp(0.76 + edge * 0.17 + movingBand * 0.05, 0.0, 0.95);
+          vec3 base = mix(vec3(0.22, 0.24, 0.26), color, 0.80);
+          vec3 hologram = base * (0.34 + softLight * 0.30);
+          hologram += color * edge * 0.12;
+          hologram += vec3(0.0, 0.0, 0.0) * movingBand * 0.005;
+          float alpha = clamp(0.12 + edge * 0.16 + movingBand * 0.01, 0.0, 0.42);
           gl_FragColor = vec4(hologram, alpha);
         }
       `
     });
     const shellWireMaterial = new THREE.MeshBasicMaterial({
-      color: 0x6eefff,
+      color: 0xc3c9d1,
       transparent: true,
-      opacity: 0.11,
+      opacity: 0.10,
       wireframe: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -98,6 +99,7 @@ async function initPhysiqueHologram() {
       mesh.position.set(...position);
       mesh.scale.set(...scale);
       mesh.rotation.set(...rotation);
+      bodyBaseScales.set(mesh, mesh.scale.clone());
       if (material === shellMaterial) {
         const wireframe = new THREE.Mesh(geometry, shellWireMaterial);
         wireframe.renderOrder = 2;
@@ -106,7 +108,7 @@ async function initPhysiqueHologram() {
       body.add(mesh);
       return mesh;
     };
-    const profileGeometry = (points, curvePoints = 34, radialSegments = 64) => {
+    const profileGeometry = (points, curvePoints = 34, radialSegments = 28) => {
       const curve = new THREE.SplineCurve(points.map(([radius, height]) => new THREE.Vector2(radius, height)));
       return new THREE.LatheGeometry(curve.getPoints(curvePoints), radialSegments);
     };
@@ -121,20 +123,53 @@ async function initPhysiqueHologram() {
       addPart(new THREE.CapsuleGeometry(0.16, 0.24, 10, 22), [0, 1.78, 0], [1.08, 1, 0.94]);
 
     const torsoGeometry = profileGeometry([
-      [0.29, -0.78], [0.38, -0.67], [0.4, -0.45], [0.39, -0.23],
-      [0.48, 0], [0.63, 0.25], [0.78, 0.44], [0.86, 0.58],
-      [0.76, 0.69], [0.43, 0.77], [0.27, 0.8]
+      [0.16, -0.82], [0.22, -0.72], [0.3, -0.58], [0.38, -0.18],
+      [0.58, 0.1], [0.75, 0.28], [0.9, 0.48], [0.82, 0.62],
+      [0.54, 0.8], [0.2, 0.86]
     ], 46);
-      addPart(torsoGeometry, [0, 0.82, 0], [1.12, 1, 0.7]);
+      addPart(torsoGeometry, [0, 0.82, 0], [0.98, 1, 0.58]);
+    const chestBoxGeometry = new THREE.BoxGeometry(0.92, 0.8, 0.48);
+    const chestBox = new THREE.Mesh(chestBoxGeometry, shellMaterial);
+    chestBox.position.set(0, 1.26, 0.2);
+    chestBox.scale.set(1.14, 1.02, 0.8);
+    chestBox.rotation.y = 0.06;
+    body.add(chestBox);
+    const chestBoxWire = new THREE.Mesh(chestBoxGeometry, shellWireMaterial);
+    chestBoxWire.position.copy(chestBox.position);
+    chestBoxWire.scale.copy(chestBox.scale);
+    chestBoxWire.rotation.copy(chestBox.rotation);
+    body.add(chestBoxWire);
+    const sternum = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.32, 8, 18), shellMaterial);
+    sternum.position.set(0, 1.28, 0.4);
+    sternum.scale.set(1.1, 1, 0.7);
+    sternum.rotation.z = 0.12;
+    body.add(sternum);
+    [-1, 1].forEach((side) => {
+      const clavicle = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.24, 8, 14), shellMaterial);
+      clavicle.position.set(side * 0.32, 1.7, 0.06);
+      clavicle.scale.set(1.2, 0.8, 0.7);
+      clavicle.rotation.z = side * -0.9;
+      clavicle.rotation.x = side * 0.15;
+      body.add(clavicle);
+    });
     const pelvisGeometry = profileGeometry([
-      [0.18, -0.5], [0.34, -0.43], [0.52, -0.27], [0.6, -0.03],
-      [0.55, 0.22], [0.42, 0.38]
+      [0.12, -0.52], [0.22, -0.4], [0.34, -0.18], [0.42, 0.06],
+      [0.36, 0.3], [0.22, 0.38]
     ], 34);
-      addPart(pelvisGeometry, [0, 0.03, 0], [0.82, 1, 0.64]);
+      addPart(pelvisGeometry, [0, 0.03, 0], [0.72, 1, 0.56]);
 
       [-1, 1].forEach((side) => {
-        addPart(new THREE.SphereGeometry(0.5, 28, 18), [side * 0.34, 1.62, -0.01], [0.52, 0.2, 0.3], [0, 0, side * 0.2]);
-        addPart(new THREE.SphereGeometry(0.5, 30, 20), [side * 0.25, 1.36, 0.36], [0.5, 0.27, 0.16], [0, side * 0.05, side * -0.04]);
+        addPart(new THREE.SphereGeometry(0.5, 28, 18), [side * 0.34, 1.62, -0.01], [0.42, 0.18, 0.26], [0, 0, side * 0.2]);
+        addPart(new THREE.SphereGeometry(0.5, 30, 20), [side * 0.25, 1.36, 0.36], [0.4, 0.24, 0.14], [0, side * 0.05, side * -0.04]);
+      });
+      [-1, 1].forEach((side) => {
+        addPart(new THREE.CapsuleGeometry(0.15, 0.24, 10, 18), [side * 0.94, 1.6, 0.2], [1.18, 0.88, 0.6], [0.14, 0, side * 0.18]);
+        addPart(new THREE.CapsuleGeometry(0.12, 0.2, 10, 18), [side * 0.7, 1.42, -0.22], [1.04, 0.68, 0.6], [0.22, 0, side * -0.06]);
+        addPart(new THREE.CapsuleGeometry(0.09, 0.16, 8, 16), [side * 0.38, 1.78, -0.1], [0.8, 0.74, 0.68], [0.14, 0, side * 0.14]);
+        addPart(new THREE.CapsuleGeometry(0.09, 0.16, 8, 16), [side * 1.08, 0.96, 0.08], [0.92, 0.82, 0.68], [0, 0, side * 0.1]);
+        addPart(new THREE.CapsuleGeometry(0.08, 0.14, 8, 16), [side * 1.08, 0.92, -0.18], [0.76, 0.68, 0.5], [0, 0, side * -0.08]);
+        addPart(new THREE.CapsuleGeometry(0.08, 0.12, 8, 16), [side * 0.98, 1.2, -0.18], [0.56, 0.74, 0.48], [0.12, 0, side * -0.18]);
+        addPart(new THREE.CapsuleGeometry(0.07, 0.18, 8, 14), [side * 0.66, 1.72, -0.22], [0.62, 0.66, 0.46], [0.18, 0, side * -0.2]);
       });
       [1.02, 0.75, 0.49].forEach((height, row) => {
         [-1, 1].forEach((side) => addPart(
@@ -145,44 +180,45 @@ async function initPhysiqueHologram() {
       });
 
     const upperArmGeometry = profileGeometry([
-      [0.1, -0.51], [0.145, -0.41], [0.165, -0.18], [0.185, 0.13],
-      [0.2, 0.38], [0.145, 0.51]
-    ], 30, 40);
+      [0.095, -0.51], [0.15, -0.41], [0.165, -0.18], [0.18, 0.13],
+      [0.205, 0.38], [0.14, 0.51]
+    ], 30, 26);
     const forearmGeometry = profileGeometry([
-      [0.07, -0.5], [0.1, -0.38], [0.13, -0.12], [0.165, 0.22],
-      [0.15, 0.42], [0.1, 0.5]
-    ], 30, 40);
+      [0.065, -0.5], [0.095, -0.38], [0.125, -0.12], [0.16, 0.22],
+      [0.145, 0.42], [0.09, 0.5]
+    ], 30, 26);
     const handGeometry = profileGeometry([
       [0.02, -0.26], [0.09, -0.21], [0.12, -0.05], [0.11, 0.17],
       [0.07, 0.25]
-    ], 24, 36);
+    ], 24, 22);
     [-1, 1].forEach((side) => {
-      addPart(new THREE.SphereGeometry(0.5, 32, 22), [side * 0.88, 1.49, 0], [0.52, 0.41, 0.45]);
-      addPart(upperArmGeometry, [side * 0.99, 1, 0], [1.18, 1, 1.06], [0, 0, side * 0.08]);
-      addPart(new THREE.SphereGeometry(0.5, 28, 18), [side * 1.03, 0.51, 0], [0.29, 0.26, 0.28]);
-      addPart(forearmGeometry, [side * 1.01, 0.1, 0.01], [1.1, 1, 0.98], [0, 0, side * -0.04]);
+      addPart(new THREE.CapsuleGeometry(0.14, 0.2, 10, 16), [side * 0.88, 1.49, 0.02], [1.2, 0.8, 0.72], [0.08, 0, side * 0.12]);
+      addPart(upperArmGeometry, [side * 0.99, 1, 0.04], [1.18, 1, 1.06], [0, 0, side * 0.16]);
+      addPart(new THREE.CapsuleGeometry(0.1, 0.16, 8, 14), [side * 1.03, 0.51, 0.03], [1.0, 0.82, 0.7], [0, 0, side * 0.05]);
+      addPart(forearmGeometry, [side * 1.01, 0.1, 0.05], [1.1, 1, 0.96], [0, 0, side * -0.06]);
       addPart(handGeometry, [side * 0.98, -0.48, 0.025], [0.92, 1, 0.62], [0, 0, side * -0.03]);
+      addPart(new THREE.CapsuleGeometry(0.08, 0.14, 8, 14), [side * 1.14, 0.94, -0.18], [0.8, 0.7, 0.48], [0.08, 0, side * -0.06]);
     });
 
     const thighGeometry = profileGeometry([
-      [0.12, -0.68], [0.18, -0.55], [0.22, -0.25], [0.27, 0.12],
-      [0.29, 0.42], [0.23, 0.62], [0.14, 0.69]
-    ], 38, 48);
+      [0.11, -0.68], [0.17, -0.55], [0.21, -0.25], [0.27, 0.12],
+      [0.3, 0.42], [0.22, 0.62], [0.13, 0.69]
+    ], 38, 32);
     const lowerLegGeometry = profileGeometry([
-      [0.08, -0.59], [0.115, -0.47], [0.15, -0.22], [0.2, 0.05],
-      [0.19, 0.26], [0.15, 0.48], [0.11, 0.59]
-    ], 38, 48);
+      [0.075, -0.59], [0.105, -0.47], [0.14, -0.22], [0.19, 0.05],
+      [0.18, 0.26], [0.14, 0.48], [0.1, 0.59]
+    ], 38, 32);
     [-1, 1].forEach((side) => {
       addPart(thighGeometry, [side * 0.32, -0.78, 0], [1.12, 1, 1], [0, 0, side * 0.15]);
-      addPart(new THREE.SphereGeometry(0.5, 28, 18), [side * 0.41, -1.33, 0.015], [0.31, 0.28, 0.29]);
+      addPart(new THREE.SphereGeometry(0.5, 28, 18), [side * 0.41, -1.33, 0.015], [0.26, 0.24, 0.25]);
       addPart(lowerLegGeometry, [side * 0.5, -1.72, 0.015], [1.06, 1, 0.94], [0, 0, side * 0.17]);
-      addPart(new THREE.SphereGeometry(0.5, 30, 18), [side * 0.61, -2.25, 0.2], [0.4, 0.18, 0.76], [0, 0, side * 0.05]);
+      addPart(new THREE.SphereGeometry(0.5, 30, 18), [side * 0.61, -2.25, 0.2], [0.34, 0.16, 0.66], [0, 0, side * 0.05]);
     });
 
     const muscleMaterials = new Map();
     const addMuscle = (region, parts) => {
       const material = new THREE.MeshBasicMaterial({
-        color: 0xff183f,
+        color: 0x69e5ff,
         transparent: true,
         opacity: 0,
         depthTest: true,
@@ -197,22 +233,36 @@ async function initPhysiqueHologram() {
       muscleMaterials.set(region, material);
     };
     addMuscle('chest', [
-      { position: [-0.25, 1.4, 0.49], scale: [0.48, 0.29, 0.17] },
-      { position: [0.25, 1.4, 0.49], scale: [0.48, 0.29, 0.17] }
+      { position: [-0.26, 1.41, 0.46], scale: [0.42, 0.3, 0.18], rotation: [0.12, 0, -0.2] },
+      { position: [0.26, 1.41, 0.46], scale: [0.42, 0.3, 0.18], rotation: [0.12, 0, 0.2] },
+      { position: [-0.12, 1.18, 0.5], scale: [0.2, 0.24, 0.16], rotation: [0.18, 0, -0.05] },
+      { position: [0.12, 1.18, 0.5], scale: [0.2, 0.24, 0.16], rotation: [0.18, 0, 0.05] }
     ]);
     addMuscle('shoulders', [
-      { position: [-0.87, 1.5, 0.18], scale: [0.37, 0.35, 0.32] },
-      { position: [0.87, 1.5, 0.18], scale: [0.37, 0.35, 0.32] }
+      { position: [-0.92, 1.5, 0.18], scale: [0.34, 0.3, 0.3], rotation: [0.14, 0, -0.22] },
+      { position: [0.92, 1.5, 0.18], scale: [0.34, 0.3, 0.3], rotation: [0.14, 0, 0.22] },
+      { position: [-0.68, 1.58, -0.18], scale: [0.28, 0.26, 0.18], rotation: [0.18, 0, -0.4] },
+      { position: [0.68, 1.58, -0.18], scale: [0.28, 0.26, 0.18], rotation: [0.18, 0, 0.4] },
+      { position: [-0.44, 1.92, -0.1], scale: [0.24, 0.28, 0.16], rotation: [0.24, 0, -0.18] },
+      { position: [0.44, 1.92, -0.1], scale: [0.24, 0.28, 0.16], rotation: [0.24, 0, 0.18] },
+      { position: [-0.56, 1.32, 0.08], scale: [0.22, 0.24, 0.16], rotation: [0.12, 0, -0.28] },
+      { position: [0.56, 1.32, 0.08], scale: [0.22, 0.24, 0.16], rotation: [0.12, 0, 0.28] }
     ]);
     addMuscle('back', [
-      { position: [-0.3, 1.08, -0.42], scale: [0.42, 0.72, 0.17] },
-      { position: [0.3, 1.08, -0.42], scale: [0.42, 0.72, 0.17] }
+      { position: [-0.3, 1.14, -0.44], scale: [0.38, 0.66, 0.16], rotation: [0.08, 0, -0.12] },
+      { position: [0.3, 1.14, -0.44], scale: [0.38, 0.66, 0.16], rotation: [0.08, 0, 0.12] },
+      { position: [-0.18, 1.4, -0.38], scale: [0.3, 0.36, 0.18], rotation: [0.15, 0, -0.12] },
+      { position: [0.18, 1.4, -0.38], scale: [0.3, 0.36, 0.18], rotation: [0.15, 0, 0.12] },
+      { position: [-0.42, 1.7, -0.28], scale: [0.23, 0.26, 0.15], rotation: [0.18, 0, -0.2] },
+      { position: [0.42, 1.7, -0.28], scale: [0.23, 0.26, 0.15], rotation: [0.18, 0, 0.2] }
     ]);
     addMuscle('arms', [
-      { position: [-0.99, 1, 0.15], scale: [0.21, 0.72, 0.19], rotation: [0, 0, -0.08] },
-      { position: [0.99, 1, 0.15], scale: [0.21, 0.72, 0.19], rotation: [0, 0, 0.08] },
-      { position: [-1.01, 0.1, 0.14], scale: [0.17, 0.66, 0.16], rotation: [0, 0, 0.04] },
-      { position: [1.01, 0.1, 0.14], scale: [0.17, 0.66, 0.16], rotation: [0, 0, -0.04] }
+      { position: [-1.02, 1.02, 0.18], scale: [0.19, 0.72, 0.2], rotation: [0, 0, -0.08] },
+      { position: [1.02, 1.02, 0.18], scale: [0.19, 0.72, 0.2], rotation: [0, 0, 0.08] },
+      { position: [-1.08, 0.9, -0.12], scale: [0.18, 0.42, 0.18], rotation: [0, 0, -0.08] },
+      { position: [1.08, 0.9, -0.12], scale: [0.18, 0.42, 0.18], rotation: [0, 0, 0.08] },
+      { position: [-1.01, 0.12, 0.14], scale: [0.17, 0.66, 0.16], rotation: [0, 0, 0.04] },
+      { position: [1.01, 0.12, 0.14], scale: [0.17, 0.66, 0.16], rotation: [0, 0, -0.04] }
     ]);
     addMuscle('core', [
       ...[1.02, 0.76, 0.5].flatMap((height, row) => [-1, 1].map((side) => ({
@@ -275,6 +325,43 @@ async function initPhysiqueHologram() {
     particleCloud.renderOrder = 3;
     body.add(particleCloud);
 
+    const networkNodes = {
+      head: [0, 2.18, 0.1], neck: [0, 1.86, 0.06],
+      shoulderL: [-0.88, 1.49, 0.05], shoulderR: [0.88, 1.49, 0.05],
+      elbowL: [-1.03, 0.51, 0.02], elbowR: [1.03, 0.51, 0.02],
+      wristL: [-0.98, -0.48, 0.03], wristR: [0.98, -0.48, 0.03],
+      chestL: [-0.25, 1.4, 0.5], chestR: [0.25, 1.4, 0.5],
+      sternum: [0, 1.24, 0.52],
+      abTop: [0, 1.02, 0.45], abMid: [0, 0.76, 0.44], abLow: [0, 0.5, 0.42],
+      hipL: [-0.34, 0.05, 0.3], hipR: [0.34, 0.05, 0.3],
+      kneeL: [-0.41, -1.33, 0.16], kneeR: [0.41, -1.33, 0.16],
+      ankleL: [-0.5, -2.2, 0.16], ankleR: [0.5, -2.2, 0.16]
+    };
+    const networkLinks = [
+      ['head', 'neck'], ['neck', 'shoulderL'], ['neck', 'shoulderR'], ['neck', 'sternum'],
+      ['shoulderL', 'elbowL'], ['elbowL', 'wristL'], ['shoulderR', 'elbowR'], ['elbowR', 'wristR'],
+      ['shoulderL', 'chestL'], ['shoulderR', 'chestR'], ['chestL', 'sternum'], ['chestR', 'sternum'],
+      ['sternum', 'abTop'], ['abTop', 'abMid'], ['abMid', 'abLow'], ['abLow', 'hipL'], ['abLow', 'hipR'],
+      ['hipL', 'hipR'], ['hipL', 'kneeL'], ['hipR', 'kneeR'], ['kneeL', 'ankleL'], ['kneeR', 'ankleR'],
+      ['chestL', 'abTop'], ['chestR', 'abTop'], ['hipL', 'abLow'], ['hipR', 'abLow']
+    ];
+    const networkLinePositions = networkLinks.flatMap(([from, to]) => [...networkNodes[from], ...networkNodes[to]]);
+    const networkLineGeometry = new THREE.BufferGeometry();
+    networkLineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(networkLinePositions, 3));
+    const networkLines = new THREE.LineSegments(
+      networkLineGeometry,
+      new THREE.LineBasicMaterial({ color: 0x9af4ff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    networkLines.renderOrder = 5;
+    body.add(networkLines);
+    const networkNodePositions = Object.values(networkNodes).flat();
+    const networkNodeGeometry = new THREE.BufferGeometry();
+    networkNodeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(networkNodePositions, 3));
+    const networkNodeMaterial = new THREE.PointsMaterial({ color: 0xd8fbff, size: 0.05, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
+    const networkNodePoints = new THREE.Points(networkNodeGeometry, networkNodeMaterial);
+    networkNodePoints.renderOrder = 6;
+    body.add(networkNodePoints);
+
     const anatomyMaterial = new THREE.MeshBasicMaterial({
       color: 0xb9ff52,
       transparent: true,
@@ -307,11 +394,11 @@ async function initPhysiqueHologram() {
     pelvisRing.renderOrder = 4;
     body.add(pelvisRing);
 
-    const coreRingMaterial = new THREE.MeshBasicMaterial({ color: 0x91f5ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+    const coreRingMaterial = new THREE.MeshBasicMaterial({ color: 0xbfc7d0, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false });
     const coreRing = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.012, 10, 64), coreRingMaterial);
     coreRing.position.set(0, 1.08, 0.5);
     body.add(coreRing);
-    const coreLightMaterial = new THREE.MeshBasicMaterial({ color: 0x00f58a, transparent: true, opacity: 0.42, blending: THREE.AdditiveBlending, depthWrite: false });
+    const coreLightMaterial = new THREE.MeshBasicMaterial({ color: 0xbfc7d0, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false });
     const coreLight = new THREE.Mesh(new THREE.CircleGeometry(0.115, 40), coreLightMaterial);
     coreLight.position.set(0, 1.08, 0.505);
     body.add(coreLight);
@@ -327,8 +414,8 @@ async function initPhysiqueHologram() {
     spine.renderOrder = 4;
     body.add(spine);
 
-    const rings = [0x24d8ff, 0x00f58a, 0xff5f7a].map((color, index) => {
-      const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending });
+    const rings = [0xbfc7d0, 0xc9ced5, 0xd3d7de].map((color, index) => {
+      const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending });
       const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05 + index * 0.16, 0.009, 8, 96), material);
       ring.position.y = 1.35 - index * 0.92;
       ring.rotation.x = Math.PI / 2;
@@ -413,6 +500,8 @@ async function initPhysiqueHologram() {
       coreRing.scale.setScalar(corePulse);
       coreRing.rotation.z = time * 0.00045;
       coreLight.material.opacity = reducedMotion ? 0.42 : 0.34 + (Math.sin(time * 0.005) * 0.12);
+      networkLines.material.opacity = reducedMotion ? 0.4 : 0.32 + (Math.sin(time * 0.0032) * 0.14);
+      networkNodeMaterial.opacity = reducedMotion ? 0.85 : 0.72 + (Math.sin(time * 0.004 + 1.2) * 0.18);
       scanLine.position.y = -2.18 + ((time * 0.00034) % 1) * 4.82;
       rings.forEach((ring, index) => {
         ring.rotation.z = time * (0.00008 + index * 0.000025);
@@ -421,7 +510,7 @@ async function initPhysiqueHologram() {
       muscleMaterials.forEach((material, region) => {
         const active = focusRegions.has(region) || improvedRegions.has(region);
         const pulse = 0.82 + Math.sin(time * 0.006) * 0.1;
-        material.opacity += ((active ? pulse : 0) - material.opacity) * 0.14;
+        material.opacity += ((active ? pulse : 0.15) - material.opacity) * 0.14;
       });
       renderer.render(scene, camera);
       if (demoVisible) {
@@ -462,6 +551,8 @@ async function initPhysiqueHologram() {
     stage.addEventListener('pointercancel', stopDragging);
     new ResizeObserver(resize).observe(stage);
     if (demoStage) new ResizeObserver(resizeDemo).observe(demoStage);
+    stage.classList.add('is-user-figure');
+    canvas.style.display = 'none';
     window.updatePhysique3DScan = (count) => {
       readyCount = count;
       status.textContent = count === 3 ? 'SCAN MATRIX READY' : `${count}/3 ANGLES LINKED`;
@@ -486,8 +577,8 @@ async function initPhysiqueHologram() {
       muscleMaterials.forEach((material, region) => {
         const priority = focusRegions.has(region);
         const improved = improvedRegions.has(region);
-        material.color.set(priority ? 0xff183f : 0x24f58a);
-        material.opacity = priority || improved ? 0.88 : 0;
+        material.color.set(priority ? 0xff183f : improved ? 0x24f58a : 0xf0f4f7);
+        material.opacity = priority || improved ? 0.94 : 0.0;
       });
       if (focusRegions.size || improvedRegions.size) {
         status.textContent = improvedRegions.size ? 'AI PROGRESS MAP ACTIVE' : 'AI MUSCLE MAP ACTIVE';
@@ -500,16 +591,50 @@ async function initPhysiqueHologram() {
       }
       renderer.render(scene, camera);
     };
+    window.updatePhysique3DProfile = (profile = {}) => {
+      const height = Number(profile.height) || 178;
+      const weight = Number(profile.weight) || 75;
+      const waist = Number(profile.waist) || 82;
+      const shoulders = Number(profile.shoulders) || 48;
+      const chest = Number(profile.chest) || 95;
+      const arm = Number(profile.arm) || 36;
+      const heightFactor = Math.min(1.28, Math.max(0.82, height / 178));
+      const shoulderFactor = Math.min(1.34, Math.max(0.8, shoulders / 48));
+      const chestFactor = Math.min(1.38, Math.max(0.72, chest / 95));
+      const waistFactor = Math.min(1.24, Math.max(0.7, waist / 82));
+      const armFactor = Math.min(1.35, Math.max(0.8, arm / 36));
+      const weightFactor = Math.min(1.35, Math.max(0.72, weight / 75));
+
+      const torsoStretch = 0.84 + (shoulderFactor - 1) * 0.6;
+      const armStretch = 0.88 + (armFactor - 1) * 0.7;
+      const waistLift = Math.max(0, 1.18 - waistFactor) * 0.38;
+
+      body.scale.setScalar(0.9);
+      body.position.y = -0.06 + (1 - heightFactor) * 0.22;
+      body.rotation.z = (waistFactor - 1) * 0.2;
+
+      bodyBaseScales.forEach((baseScale, mesh) => {
+        const position = mesh.position;
+        const xBias = Math.abs(position.x) > 0.8 ? armStretch : 1;
+        const yBias = position.y > 0.15 && position.y < 2.2 ? heightFactor : 1;
+        const zBias = position.y > 0.15 && position.y < 2.2 ? 1 / Math.max(0.68, waistFactor * 0.9) : 1;
+        const torsoBias = Math.abs(position.x) < 0.4 && position.y > 0.15 && position.y < 2.2 ? torsoStretch : 1;
+        const legBias = position.y < -0.6 ? heightFactor * 0.96 : 1;
+
+        mesh.scale.set(
+          baseScale.x * xBias * torsoBias * (position.x === 0 ? (0.84 + chestFactor * 0.24) : 1),
+          baseScale.y * yBias * torsoBias * legBias,
+          baseScale.z * zBias * (position.x === 0 ? (0.88 + chestFactor * 0.12) : 1)
+        );
+      });
+
+      coreRing.position.y = 1.08 + waistLift;
+      coreLight.position.y = 1.08 + waistLift;
+    };
     const photoKeys = ['formlyPhysiquePhoto', 'formlyPhysiquePhotoRight', 'formlyPhysiquePhotoLeft'];
-    window.updatePhysique3DScan(photoKeys.filter((key) => localStorage.getItem(key)).length);
-    const savedAnalysis = JSON.parse(localStorage.getItem('formlyPhysiqueMuscleAnalysis') || 'null');
-    if (savedAnalysis?.priorities) {
-      const progress = Array.isArray(savedAnalysis.progress) ? savedAnalysis.progress : [];
-      window.updatePhysique3DMuscles(
-        [...savedAnalysis.priorities.map((item) => item.muscle), ...progress.filter((item) => item.status !== 'improved').map((item) => item.muscle)],
-        progress.filter((item) => item.status === 'improved').map((item) => item.muscle)
-      );
-    }
+    const count = photoKeys.filter((key) => localStorage.getItem(key)).length;
+    window.updatePhysique3DScan(count);
+    window.updatePhysique3DMuscles?.([]);
     setView('front');
     resize();
     resizeDemo();

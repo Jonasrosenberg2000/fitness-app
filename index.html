@@ -17,7 +17,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20260830-physique-progress-15">
+	<link rel="stylesheet" href="styles.css?v=20260902-kcal-sync-1">
 	
 </head>
 <body>
@@ -45,6 +45,51 @@
 			<header class="topbar"><span id="todayDate">SØNDAG 23. AUGUST 2026</span><button type="button" aria-label="Notifikationer">o</button></header>
 			<section class="welcome"><div><p class="eyebrow">DIN UGE I BEVÆGELSE</p><h1 id="greetingText">Godmorgen.</h1><p>Du har allerede taget hul på en stærk uge.</p></div><strong class="streak"><span class="streak-icon" aria-hidden="true">🔥</span><span id="streakCount">04</span><small>STREAK</small></strong></section>
 
+			<section class="pro-home" id="proHome" hidden>
+				<header class="pro-home-topbar">
+					<div><h1 id="proHomeGreeting">Hej <span aria-hidden="true">🔥</span></h1><p>Lad os blive 1% bedre i dag.</p></div>
+					<button type="button" class="pro-home-bell" aria-label="Notifikationer"></button>
+				</header>
+
+				<article class="pro-home-workout-card">
+					<div class="pro-home-workout-content">
+						<span class="pro-home-eyebrow">DAGENS TRÆNING</span>
+						<h2 id="proHomeWorkoutTitle">Klar til at starte</h2>
+						<p id="proHomeWorkoutProgressLabel" class="pro-home-completed">0 / 0 øvelser færdiggjort</p>
+						<div class="pro-home-progress-track" aria-hidden="true"><i id="proHomeProgressBar"></i></div>
+					</div>
+					<div class="pro-home-workout-bottom">
+						<div class="pro-home-workout-meta"><span>⏱ <b id="proHomeWorkoutTime">–</b></span><span>🔥 <b id="proHomeWorkoutKcal">–</b> kcal (est.)</span></div>
+						<button type="button" id="proHomeStartWorkout" class="pro-home-cta">Start træning <span aria-hidden="true">→</span></button>
+					</div>
+				</article>
+
+				<div class="pro-home-stat-grid">
+					<article class="pro-home-stat pro-home-stat-strength"><span class="pro-home-stat-icon" aria-hidden="true">🏋️</span><span class="pro-home-stat-label">STRENGTH</span><strong id="proHomeStrengthValue">0%</strong><small id="proHomeStrengthDelta"></small></article>
+					<article class="pro-home-stat pro-home-stat-recovery"><span class="pro-home-stat-icon" aria-hidden="true">♡</span><span class="pro-home-stat-label">RECOVERY</span><strong id="proHomeRecoveryValue">0%</strong><small id="proHomeRecoveryDelta"></small></article>
+					<article class="pro-home-stat pro-home-stat-progress"><span class="pro-home-stat-icon" aria-hidden="true">↗</span><span class="pro-home-stat-label">PROGRESS</span><strong id="proHomeProgressValue">+0 kg</strong><small id="proHomeProgressDelta"></small></article>
+				</div>
+				<article class="pro-home-kcal-card"><div><span class="pro-home-eyebrow">DAGENS KCAL</span><strong><span id="proHomeFoodCalories">0</span> <small>/ <span id="proHomeFoodTarget">0</span> kcal</small></strong><p id="proHomeFoodRemaining">Beregn dit mål i Kcal-beregneren</p></div><div class="pro-home-kcal-streak"><span aria-hidden="true">🔥</span><strong id="proHomeKcalStreak">00</strong><small>STREAK</small></div></article>
+
+				<article class="pro-home-insight-card" id="proHomeInsightCard">
+					<span class="pro-home-eyebrow">AI INSIGHT</span>
+					<h3 id="proHomeInsightTitle">Gennemfør en body scan</h3>
+					<p id="proHomeInsightText">Tilføj tre fysikfotos for at få dit primære fokusområde.</p>
+					<button type="button" id="proHomeInsightLink" class="pro-home-text-link" data-category-target="#physique-ai">Se analyse <span aria-hidden="true">→</span></button>
+					<span class="pro-home-body-model" aria-hidden="true">🫀</span>
+				</article>
+
+				<section class="pro-home-photos">
+					<div class="pro-home-section-heading"><h2>FYSISK FREMSKRIDT</h2><div id="proHomePhotoNav" class="pro-home-photo-nav"></div></div>
+					<div class="pro-home-photo-row" id="proHomePhotoRow"><p class="pro-home-photo-empty">Tilføj et fysikfoto ved vejning for at se din udvikling her.</p></div>
+				</section>
+
+				<section class="pro-home-quick-access">
+					<div class="pro-home-section-heading"><h2>HURTIG ADGANG</h2></div>
+					<div class="pro-home-quick-grid" id="proHomeQuickGrid"></div>
+				</section>
+			</section>
+
 			<section class="hero-grid" id="workout">
 				<article class="workout-card"><div class="workout-card-top"><div class="card-kicker">DAGENS TRÆNING</div><span id="workoutSessionBadge">SESSION 01</span></div><div class="workout-card-copy"><p class="workout-status-line"><i aria-hidden="true"></i><span id="workoutStatusLabel">Klar til at starte</span></p><h2 id="workoutOverviewTitle">Byg videre på din styrke</h2><p id="workoutOverviewLead">Dit program er klar. Åbn øvelserne og registrér dagens arbejdssæt.</p></div><div class="workout-metrics"><div><span>ØVELSER</span><strong id="workoutExerciseTotal">0</strong><small>i programmet</small></div><div><span>ARBEJDSSÆT</span><strong id="workoutLoggedSets">0</strong><small>registreret</small></div><div><span>VOLUMEN</span><strong id="workoutSessionVolume">0 kg</strong><small>denne session</small></div></div><div class="workout-actions"><button id="startWorkout" type="button">Åbn øvelser <span aria-hidden="true">→</span></button><button id="sessionComplete" type="button" class="complete-session">Markér som gennemført</button></div></article>
 				<article class="quote-card training-brief-card"><div class="training-brief-top"><div><p class="card-kicker">SESSIONSTATUS</p><h3>Dagens plan</h3></div><span id="workoutCompletionPercent">0%</span></div><div class="training-progress-track" aria-hidden="true"><i id="workoutCompletionBar"></i></div><p id="workoutPlanSummary">Ingen øvelser gennemført endnu</p><div class="training-brief-list"><div><span>01</span><p><strong>Vælg øvelse</strong><small>Find næste bevægelse</small></p></div><div><span>02</span><p><strong>Registrér sæt</strong><small>Vægt, reps og arbejdssæt</small></p></div><div><span>03</span><p><strong>Afslut session</strong><small>Gem dagens fremgang</small></p></div></div><div class="training-last-log"><span>SENESTE LOG</span><strong id="workoutLastLog">Ingen endnu</strong></div></article>
@@ -52,8 +97,17 @@
 
 			<section class="food-section" id="food">
 				<div class="food-date-nav"><button type="button" id="foodDatePrev" aria-label="Forrige dag">‹</button><strong id="foodDateLabel">24. AUG</strong><button type="button" id="foodDateNext" aria-label="Næste dag">›</button></div>
-				<div class="section-heading"><div><p class="eyebrow">MAD TRACKER</p><h2>Hvad har du spist?</h2><p>Vej maden i gram og få et mere præcist kcal-estimat.</p></div><div class="kcal-summary"><div class="kcal-box"><small>DAGENS TOTAL</small><strong id="foodTotal">0 <small>kcal</small></strong></div><div class="kcal-box"><small>MÅL I DAG</small><strong id="foodTarget">2.000 kcal</strong></div></div></div>
-				<div class="kcal-remaining-banner"><small id="kcalRemainingLabel">KCAL TILBAGE (CUT)</small><strong id="kcalRemainingValue">2.000 kcal</strong></div>
+				<div class="section-heading"><div><p class="eyebrow">MAD TRACKER</p><h2>Hvad har du spist?</h2><p>Vej maden i gram og få et mere præcist kcal-estimat.</p></div></div>
+				<div class="food-kcal-card">
+					<div class="food-kcal-ring" id="foodKcalRing"><div class="food-kcal-ring-inner"><strong id="foodTotal">0</strong><small>kcal</small></div></div>
+					<div class="food-kcal-info">
+						<span class="food-kcal-label">DAGENS INDTAG</span>
+						<div class="food-kcal-big"><strong id="foodTotalBig">0</strong> <span>/ <span id="foodTarget">2.000 kcal</span></span></div>
+						<div class="food-kcal-bar"><i id="foodKcalBar"></i></div>
+						<p class="food-kcal-remaining" id="kcalRemainingValue">2.000 kcal tilbage</p>
+					</div>
+				</div>
+				<div class="kcal-remaining-banner" hidden><small id="kcalRemainingLabel">KCAL TILBAGE (CUT)</small></div>
 				<div class="macro-grid">
 					<article class="macro-card macro-protein"><span class="macro-label">PROTEIN</span><strong id="proteinProgressText">0/0 g</strong><div class="macro-bar"><i id="proteinProgressBar"></i></div></article>
 					<article class="macro-card macro-carbs"><span class="macro-label">KULHYDRAT</span><strong id="carbsProgressText">0/0 g</strong><div class="macro-bar"><i id="carbsProgressBar"></i></div></article>
@@ -78,13 +132,86 @@
 
 			<section class="profile-card profile-section"><div class="section-heading"><div><p class="eyebrow">DIN PROFIL</p><h2>Kcal-mål</h2></div><button id="calculateGoals" type="button">Beregn mål</button></div><div class="form-grid"><label>Navn<input id="profileName" type="text" placeholder="Dit navn" maxlength="40"></label><label>Vægt (kg)<input id="profileWeight" type="number" value="70"></label><label>Vægtmål (kg)<input id="profileWeightGoal" type="number" step="0.1" placeholder="Fx 75"></label><label>Højde (cm)<input id="profileHeight" type="number" value="175"></label><label>Alder<input id="profileAge" type="number" value="30"></label><label>Køn<select id="profileSex"><option value="male">Mand</option><option value="female">Kvinde</option></select></label><label>Steps<input id="exactStepsInput" type="number" value="6000"></label><input id="stepsInput" type="range" min="0" max="20000" value="6000"><label>Vedligeholdelse<input id="maintenanceInput" type="number" value="2000"></label><label>Træning om ugen<select id="trainingWeekSelect"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></label><label>Intensitet<select id="intensitySelect"><option value="low">Lavt alene</option><option value="moderate">Moderat alene</option><option value="moderateHigh">Moderat-Stor (blandet)</option><option value="high">Højt alene</option><option value="failure">Failure</option></select></label></div><div id="goalTabs"><button type="button" data-goal="cut" class="active">Cut</button><button type="button" data-goal="maintain">Vedligehold</button><button type="button" data-goal="bulk">Bulk</button></div><h3 id="goalCalories">2.000 <small>kcal</small></h3><p id="goalChange"></p><p id="goalPros"></p><p id="goalCons"></p><p id="profileSummary"></p><span id="stepsValue">6.000</span><span id="stepKcalResult">0 <small>kcal</small></span><button id="syncHealth" type="button">Synkroniser sundhed</button><span id="healthStatus"></span><span id="healthSteps"></span></section>
 
+			<section id="proProgress" class="pro-progress" hidden>
+				<header class="pro-progress-reference-top"><div class="pro-progress-reference-brand"><span>A</span><span>I</span><span>O</span> Fitness</div><div class="pro-progress-reference-pro">PRO AKTIV</div></header>
+				<h1 class="pro-progress-page-title">Progression</h1>
+				<p class="pro-progress-page-subtitle">Se din udvikling over tid.</p>
+				<div class="pro-progress-tabs">
+					<button type="button" data-range="week">Uge</button>
+					<button type="button" data-range="month" class="active">Måned</button>
+					<button type="button" data-range="quarter">3M</button>
+					<button type="button" data-range="year">År</button>
+				</div>
+				<article class="pro-progress-score">
+					<div>
+						<span class="pro-progress-label">PROGRESSIONS SCORE <span aria-hidden="true">ⓘ</span></span>
+						<div class="pro-progress-score-num"><strong id="proProgressScore">0</strong><span>/100</span></div>
+						<div class="pro-progress-good" id="proProgressScoreNote">Log flere træninger for at se din score.</div>
+					</div>
+					<div class="pro-progress-ring" id="proProgressScoreRing"><div class="pro-progress-arrow" aria-hidden="true">↗</div></div>
+				</article>
+				<article class="pro-progress-chart-card">
+					<div class="pro-progress-chart-head"><span class="pro-progress-label">VÆGTUDVIKLING</span><span class="pro-progress-select">kg</span></div>
+					<div class="pro-progress-weight"><strong id="proProgressWeight">0,0 kg</strong><small id="proProgressWeightDelta"></small></div>
+					<div class="pro-progress-chart"><svg id="proProgressChartSvg" viewBox="0 0 600 165" preserveAspectRatio="none"></svg></div>
+					<div class="pro-progress-axis" id="proProgressAxis"></div>
+				</article>
+				<article class="pro-progress-strength">
+					<div class="pro-progress-section-title"><span class="pro-progress-label">STYRKEUDVIKLING</span><button type="button" class="pro-progress-link" data-category-target="#library">Se alle</button></div>
+					<div id="proProgressStrengthRows"></div>
+				</article>
+				<div class="pro-progress-section-title"><h3>PERSONLIGE REKORDER</h3><button type="button" class="pro-progress-link" data-category-target="#library">Se alle</button></div>
+				<div class="pro-progress-prs" id="proProgressPrs"></div>
+				<div class="pro-progress-section-title"><h3>FYSISK FREMSKRIDT</h3><div id="proProgressPhotoNav" class="pro-progress-photo-nav-slot"></div></div>
+				<article class="pro-progress-photos-card">
+					<div class="pro-progress-photos" id="proProgressPhotos"></div>
+				</article>
+			</section>
 			<section id="progress"><div class="section-heading"><div><p class="eyebrow">FREMSKRIDT</p><h2>Din udvikling</h2></div><div id="progressViews"><button type="button" class="active" data-view="week">Uge</button><button type="button" data-view="day">Dag</button></div></div><div class="stats-grid"><article class="stat-card">VOLUMEN<strong id="volumeStat">0 kg</strong></article><article class="stat-card">BEDSTE 1RM<strong id="bestOrmStat">0,0 kg</strong></article><article class="stat-card">REPS<strong id="repsStat">0</strong></article><article class="stat-card">STATUS<strong id="progressStat">+0%</strong></article></div><div id="weekHistory"></div></section>
 			<section id="library"><div class="section-heading"><div><p class="eyebrow">MIT PROGRAM</p><h2>Øvelsesbibliotek</h2></div><span id="exerciseCount">3/30 øvelser</span></div><div id="exerciseList" class="exercise-list"><article class="exercise-row"><span class="exercise-number">01</span><div class="exercise-visual"></div><div class="exercise-info"><h3>Goblet squat</h3><p>20 kg <span>•</span> 10 reps <span>•</span> 3 sæt</p></div><button class="complete-button" type="button">✓</button><button class="more-button" type="button">...</button></article><article class="exercise-row"><span class="exercise-number">02</span><div class="exercise-visual"></div><div class="exercise-info"><h3>Bench press</h3><p>40 kg <span>•</span> 8 reps <span>•</span> 3 sæt</p></div><button class="complete-button" type="button">✓</button><button class="more-button" type="button">...</button></article></div><div class="form-grid"><input id="customExerciseName" type="text" list="exerciseOptions" placeholder="Skriv egen øvelse" aria-label="Skriv egen øvelse"><select id="newExerciseSelect"><option value="">Vælg ny øvelse</option></select><button id="addExercise" type="button">Tilføj øvelse +</button></div><datalist id="exerciseOptions"></datalist><div id="trainingPicker"><button type="button" data-days="1">1</button><button type="button" data-days="2">2</button><button type="button" data-days="3" class="selected">3</button><button type="button" data-days="4">4</button><button type="button" data-days="5">5</button><button type="button" data-days="6">6</button><button type="button" data-days="7">7</button></div><span id="trainingValue">3 træninger om ugen</span><p id="trainingTip">God balance mellem fremgang og restitution.</p><button id="programPreviousWeek" type="button">&lt;</button><span id="programWeekLabel">Uge 1</span><button id="programNextWeek" type="button">&gt;</button></section>
 		</main>
 	</div>
+	<nav class="pro-home-bottom-nav" id="proHomeBottomNav" hidden aria-label="Hovednavigation">
+		<button type="button" class="is-active" data-category-target="#top"><span aria-hidden="true">⌂</span>Home</button>
+		<button type="button" data-category-target="#workout"><span aria-hidden="true">▤</span>Plan</button>
+		<button type="button" class="pro-home-bottom-nav-add" data-category-target="#library" aria-label="Tilføj"><span aria-hidden="true">+</span></button>
+		<button type="button" data-category-target="#progress"><span aria-hidden="true">📊</span>Progress</button>
+		<button type="button" data-category-target="#profile"><span aria-hidden="true">◌</span>Profile</button>
+	</nav>
 	<div id="toast" role="status"></div>
-	<script src="app.js?v=20260830-pro-training-16"></script>
+	<script src="app.js?v=20260902-kcal-sync-1"></script>
 	<script type="module" src="physique-3d.js?v=20260830-physique-progress-15"></script>
+	<script>
+		(() => {
+			const watchedFiles = ['app.js', 'styles.css'];
+			const lastHashes = new Map();
+			const readHash = async (fileName) => {
+				try {
+					const response = await fetch(fileName + '?_=' + Date.now(), { cache: 'no-store' });
+					const text = await response.text();
+					return Array.from(text).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+				} catch (error) {
+					return null;
+				}
+			};
+			const checkForUpdates = async () => {
+				for (const fileName of watchedFiles) {
+					const nextHash = await readHash(fileName);
+					if (nextHash === null) continue;
+					const previousHash = lastHashes.get(fileName);
+					lastHashes.set(fileName, nextHash);
+					if (previousHash !== undefined && previousHash !== nextHash) {
+						window.location.reload();
+						return;
+					}
+				}
+			};
+			watchedFiles.forEach(async (fileName) => {
+				lastHashes.set(fileName, await readHash(fileName));
+			});
+			window.setInterval(checkForUpdates, 2500);
+		})();
+	</script>
 </body>
 </html>
 

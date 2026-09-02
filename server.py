@@ -74,6 +74,8 @@ PRO_COACH_MONTHLY_LIMIT = int(os.environ.get('PRO_COACH_MONTHLY_LIMIT', '60'))
 PRO_VISION_MONTHLY_LIMIT = int(os.environ.get('PRO_VISION_MONTHLY_LIMIT', '4'))
 MAX_COACH_REQUEST_BYTES = int(os.environ.get('MAX_COACH_REQUEST_BYTES', str(12 * 1024 * 1024)))
 OWNER_USER_ID = os.environ.get('OWNER_USER_ID', '').strip()
+LOCAL_DEV_AUTH = os.environ.get('LOCAL_DEV_AUTH', '').strip() == '1'
+LOCAL_DEV_USER_EMAIL = os.environ.get('LOCAL_DEV_USER_EMAIL', 'local-pro@allinonefitness.test').strip()
 BILLING_STORE_PATH = Path(os.environ.get('BILLING_STORE_PATH') or (Path(RAILWAY_VOLUME_PATH) / 'billing.json' if RAILWAY_VOLUME_PATH else ROOT / '.billing.json'))
 BILLING_STORE_LOCK = threading.Lock()
 AUTH_ACCESS_COOKIE = 'aio_access_token'
@@ -205,12 +207,13 @@ def get_billing_status(user_id: str) -> dict:
     is_pro = is_owner or user.get('status') in ('active', 'trialing')
     plan_configuration = billing_plan_configuration()
     monthly_configured = plan_configuration['monthly']
+    weekly_configured = plan_configuration['weekly']
     annual_configured = plan_configuration['annual']
     usage = user.get('usage', {}).get(billing_period_key(), {}) if is_pro else {}
     coach_used = max(0, int(usage.get('coach', 0) or 0))
     vision_used = max(0, int(usage.get('vision', 0) or 0))
     return {
-        'configured': monthly_configured or annual_configured,
+        'configured': any(plan_configuration.values()),
         'billing_environment': BILLING_ENVIRONMENT,
         'test_mode': BILLING_ENVIRONMENT == 'test',
         'plan': 'pro' if is_pro else 'free',
@@ -219,7 +222,7 @@ def get_billing_status(user_id: str) -> dict:
         'billing_plan': str(user.get('billing_plan') or ''),
         'price_dkk': PRO_MONTHLY_PRICE_DKK,
         'plans': {
-            'weekly': {'configured': plan_configuration['weekly'], 'price_dkk': PRO_WEEKLY_PRICE_DKK},
+            'weekly': {'configured': weekly_configured, 'price_dkk': PRO_WEEKLY_PRICE_DKK},
             'monthly': {'configured': monthly_configured, 'price_dkk': PRO_MONTHLY_PRICE_DKK},
             'annual': {
                 'configured': annual_configured,
@@ -1018,7 +1021,20 @@ class LocalAIHandler(BaseHTTPRequestHandler):
         self.queue_cookie(AUTH_ACCESS_COOKIE, '', 0)
         self.queue_cookie(AUTH_REFRESH_COOKIE, '', 0)
 
+    def local_developer_user(self) -> dict:
+        host = self.headers.get('Host', '').split(':', 1)[0].lower()
+        loopback_hosts = {'localhost', '127.0.0.1', '::1', '[::1]'}
+        loopback_clients = {'127.0.0.1', '::1'}
+        if not LOCAL_DEV_AUTH or not OWNER_USER_ID:
+            return {}
+        if host not in loopback_hosts or self.client_address[0] not in loopback_clients:
+            return {}
+        return {'id': OWNER_USER_ID, 'email': LOCAL_DEV_USER_EMAIL}
+
     def authenticated_user(self) -> dict:
+        local_user = self.local_developer_user()
+        if local_user:
+            return local_user
         access_token = self.cookie_value(AUTH_ACCESS_COOKIE)
         if access_token:
             try:

@@ -93,6 +93,22 @@ class BillingLifecycleTests(unittest.TestCase):
 
         self.assertFalse(server.get_billing_status(user_id)['is_pro'])
 
+    def test_weekly_only_configuration_counts_as_available(self):
+        user_id = 'plan-user'
+        with patch.multiple(
+            server,
+            STRIPE_SECRET_KEY='sk_test_placeholder',
+            STRIPE_WEBHOOK_SECRET='whsec_test',
+            STRIPE_PRICE_ID='',
+            STRIPE_WEEKLY_PRICE_ID='price_test_weekly',
+            STRIPE_ANNUAL_PRICE_ID='',
+            STRIPE_ANNUAL_DISCOUNT_COUPON_ID='',
+        ):
+            status = server.get_billing_status(user_id)
+            self.assertTrue(status['configured'])
+            self.assertTrue(status['plans']['weekly']['configured'])
+            self.assertFalse(status['plans']['annual']['configured'])
+
     def test_checkout_cannot_activate_another_user(self):
         checkout_session = {
             'client_reference_id': 'first-user',
