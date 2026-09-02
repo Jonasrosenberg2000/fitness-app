@@ -36,7 +36,7 @@ Example:
 export PORT=8000
 export OPENAI_API_KEY=your_key_here
 export OPENAI_BASE_URL=https://api.openai.com/v1
-export OPENAI_MODEL=gpt-4o-mini
+export OPENAI_MODEL=gpt-4.1
 python server.py
 ```
 
