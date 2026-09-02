@@ -17,7 +17,8 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20260902-kcal-sync-1">
+	<link rel="stylesheet" href="styles.css?v=20260903-layout-restore-1">
+	<link rel="stylesheet" href="homepage-restore.css?v=20260903-1">
 	
 </head>
 <body>
@@ -45,11 +46,29 @@
 			<header class="topbar"><span id="todayDate">SØNDAG 23. AUGUST 2026</span><button type="button" aria-label="Notifikationer">o</button></header>
 			<section class="welcome"><div><p class="eyebrow">DIN UGE I BEVÆGELSE</p><h1 id="greetingText">Godmorgen.</h1><p>Du har allerede taget hul på en stærk uge.</p></div><strong class="streak"><span class="streak-icon" aria-hidden="true">🔥</span><span id="streakCount">04</span><small>STREAK</small></strong></section>
 
-			<section class="pro-home" id="proHome" hidden>
+			<section class="pro-home premium-dashboard-home" id="proHome" hidden>
 				<header class="pro-home-topbar">
-					<div><h1 id="proHomeGreeting">Hej <span aria-hidden="true">🔥</span></h1><p>Lad os blive 1% bedre i dag.</p></div>
-					<button type="button" class="pro-home-bell" aria-label="Notifikationer"></button>
+					<div><h1 id="proHomeGreeting">God aften, Jonas <span aria-hidden="true">👋</span></h1><p>Her er dit fremskridtsoverblik</p></div>
+					<div class="pro-home-header-actions"><button type="button" id="proHomeQuickToggle" class="pro-home-quick-toggle" aria-label="Åbn genveje" aria-expanded="false">▦</button><button type="button" id="proHomePhysiquePhoto" class="pro-home-physique-photo" data-dashboard-view="physique" aria-label="Se dit fysikfoto"><img id="proHomePhysiquePhotoImage" alt="Dit seneste fysikfoto" hidden><span id="proHomePhysiquePhotoPlaceholder" aria-hidden="true">◌</span></button><button type="button" class="pro-home-bell pro-home-score-orb" aria-label="Fitness Score"><strong id="premiumHeaderFitnessScore">0</strong><small>/100</small></button></div>
 				</header>
+				<nav class="premium-home-tabs" aria-label="Dashboard-visning"><button type="button" class="active" data-dashboard-view="overview">Oversigt</button><button type="button" data-dashboard-view="activity">Aktivitet</button><button type="button" data-dashboard-view="nutrition">Kost</button><button type="button" data-dashboard-view="physique">Fysik</button></nav>
+				<section class="premium-home-grid premium-dashboard-section" data-dashboard-section="overview" aria-label="Dit fitness-overblik">
+					<article class="premium-home-card premium-home-score"><div class="premium-home-card-head"><span>FITNESS SCORE</span><b id="premiumFitnessDelta">Klar</b></div><div class="premium-home-score-content"><div class="premium-home-ring" id="premiumFitnessRing"><strong id="premiumFitnessScore">0</strong><small>/100</small></div><p id="premiumFitnessSummary">Log træning og vægt for din personlige score.</p></div></article>
+					<article class="premium-home-card premium-home-mini"><div class="premium-home-mini-head"><span>🏆 STYRKE</span><b id="premiumStrengthDelta">+0%</b></div><strong id="premiumStrengthValue">0%</strong><small id="premiumStrengthDetail">Ingen data endnu</small><svg class="premium-home-spark" viewBox="0 0 160 60" aria-hidden="true"><polyline points="0,48 20,42 35,45 52,32 67,35 85,24 101,30 118,18 137,21 158,8"></polyline></svg></article>
+					<article class="premium-home-card premium-home-mini"><div class="premium-home-mini-head"><span>⚖ VÆGT</span><b id="premiumWeightDelta">+0 kg</b></div><strong id="premiumWeightValue">- kg</strong><small id="premiumWeightDetail">Registrér din vægt</small><svg class="premium-home-spark" viewBox="0 0 160 60" aria-hidden="true"><polyline points="0,18 20,24 38,20 53,31 70,27 87,39 105,34 120,45 140,40 158,49"></polyline></svg></article>
+					<article class="premium-home-card premium-home-mini"><div class="premium-home-mini-head"><span>↗ VOLUMEN</span><b id="premiumVolumeDelta">+0%</b></div><strong id="premiumVolumeValue">0 kg</strong><small id="premiumVolumeDetail">Denne uge</small><svg class="premium-home-spark" viewBox="0 0 160 60" aria-hidden="true"><polyline points="0,48 18,36 33,42 48,22 65,27 83,12 98,30 116,20 134,25 158,8"></polyline></svg></article>
+					<article class="premium-home-card premium-home-mini premium-home-recovery"><div class="premium-home-mini-head"><span>♥ RECOVERY</span><b id="premiumRecoveryDelta">0%</b></div><strong id="premiumRecoveryValue">0%</strong><small id="premiumRecoveryDetail">Klar til træning</small><svg class="premium-home-spark" viewBox="0 0 160 60" aria-hidden="true"><polyline points="0,45 20,40 38,44 55,30 70,34 86,22 103,26 120,17 138,20 158,8"></polyline></svg></article>
+				</section>
+				<section class="premium-home-trend premium-dashboard-section" data-dashboard-section="overview"><div><span>VÆGTUDVIKLING</span><strong id="premiumTrendWeight">- kg</strong><small id="premiumTrendDetail">Tilføj vejninger for at se din trend.</small></div><div id="premiumTrendBars" class="premium-home-bars" aria-hidden="true"></div></section>
+				<section class="premium-home-middle premium-dashboard-section" data-dashboard-section="activity">
+					<article class="premium-home-card premium-home-steps"><div class="premium-home-card-head"><span>STEPS I DAG</span><b id="premiumStepsPercent">0%</b></div><strong id="premiumStepsValue">0</strong><small id="premiumStepsDetail">af dit dagsmål</small><div class="premium-home-step-track"><i id="premiumStepsBar"></i></div></article>
+					<article class="premium-home-card premium-home-strength"><div class="premium-home-card-head"><span>STYRKEPROGRESSION</span><button type="button" data-category-target="#library">Se alle</button></div><div id="premiumStrengthRows" class="premium-home-strength-rows"></div></article>
+				</section>
+				<section class="premium-home-bottom-grid premium-dashboard-section" data-dashboard-section="nutrition">
+					<article class="premium-home-card premium-home-calories"><span>DAGENS KALORIER</span><small id="premiumCaloriesSummary">0 kcal tilbage</small><div class="premium-home-calorie-wrap"><strong id="premiumCaloriesValue">0</strong><i id="premiumCaloriesRing">0%</i></div><b id="premiumCaloriesTarget">Mål: 0 kcal</b></article>
+					<article class="premium-home-card premium-home-macros"><span>MAKROER</span><small>I dag</small><div class="premium-home-macro"><div><b>Protein</b><span id="premiumProteinValue">0 / 0 g</span></div><i><em id="premiumProteinBar"></em></i></div><div class="premium-home-macro"><div><b>Kulhydrat</b><span id="premiumCarbsValue">0 / 0 g</span></div><i><em id="premiumCarbsBar"></em></i></div><div class="premium-home-macro"><div><b>Fedt</b><span id="premiumFatValue">0 / 0 g</span></div><i><em id="premiumFatBar"></em></i></div></article>
+				</section>
+				<section class="premium-home-bottom-grid premium-dashboard-section" data-dashboard-section="activity"><article class="premium-home-card premium-home-volume"><span>TRÆNINGSVOLUMEN</span><small>Denne uge</small><strong id="premiumWeekVolume">0 kg</strong><b id="premiumWeekVolumeChange">Log din første træning</b><div id="premiumVolumeBars" class="premium-home-bars" aria-hidden="true"></div></article></section>
 
 				<article class="pro-home-workout-card">
 					<div class="pro-home-workout-content">
@@ -79,7 +98,7 @@
 					<span class="pro-home-body-model" aria-hidden="true">🫀</span>
 				</article>
 
-				<section class="pro-home-photos">
+				<section class="pro-home-photos premium-dashboard-section" data-dashboard-section="physique">
 					<div class="pro-home-section-heading"><h2>FYSISK FREMSKRIDT</h2><div id="proHomePhotoNav" class="pro-home-photo-nav"></div></div>
 					<div class="pro-home-photo-row" id="proHomePhotoRow"><p class="pro-home-photo-empty">Tilføj et fysikfoto ved vejning for at se din udvikling her.</p></div>
 				</section>

@@ -549,7 +549,7 @@ def call_openai(question: str, context: dict | None = None, images: list[str] | 
     user_content = question
     if images:
         user_content = [{'type': 'text', 'text': question}]
-        for image in images[:6]:
+        for image in images[:8]:
             image_value = str(image or '').strip()
             if not image_value:
                 continue

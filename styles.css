@@ -1,4 +1,4 @@
-.reference-theme {
+﻿.reference-theme {
 	--surface: #081d33;
 	--surface-deep: #061326;
 	--edge: #24729a;
@@ -5421,7 +5421,7 @@ body.pro-dialog-open {
 }
 
 .pro-plan-card.is-current::after {
-	content: 'NUVÆRENDE';
+	content: 'NUV├åRENDE';
 }
 
 .pro-plan-card.is-unavailable:not(.is-selected) {
@@ -6684,7 +6684,7 @@ body.has-pro-access .content {
 	padding-bottom: 100px;
 }
 
-/* Mad Tracker-siden bruger samme mørke lilla tema som Pro-forsiden (høj specificitet for at slå ældre !important-regler). */
+/* Mad Tracker-siden bruger samme m├©rke lilla tema som Pro-forsiden (h├©j specificitet for at sl├Ñ ├ªldre !important-regler). */
 html body.has-pro-access .app-shell .food-section {
 	background: none !important;
 	border: 0 !important;
@@ -6812,7 +6812,7 @@ body.has-pro-access .food-entry {
 	border-top: 1px solid #252532 !important;
 }
 
-/* Mad Tracker: kcal-ring, måltidskort og makro-farver som i AIO_Fitness_Mad_Tracker.html */
+/* Mad Tracker: kcal-ring, m├Ñltidskort og makro-farver som i AIO_Fitness_Mad_Tracker.html */
 html body.has-pro-access .app-shell .food-kcal-card {
 	background: linear-gradient(145deg, rgba(24, 26, 42, .96), rgba(10, 11, 19, .96)) !important;
 	border: 1px solid #292b3d !important;
@@ -9927,7 +9927,7 @@ body.app-paid-overview-active #proProgress {
 .physique-gold-lower-grid article h3 { margin: 8px 0; font-size: 0.95rem; }
 .physique-gold-lower-grid ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
 .physique-gold-lower-grid li { color: #d0d4df; font-size: 0.74rem; }
-.physique-gold-lower-grid li::before { content: '•'; margin-right: 7px; color: #ffc43d; }
+.physique-gold-lower-grid li::before { content: 'ÔÇó'; margin-right: 7px; color: #ffc43d; }
 .physique-gold-lower-grid li small { display: block; margin: 2px 0 0 14px; color: #8f96a8; line-height: 1.35; }
 .physique-gold-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 11px; }
 .physique-gold-photo-grid img { width: 100%; height: 112px; object-fit: cover; border: 1px solid #6540a2; border-radius: 9px; }
