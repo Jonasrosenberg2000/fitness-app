@@ -50,6 +50,7 @@ SUPABASE_PUBLISHABLE_KEY = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '')
 DEFAULT_PUBLIC_APP_URL = 'https://web-production-2385a.up.railway.app'
 PUBLIC_APP_URL = os.environ.get('PUBLIC_APP_URL', DEFAULT_PUBLIC_APP_URL).rstrip('/')
 BILLING_ENVIRONMENT = os.environ.get('BILLING_ENVIRONMENT', 'live').strip().lower()
+APP_OPEN_ACCESS = os.environ.get('APP_OPEN_ACCESS', '1').strip() == '1'
 APP_BUILD = os.environ.get('RAILWAY_GIT_COMMIT_SHA') or os.environ.get('APP_BUILD') or 'local'
 WITHINGS_CLIENT_ID = os.environ.get('WITHINGS_CLIENT_ID')
 WITHINGS_CLIENT_SECRET = os.environ.get('WITHINGS_CLIENT_SECRET')
@@ -1062,6 +1063,8 @@ class LocalAIHandler(BaseHTTPRequestHandler):
 
     def require_pro_user(self) -> str | None:
         user = self.authenticated_user()
+        if APP_OPEN_ACCESS and not user:
+            return normalize_user_id(f'guest-{self.client_address[0]}')
         if not user:
             self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at forbinde sundhedsdata.'}, 401)
             return None
@@ -1372,7 +1375,7 @@ class LocalAIHandler(BaseHTTPRequestHandler):
         if content_length is None:
             return
         user = self.authenticated_user()
-        if not user:
+        if not user and not APP_OPEN_ACCESS:
             self.send_json({'ok': False, 'code': 'auth_required', 'message': 'Log ind for at bruge online AI.'}, 401)
             return
         raw_body = self.rfile.read(content_length)
@@ -1384,10 +1387,10 @@ class LocalAIHandler(BaseHTTPRequestHandler):
         question = str(payload.get('question', '')).strip()
         context = payload.get('context') or {}
         images = payload.get('images')[:6] if isinstance(payload.get('images'), list) else []
-        user_id = normalize_user_id(str(user['id']))
+        user_id = normalize_user_id(str(user['id'])) if user else normalize_user_id(f'guest-{self.client_address[0]}')
         usage_type = 'vision' if images else 'coach'
         billing_status = get_billing_status(user_id)
-        if not billing_status['is_pro']:
+        if not APP_OPEN_ACCESS and not billing_status['is_pro']:
             self.send_json({
                 'ok': False,
                 'code': 'pro_required',

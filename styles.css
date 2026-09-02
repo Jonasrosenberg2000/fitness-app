@@ -8617,6 +8617,129 @@ body .app-shell #library .more-button {
 	}
 }
 
+	/* Keep the exercise tools visually aligned with the shared dashboard theme. */
+	body.has-pro-access .app-shell #library {
+		--exercise-blue: #45d5ff;
+		--exercise-green: #53e6a5;
+		--exercise-orange: #ff94bf;
+		border-color: rgba(178, 60, 255, 0.38) !important;
+		background: #100d18 !important;
+		box-shadow: 0 18px 42px rgba(4, 2, 9, 0.34);
+	}
+
+	body.has-pro-access .app-shell #library > .section-heading {
+		padding-bottom: 16px;
+		border-bottom: 1px solid rgba(190, 104, 255, 0.22);
+	}
+
+	body.has-pro-access .app-shell #library > .section-heading h2 {
+		color: #f7f2ff;
+	}
+
+	body.has-pro-access .app-shell #library > .section-heading > span {
+		border-color: rgba(69, 213, 255, 0.34);
+		background: rgba(69, 213, 255, 0.08);
+		color: #83e4ff;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-row {
+		border-color: rgba(190, 104, 255, 0.26) !important;
+		background: #181222 !important;
+		box-shadow: 0 8px 20px rgba(3, 2, 7, 0.18);
+	}
+
+	body.has-pro-access .app-shell #library .exercise-row:hover {
+		border-color: rgba(190, 104, 255, 0.64) !important;
+		background: #1e152b !important;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-visual,
+	body.has-pro-access .app-shell #library .exercise-media {
+		border-color: rgba(69, 213, 255, 0.22) !important;
+		background: #0c0a13 !important;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-info h3 {
+		color: #f7f2ff;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-entry-controls {
+		border-color: rgba(190, 104, 255, 0.24);
+		background: #110d19;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-entry-controls input,
+	body.has-pro-access .app-shell #library .exercise-entry-controls select {
+		border-color: rgba(190, 104, 255, 0.35) !important;
+		background: #0c0912 !important;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-entry-controls input:focus,
+	body.has-pro-access .app-shell #library .exercise-entry-controls select:focus {
+		border-color: #b23cff !important;
+		box-shadow: 0 0 0 3px rgba(178, 60, 255, 0.14) !important;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-entry-controls > button {
+		border-color: #bc61ff !important;
+		background: #a843ed !important;
+		color: #fff !important;
+		box-shadow: 0 8px 18px rgba(168, 67, 237, 0.24);
+	}
+
+	body.has-pro-access .app-shell #library .exercise-latest-values > * {
+		border-color: rgba(190, 104, 255, 0.26);
+		background: #0d0a14;
+		color: #d8c9ec;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-latest-values b {
+		border-color: rgba(83, 230, 165, 0.5);
+		color: #78f0bc;
+	}
+
+	body.has-pro-access .app-shell #library .exercise-tracker,
+	body.has-pro-access .app-shell #library .bench-overview {
+		border-color: rgba(190, 104, 255, 0.28) !important;
+		background: #181222 !important;
+		box-shadow: 0 10px 24px rgba(3, 2, 7, 0.2);
+	}
+
+	body.has-pro-access .app-shell #library .tracker-heading,
+	body.has-pro-access .app-shell #library .session-week-heading {
+		border-color: rgba(190, 104, 255, 0.2) !important;
+	}
+
+	body.has-pro-access .app-shell #library #trackerExercise {
+		border-color: rgba(69, 213, 255, 0.4) !important;
+		background: #0d0a14 !important;
+		color: #e8dcf8 !important;
+	}
+
+	body.has-pro-access .app-shell #library .tracker-stat {
+		border-color: rgba(190, 104, 255, 0.3) !important;
+		background: #0e0a15 !important;
+	}
+
+	body.has-pro-access .app-shell #library .tracker-stat strong,
+	body.has-pro-access .app-shell #library .session-week-heading strong {
+		color: #f7f2ff !important;
+	}
+
+	body.has-pro-access .app-shell #library .tracker-stat small,
+	body.has-pro-access .app-shell #library .session-week-heading small {
+		color: #bfb0d3 !important;
+	}
+
+	body.has-pro-access .app-shell #library .tracker-history,
+	body.has-pro-access .app-shell #library .strength-session-history,
+	body.has-pro-access .app-shell #library .session-week-grid,
+	body.has-pro-access .app-shell #library .bench-overview-list {
+		border-color: rgba(69, 213, 255, 0.18) !important;
+		background: #0d0a14 !important;
+		color: #d8c9ec !important;
+	}
+
 /* Training dashboard: live session overview with stronger visual hierarchy. */
 body .app-shell #workout {
 	display: grid;

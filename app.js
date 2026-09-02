@@ -1,6 +1,9 @@
 const toast = document.querySelector('#toast');
 const programExercisesKey = 'formlyProgramExercises';
 const exerciseImageRegistryKey = 'formlyExerciseImageRegistry';
+const APP_OPEN_ACCESS = true;
+let selectedHomePhotoIndex = -1;
+let selectedProgressPhotoIndex = -1;
 const boundSaveButtons = new WeakSet();
 let deferredInstallPrompt = null;
 const storedUserId = localStorage.getItem('formlyUserId');
@@ -1060,7 +1063,7 @@ function applyBillingEnvironment(status) {
 }
 
 function hasFullAppAccess() {
-  return Boolean(authState.authenticated && (billingState.isPro || billingState.isOwner || localStorage.getItem('formlyOwnerAccessOverride') === '1'));
+  return APP_OPEN_ACCESS || Boolean(authState.authenticated && (billingState.isPro || billingState.isOwner || localStorage.getItem('formlyOwnerAccessOverride') === '1'));
 }
 
 function updateBillingUi() {
@@ -1086,6 +1089,11 @@ function updateBillingUi() {
     card.setAttribute('aria-disabled', String(planAvailabilityKnown && !available));
   });
   document.body.classList.toggle('has-pro-access', hasOnlineAccess);
+  document.body.classList.toggle('app-open-access', APP_OPEN_ACCESS);
+  proAccessButton.hidden = APP_OPEN_ACCESS;
+  document.querySelectorAll('.nav-link-pro, [data-open-pro]').forEach((control) => {
+    control.hidden = APP_OPEN_ACCESS;
+  });
   document.body.classList.toggle('billing-test-mode', billingState.testMode);
   billingTestBadge.hidden = !billingState.testMode;
   proAccessButton.textContent = billingState.testMode
@@ -1505,6 +1513,12 @@ function normalizeCoachEndpoint(rawValue) {
 function getCoachEndpoint() {
   const savedEndpoint = localStorage.getItem('formlyAiEndpoint');
   const selected = savedEndpoint ? savedEndpoint : document.querySelector('#aiEndpointInput')?.value || '';
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    try {
+      const endpointUrl = new URL(selected, window.location.origin);
+      if (['localhost', '127.0.0.1', '0.0.0.0'].includes(endpointUrl.hostname)) return '/api/coach';
+    } catch {}
+  }
   return normalizeCoachEndpoint(selected);
 }
 
@@ -1513,6 +1527,12 @@ function getHealthEndpoint() {
   if (!stored) return '/api/health';
   const base = String(stored).trim();
   if (!base) return '/api/health';
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    try {
+      const endpointUrl = new URL(base, window.location.origin);
+      if (['localhost', '127.0.0.1', '0.0.0.0'].includes(endpointUrl.hostname)) return '/api/health';
+    } catch {}
+  }
   const normalized = normalizeCoachEndpoint(base).replace(/\/api\/coach$/i, '/api/health');
   return normalized;
 }
@@ -3818,7 +3838,7 @@ weightTracker.querySelector('#weightPhotoInput').addEventListener('change', (eve
   });
 });
 weightTracker.querySelector('#weightWithingsConnect').addEventListener('click', () => {
-  if (!authState.authenticated || !billingState.isPro) {
+  if (!hasFullAppAccess()) {
     openProAccess();
     showToast('KRÆVER PRO · Withings');
     return;
@@ -4472,7 +4492,7 @@ else if (localStorage.getItem('formlyWithingsConnected') === '1') {
 }
 
 async function syncWithingsActivityFromBackend() {
-  if (!authState.authenticated || !billingState.isPro) return;
+  if (!hasFullAppAccess()) return;
   try {
     const response = await fetch('/api/provider/activity?provider=withings', { cache: 'no-store' });
     const data = await response.json();
@@ -4657,7 +4677,6 @@ function goToProHomeTarget(target) {
 }
 
 // Fuldt Pro-forsidedesign (viser rigtige data, kun synligt for Pro-brugere via .has-pro-access).
-let selectedHomePhotoIndex = -1;
 window.changeHomePhotoPage = (direction) => {
   const count = weightHistory.filter((entry) => entry.photo).length;
   if (!count) return;
@@ -4794,7 +4813,6 @@ function renderProHome() {
   }
 }
 
-let selectedProgressPhotoIndex = -1;
 window.changeProgressPhotoPage = (direction) => {
   selectedProgressPhotoIndex = Math.min(MAX_PHYSIQUE_HISTORY_PAGES - 1, Math.max(0, selectedProgressPhotoIndex + Number(direction || 0)));
   const photoGrid = document.querySelector('#proProgressPhotos');
@@ -5350,7 +5368,7 @@ startScanner.addEventListener('click', async () => {
 
 healthProviders.querySelectorAll('[data-provider]').forEach((button) => {
   button.addEventListener('click', () => {
-    if (!authState.authenticated || !billingState.isPro) {
+    if (!hasFullAppAccess()) {
       healthProviders.querySelector('#providerStatus').textContent = 'KRÆVER PRO · Automatiske sundhedsdata er låst. Manuel vægt og egne billeder er stadig gratis.';
       openProAccess();
       showToast('KRÆVER PRO · sundhedsdata');
@@ -5558,13 +5576,13 @@ if (exerciseList) {
   });
 }
 
-// Bench-baseret statsoverblik: alle hovedstatistikker skal bygge på Bench Press-historikken.
+// Samler den separate gratis statsvisning fra alle registrerede øvelser.
 function renderWorkoutStats() {
   const activeView = [...progressViews].find((btn) => btn.classList.contains('active'))?.dataset.view || 'week';
-  const benchEntries = workoutLog.filter((entry) => String(entry.exercise || '').trim().toLowerCase() === 'bench press');
+  const entries = workoutLog.filter((entry) => String(entry.exercise || '').trim() && Number(entry.weight) > 0 && Number(entry.reps) > 0);
   const groups = {};
 
-  benchEntries.forEach((entry) => {
+  entries.forEach((entry) => {
     const key = activeView === 'week' ? String(entry.week || 1) : (entry.date || 'Ukendt dato');
     (groups[key] = groups[key] || []).push(entry);
   });
@@ -5585,12 +5603,12 @@ function renderWorkoutStats() {
   repsStat.textContent = String(reps);
   progressStat.textContent = `${change >= 0 ? '+' : ''}${change}%`;
 
-  if (!benchEntries.length) {
+  if (!entries.length) {
     volumeStat.textContent = '0 kg';
     bestOrmStat.textContent = '0,0 kg';
     repsStat.textContent = '0';
     progressStat.textContent = '+0%';
-    weekHistory.innerHTML = '<p>Ingen Bench Press-data endnu</p>';
+    weekHistory.innerHTML = '<p>Ingen træningsdata endnu</p>';
     return;
   }
 
@@ -5601,7 +5619,7 @@ function renderWorkoutStats() {
     const width = Math.max(4, Math.round((groupVolume / maxVolume) * 100));
     const label = activeView === 'week' ? `Uge ${key}` : key;
     return `<div class="week-row"><strong>${label}</strong><div class="week-bar"><i style="width:${width}%"></i></div><span>${groupVolume.toLocaleString('da-DK')} kg</span></div>`;
-  }).join('') : '<p>Ingen Bench Press-data endnu</p>';
+  }).join('') : '<p>Ingen træningsdata endnu</p>';
 }
 progressViews.forEach((button) => button.addEventListener('click', () => {
   progressViews.forEach((item) => item.classList.remove('active'));
@@ -6034,13 +6052,13 @@ if (document.readyState === 'loading') {
 }
 
 const appPageTargets = {
-  overview: ['.welcome', '.daily-focus-card', '.daily-quick-actions', '.overview-quick-links', '.overview-categories:not(.pro-overview-categories):not(.training-overview-categories)', '#workout', '.hero-grid', '.stats-grid'],
+  overview: ['#proHome', '.welcome', '.daily-focus-card', '.daily-quick-actions', '.overview-quick-links', '.overview-categories:not(.pro-overview-categories):not(.training-overview-categories)', '#workout', '.hero-grid', '.stats-grid'],
   training: ['.training-overview-categories'],
   food: ['#food'],
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
-  progress: ['#progress', '.training-progress-panel', '#proProgress'],
+  progress: ['#proProgress', '#progress', '.training-progress-panel'],
   physique: ['#physique-ai'],
   library: ['#library'],
   pro: ['#proAccessDialog']
@@ -6078,7 +6096,7 @@ if (appContent) {
   const resolveLandingPage = () => (hasFullAppAccess() ? 'overview' : 'pro');
 
   const showAppPage = (pageName, updateHash = true) => {
-    const normalizedPage = pageName === 'overview' ? resolveLandingPage() : pageName;
+    const normalizedPage = pageName === 'overview' || (APP_OPEN_ACCESS && pageName === 'pro') ? resolveLandingPage() : pageName;
     const selectedPage = appPageTargets[normalizedPage] ? normalizedPage : resolveLandingPage();
     const visiblePage = selectedPage === 'pro' ? 'pro' : selectedPage;
     const renderedPage = selectedPage === 'overview' || selectedPage === 'pro' ? selectedPage : visiblePage;
@@ -6089,6 +6107,11 @@ if (appContent) {
     document.body.classList.toggle('app-paid-overview-active', selectedPage === 'overview' && hasFullAppAccess());
     document.body.classList.toggle('app-pro-active', selectedPage === 'pro');
     document.body.classList.toggle('app-physique-active', selectedPage === 'physique');
+    const proHomePanel = document.querySelector('#proHome');
+    if (proHomePanel) {
+      if (selectedPage === 'overview') proHomePanel.style.removeProperty('display');
+      else proHomePanel.style.setProperty('display', 'none', 'important');
+    }
     if (physiqueProgressPanel) {
       if (selectedPage === 'progress') physiqueProgressPanel.style.removeProperty('display');
       else physiqueProgressPanel.style.setProperty('display', 'none', 'important');
