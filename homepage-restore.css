@@ -172,3 +172,9 @@
     font-size: 14px;
   }
 }
+
+@media (min-width: 621px) {
+  #proHome > .pro-home-quick-access {
+    display: block !important;
+  }
+}
