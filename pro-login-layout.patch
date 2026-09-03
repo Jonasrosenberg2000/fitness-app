@@ -1,0 +1,12 @@
+diff --git a/app.js b/app.js
+--- a/app.js
++++ b/app.js
+@@ -1506,7 +1506,6 @@
+ const workoutSection = document.querySelector('#workout');
+ const exerciseLibrarySection = document.querySelector('#library');
+ if (workoutSection) {
+-  if (exerciseLibrarySection) workoutSection.after(exerciseLibrarySection, trainingOverviewCategories);
+-  else workoutSection.after(trainingOverviewCategories);
++  workoutSection.after(overviewCategories);
+ }
+ const featureHelpItems = [
