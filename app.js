@@ -146,7 +146,7 @@ if ('serviceWorker' in navigator) {
 }
 
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-  const liveReloadFiles = ['index.html', 'styles.css', 'app.js'];
+  const liveReloadFiles = ['index.html', 'styles.css', 'homepage-restore.css', 'app.js'];
   const liveReloadState = {};
 
   const readServerState = async (filePath) => {
@@ -174,6 +174,7 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     });
 
     if (changed) {
+      sessionStorage.setItem('formlyLiveReloadHash', window.location.hash);
       window.location.reload();
     }
   };
@@ -183,6 +184,12 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
   });
 
   setInterval(checkForLiveReload, 1800);
+}
+
+const savedLiveReloadHash = sessionStorage.getItem('formlyLiveReloadHash');
+if (savedLiveReloadHash) {
+  sessionStorage.removeItem('formlyLiveReloadHash');
+  if (window.location.hash !== savedLiveReloadHash) history.replaceState({}, '', savedLiveReloadHash);
 }
 
 // Keeps the top-right date live (weekday, day, month, year), rolling over automatically at midnight/new year.
