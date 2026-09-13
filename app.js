@@ -409,6 +409,21 @@ function formatElapsedSinceDate(entry, now = Date.now()) {
   const weeks = Math.floor(days / 7);
   return `${weeks} uge${weeks === 1 ? '' : 'r'} siden`;
 }
+function getPhysiquePhotoTimestamp(entry) {
+  if (entry && typeof entry.photoTimestamp === 'number' && Number.isFinite(entry.photoTimestamp)) return entry.photoTimestamp;
+  if (entry?.photoDate) return getProgressTimestamp({ date: entry.photoDate, timestamp: entry.photoTimestamp });
+  return getProgressTimestamp(entry);
+}
+function formatPhotoInterval(entry, previousEntry) {
+  if (!previousEntry) return 'Første billede';
+  const days = Math.max(0, Math.floor((getPhysiquePhotoTimestamp(entry) - getPhysiquePhotoTimestamp(previousEntry)) / 86400000));
+  if (days === 0) return 'Samme dato som sidste billede';
+  if (days >= 7) {
+    const weeks = Math.floor(days / 7);
+    return `${weeks} uge${weeks === 1 ? '' : 'r'} siden sidste billede`;
+  }
+  return `${days} dag${days === 1 ? '' : 'e'} siden sidste billede`;
+}
 if (!localStorage.getItem('formlyBenchHistoryDatesV1')) {
   const benchHistory = workoutLog.filter((entry) => entry.exercise.toLowerCase() === 'bench press').slice().reverse();
   benchHistory.forEach((entry, index) => {
@@ -1477,7 +1492,7 @@ dailyQuickActions.innerHTML = `
   <div class="daily-quick-actions-grid">
     <button type="button" data-quick-action="#food"><span>🍽</span><strong>Mad</strong><small>Log måltid</small></button>
     <button type="button" data-quick-action="#workout"><span>🏋️</span><strong>Træning</strong><small>Start session</small></button>
-    <button type="button" data-quick-action="#progress"><span>📈</span><strong>Fremskridt</strong><small>Se udvikling</small></button>
+    <button type="button" data-quick-action="#proProgress"><span>📈</span><strong>Din progression</strong><small>Uge for uge</small></button>
   </div>
 `;
 document.querySelector('.welcome')?.after(dailyQuickActions);
@@ -2364,12 +2379,17 @@ function formatPhysiquePhotoMonth(monthKey) {
 function renderPhysiquePhotoArchive() {
   const monthPicker = physiquePhotoArchive.querySelector('#physiquePhotoMonths');
   const grid = physiquePhotoArchive.querySelector('#physiquePhotoArchiveGrid');
-  const photos = weightHistory.filter((entry) => entry.photo).slice().sort((a, b) => getProgressTimestamp(b) - getProgressTimestamp(a));
+  const photos = weightHistory.filter((entry) => entry.photo).slice().sort((a, b) => getPhysiquePhotoTimestamp(b) - getPhysiquePhotoTimestamp(a));
   const months = [...new Set(photos.map(getPhysiquePhotoMonthKey))];
   if (!months.includes(selectedPhysiquePhotoMonth)) selectedPhysiquePhotoMonth = months[0] || '';
   monthPicker.innerHTML = months.length ? months.map((monthKey) => `<button type="button" class="${monthKey === selectedPhysiquePhotoMonth ? 'active' : ''}" data-physique-photo-month="${monthKey}">${formatPhysiquePhotoMonth(monthKey)}</button>`).join('') : '<span>Dit første fotoarkiv starter, når du gemmer en ugentlig måling med foto.</span>';
   const monthlyPhotos = photos.filter((entry) => getPhysiquePhotoMonthKey(entry) === selectedPhysiquePhotoMonth);
-  grid.innerHTML = monthlyPhotos.length ? monthlyPhotos.map((entry) => `<article><img src="${entry.photo}" alt="Fysikfoto fra ${entry.date || 'ukendt dato'}"><strong>${entry.date || 'Uden dato'}</strong><small>${formatWeight(entry.weight)} kg · ${entry.phase || 'bulk'}</small></article>`).join('') : '<p>Vælg en måned for at se dine gemte fysikfotos.</p>';
+  grid.innerHTML = monthlyPhotos.length ? monthlyPhotos.map((entry) => {
+    const chronologicalIndex = photos.indexOf(entry);
+    const previousEntry = photos[chronologicalIndex + 1];
+    const photoDate = entry.photoDate || entry.date || 'Uden dato';
+    return `<article><img src="${entry.photo}" alt="Fysikfoto fra ${photoDate}"><strong>${photoDate}</strong><small>${formatWeight(entry.weight)} kg · ${formatPhotoInterval(entry, previousEntry)}</small></article>`;
+  }).join('') : '<p>Vælg en måned for at se dine gemte fysikfotos.</p>';
   monthPicker.querySelectorAll('[data-physique-photo-month]').forEach((button) => button.addEventListener('click', () => {
     selectedPhysiquePhotoMonth = button.dataset.physiquePhotoMonth;
     renderPhysiquePhotoArchive();
@@ -2380,7 +2400,7 @@ physiquePhotoArchive.querySelector('#openWeeklyPhysiquePhoto').addEventListener(
   weightTracker.querySelector('#weightPhotoInput')?.click();
 });
 function renderWeightPhotoPager() {
-  const photos = weightHistory.filter((entry) => entry.photo).sort((a, b) => getProgressTimestamp(a) - getProgressTimestamp(b));
+  const photos = weightHistory.filter((entry) => entry.photo).sort((a, b) => getPhysiquePhotoTimestamp(a) - getPhysiquePhotoTimestamp(b));
   const title = weightPhotoPager.querySelector('#weightPhotoPagerTitle');
   const meta = weightPhotoPager.querySelector('#weightPhotoPagerMeta');
   const index = weightPhotoPager.querySelector('#weightPhotoPagerIndex');
@@ -2395,12 +2415,15 @@ function renderWeightPhotoPager() {
   selectedWeightPhotoIndex = selectedWeightPhotoIndex < 0 ? photos.length - 1 : Math.min(selectedWeightPhotoIndex, photos.length - 1);
   const entry = photos[selectedWeightPhotoIndex];
   const previous = photos[selectedWeightPhotoIndex - 1];
-  const daysSincePrevious = previous ? Math.max(0, Math.floor((getProgressTimestamp(entry) - getProgressTimestamp(previous)) / 86400000)) : 0;
-  title.textContent = `Billede ${selectedWeightPhotoIndex + 1} · ${formatWeight(entry.weight)} kg · ${entry.date || 'Uden dato'}`;
+  title.textContent = `Billede ${selectedWeightPhotoIndex + 1} · ${formatWeight(entry.weight)} kg · ${entry.photoDate || entry.date || 'Uden dato'}`;
   image.src = entry.photo;
   image.hidden = false;
-  const intervalLabel = previous ? (daysSincePrevious ? `${daysSincePrevious} dag${daysSincePrevious === 1 ? '' : 'e'} siden sidste billede` : 'Samme dato som sidste billede') : 'Første billede';
-  meta.textContent = `${formatElapsedSinceDate(entry)} · ${intervalLabel} · ${selectedWeightPhotoIndex + 1} af ${photos.length} gemte`;
+  const intervalLabel = formatPhotoInterval(entry, previous);
+  const schedule = getPhysiquePhotoSchedule();
+  const nextPhotoLabel = selectedWeightPhotoIndex === photos.length - 1 && schedule.daysRemaining
+    ? `Vent ${schedule.daysRemaining} dag${schedule.daysRemaining === 1 ? '' : 'e'} endnu`
+    : selectedWeightPhotoIndex === photos.length - 1 ? 'Næste billede er klar' : '';
+  meta.textContent = `${formatElapsedSinceDate(entry)} · ${intervalLabel}${nextPhotoLabel ? ` · ${nextPhotoLabel}` : ''} · ${selectedWeightPhotoIndex + 1} af ${photos.length} gemte`;
   index.textContent = `${(selectedWeightPhotoIndex + 1).toLocaleString('da-DK')}/${MAX_PHYSIQUE_HISTORY_PAGES.toLocaleString('da-DK')}`;
 }
 weightPhotoPager.querySelector('#weightPhotoPrevious').addEventListener('click', () => {
@@ -2543,6 +2566,33 @@ physiqueAiPanel.innerHTML = `
   </section>
 `;
 trainingProgressPanel.after(physiqueAiPanel);
+const physiqueCoachPanel = document.createElement('section');
+physiqueCoachPanel.className = 'physique-embedded-coach';
+physiqueCoachPanel.innerHTML = '<div class="physique-embedded-coach-head"><div><p class="eyebrow">AI COACH</p><h2>Din AI-coach</h2><p>Få personlig guidance ud fra din fysikvurdering, træning og kost.</p></div><span>AI</span></div><div class="physique-embedded-coach-answer">Spørg AI Coach om din fysik, dine prioriteter eller næste træning.</div><form class="physique-embedded-coach-form"><input aria-label="Spørg AI Coach" placeholder="Spørg om din fysik eller træning" autocomplete="off"><button type="submit">Send spørgsmål</button></form><div class="physique-embedded-coach-suggestions"><button type="button" data-coach-question="Vurder min seneste fysikmåling med fordele og ulemper.">Vurder fysik</button><button type="button" data-coach-question="Hvordan udvikler min fysik sig?">Fysikudvikling</button><button type="button" data-coach-question="Hvad bør jeg træne i dag?">Dagens træning</button></div>';
+physiqueAiPanel.append(physiqueCoachPanel);
+const physiqueCompleteReport = document.createElement('section');
+physiqueCompleteReport.className = 'physique-complete-report';
+physiqueCompleteReport.innerHTML = '<div class="physique-complete-head"><div><p class="eyebrow">BODY SCAN ✨</p><h2>Din komplette fysikanalyse</h2><p>Drevet af AI og samlet ét sted.</p></div><button type="button" id="physiqueCompleteNewScan">＋ Ny scan</button></div><div class="physique-complete-hero"><div><span>♛ GULD OVERKROP</span><h2>Guld overkrop</h2><p>Din æstetiske vurdering ud fra dine mål, målinger og seneste analyse. Fortsæt med fokus på bryst, skuldre, ryg og arme for at nå næste niveau.</p><b>AI COACH • SOLID PROGRESSION</b></div><strong>60<small>/100 · FYSIK SCORE</small></strong><span class="physique-complete-silhouette">♟</span></div><div class="physique-complete-grid"><article><h3>▥ Oversigt vurdering</h3><small>Seneste scan</small><div class="physique-complete-ratings"><span>Muskelmasse <b>68/100</b></span><span>Symmetri <b>87/100</b></span><span>Definition <b>69/100</b></span><span>Proportioner <b>64/100</b></span><span>Samlet balance <b>83/100</b></span></div></article><article><h3>🏆 Hvad betyder din score?</h3><p><b>GULD · 80–100</b> Ekstraordinær fysik</p><p><b>SØLV · 60–79</b> Over gennemsnittet</p><p><b>BRONZE · 40–59</b> Fortsæt arbejdet</p><p><b>BEGYNDER · 0–39</b> Byg fundamentet</p></article></div><article class="physique-complete-angles"><h3>◈ Detaljeret Body Scan</h3><small>Tryk på en vinkel for detaljer</small><div><button type="button" data-complete-view="Front"><b>FRONT</b><span>♟</span><small>Bryst · Skuldre · Arme · Mave</small><strong>72/100</strong></button><button type="button" data-complete-view="Højre side"><b>HØJRE SIDE</b><span>◑</span><small>Skuldre · Bryst · Arm · Core</small><strong>74/100</strong></button><button type="button" data-complete-view="Venstre side"><b>VENSTRE SIDE</b><span>◒</span><small>Skuldre · Bryst · Arm · Core</small><strong>73/100</strong></button><button type="button" data-complete-view="Ryg"><b>RYG</b><span>♟</span><small>Ryg · Skuldre · Lænd · Arme</small><strong>70/100</strong></button></div></article><div class="physique-complete-lower"><article><h3>▦ Målinger <small>Seneste</small></h3><div><span>Højde <b>182 cm</b></span><span>Vægt <b>82,4 kg</b><em>−0,4 kg</em></span><span>Fedt <b>12,1%</b><em>−0,6%</em></span><span>Muskelmasse <b>68,3 kg</b><em>+0,8 kg</em></span><span>Talje <b>78 cm</b><em>−1 cm</em></span><span>Bryst <b>104 cm</b><em>+1 cm</em></span></div></article><article><h3>↗ Progression over tid <small>3M · 6M · 1ÅR</small></h3><div class="physique-complete-chart"><i></i><i></i></div><div><span>Vægt <b>+1,2 kg</b><em>3 måneder</em></span><span>Fedtprocent <b>−1,8%</b><em>3 måneder</em></span><span>Muskelmasse <b>+1,6 kg</b><em>3 måneder</em></span></div></article></div><article class="physique-complete-coach"><h3>🤖 AI Coach analyse</h3><p>Din fysik er i stærk udvikling — her er dine prioriteter.</p><ol><li><b>Bryst øvre del</b><small>Fokus på incline press og flyes</small></li><li><b>Side skuldre</b><small>Mere volumen og isolation</small></li><li><b>Arme</b><small>Triceps og biceps — detaljer</small></li><li><b>Ryg tykkelse</b><small>Rows og deadlifts</small></li></ol><button type="button" id="physiqueCompletePlan">Se din personlige plan →</button></article><div class="physique-complete-streak"><span>🔥 KONSISTENS SKABER RESULTATER<br><b>Du er kun 20 point fra næste niveau.</b></span><strong>80/100<small>PLATIN OVERKROP</small></strong></div></section>';
+physiqueAiPanel.append(physiqueCompleteReport);
+physiqueCompleteReport.querySelector('#physiqueCompleteNewScan').addEventListener('click', () => physiqueAiPanel.querySelector('#physiqueAnalyzeBtn')?.click());
+physiqueCompleteReport.querySelectorAll('[data-complete-view]').forEach((button) => button.addEventListener('click', () => showToast(`${button.dataset.completeView} detaljer åbnes efter næste scan`)));
+physiqueCompleteReport.querySelector('#physiqueCompletePlan').addEventListener('click', () => physiqueCoachPanel.querySelector('input')?.focus());
+const embeddedCoachInput = physiqueCoachPanel.querySelector('input');
+const embeddedCoachForm = physiqueCoachPanel.querySelector('form');
+embeddedCoachForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const originalInput = coachPanel.querySelector('#coachQuestion');
+  const originalForm = coachPanel.querySelector('#coachForm');
+  if (!embeddedCoachInput.value.trim() || !originalInput || !originalForm) return;
+  originalInput.value = embeddedCoachInput.value.trim();
+  embeddedCoachInput.value = '';
+  originalForm.requestSubmit();
+});
+physiqueCoachPanel.querySelectorAll('[data-coach-question]').forEach((button) => button.addEventListener('click', () => {
+  if (!embeddedCoachInput || !coachPanel.querySelector('#coachQuestion')) return;
+  embeddedCoachInput.value = button.dataset.coachQuestion;
+  embeddedCoachInput.focus();
+}));
 const physiqueGoldReport = physiqueAiPanel.querySelector('.physique-gold-report');
 const physiqueScanGrid = physiqueAiPanel.querySelector('.physique-ai-grid');
 if (physiqueGoldReport && physiqueScanGrid) physiqueScanGrid.before(physiqueGoldReport);
@@ -3762,8 +3812,9 @@ function renderWeightHistory() {
     const change = previous ? Number(entry.weight) - Number(previous.weight) : 0;
     const image = entry.photo ? `<img src="${entry.photo}" alt="Fysikfoto ${entry.date || ''}">` : '';
     const daysBetween = previous ? Math.max(0, Math.round((getProgressTimestamp(entry) - getProgressTimestamp(previous)) / 86400000)) : 0;
+    const photoInterval = entry.photo && previous?.photo ? formatPhotoInterval(entry, previous) : `${daysBetween} dage`;
     const feedback = previous
-      ? `${change > 0 ? `${formatWeight(change)} kg taget på` : change < 0 ? `Du har tabt dig ${formatWeight(Math.abs(change))} kg` : 'uændret vægt'} på ${daysBetween} dage${entry.photo && previous.photo ? ' siden sidste billede' : ' siden sidste måling'}`
+      ? `${change > 0 ? `${formatWeight(change)} kg taget på` : change < 0 ? `Du har tabt dig ${formatWeight(Math.abs(change))} kg` : 'uændret vægt'} ${entry.photo && previous.photo ? `· ${photoInterval}` : `på ${photoInterval} siden sidste måling`}`
       : 'Første billede og startpunkt';
     const praise = !previous
       ? 'Godt begyndt - du har sat et tydeligt startpunkt.'
@@ -3803,6 +3854,21 @@ function renderWeightHistory() {
 }
 let pendingWeightPhoto = '';
 let weightPhotoReady = Promise.resolve();
+function getLatestPhysiquePhoto() {
+  return weightHistory
+    .filter((entry) => entry.photo && Number.isFinite(getProgressTimestamp(entry)))
+    .sort((a, b) => getProgressTimestamp(b) - getProgressTimestamp(a))[0];
+}
+function getPhysiquePhotoSchedule(now = Date.now()) {
+  const latestPhoto = getLatestPhysiquePhoto();
+  if (!latestPhoto) return { latestPhoto: null, daysSince: 0, daysRemaining: 0, text: 'Første fysikfoto kan gemmes nu.' };
+  const daysSince = Math.max(0, Math.floor((now - getProgressTimestamp(latestPhoto)) / 86400000));
+  const daysRemaining = Math.max(0, 7 - daysSince);
+  const text = daysRemaining
+    ? `Vent ${daysRemaining} dag${daysRemaining === 1 ? '' : 'e'} endnu. Næste fysikfoto kan gemmes efter 7 dage.`
+    : `Nyt fysikfoto kan gemmes nu. Sidste billede: ${latestPhoto.date || 'Uden dato'} (${formatElapsedSinceDate(latestPhoto, now)}).`;
+  return { latestPhoto, daysSince, daysRemaining, text };
+}
 function compressWeightPhoto(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -3824,12 +3890,7 @@ function compressWeightPhoto(file) {
   });
 }
 function updateWeightPhotoSchedule() {
-  const latestPhoto = weightHistory.filter((entry) => entry.photo && Number.isFinite(getProgressTimestamp(entry))).sort((a, b) => getProgressTimestamp(b) - getProgressTimestamp(a))[0];
-  if (!latestPhoto) {
-    weightPhotoSchedule.textContent = 'Første fysikfoto kan gemmes nu.';
-    return;
-  }
-  weightPhotoSchedule.textContent = `Nyt fysikfoto kan gemmes nu. Sidste billede: ${latestPhoto.date || 'Uden dato'} (${formatElapsedSinceDate(latestPhoto)}).`;
+  weightPhotoSchedule.textContent = getPhysiquePhotoSchedule().text;
 }
 weightTracker.querySelector('#weightHistoryForm').addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -3844,7 +3905,8 @@ weightTracker.querySelector('#weightHistoryForm').addEventListener('submit', asy
   const weight = Number(weightTracker.querySelector('#weightEntry').value);
   const parsedDate = parseWorkoutDateInput(dateValue);
   const timestamp = parsedDate.getTime();
-  const entry = { dateValue: getIsoDateValue(parsedDate), timestamp, weight, date: parsedDate.toLocaleDateString('da-DK'), photo: pendingWeightPhoto, phase: selectedWeightPhase };
+  const formattedDate = parsedDate.toLocaleDateString('da-DK');
+  const entry = { dateValue: getIsoDateValue(parsedDate), timestamp, weight, date: formattedDate, photo: pendingWeightPhoto, photoDate: pendingWeightPhoto ? formattedDate : '', photoTimestamp: pendingWeightPhoto ? timestamp : 0, phase: selectedWeightPhase };
   weightHistory.push(entry);
   if (!Number(fysikStartWeight.value)) {
     fysikStartWeight.value = String(weight);
@@ -3876,6 +3938,11 @@ weightTracker.querySelector('#weightHistoryForm').addEventListener('submit', asy
 });
 weightTracker.querySelector('#weightDate').value = new Date().toLocaleDateString('da-DK');
 updateWeightPhotoSchedule();
+window.setInterval(() => {
+  updateWeightPhotoSchedule();
+  renderWeightPhotoPager();
+  if (typeof renderProHome === 'function') renderProHome();
+}, 60 * 60 * 1000);
 weightTracker.querySelector('#weightPhotoInput').addEventListener('change', (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -4094,8 +4161,8 @@ exerciseOptions.forEach((option) => {
   if (newExerciseSelect) newExerciseSelect.insertAdjacentHTML('beforeend', `<option value="${option}">${option}</option>`);
   if (exerciseOptionsList) exerciseOptionsList.insertAdjacentHTML('beforeend', `<option value="${option}"></option>`);
 });
-const exerciseList = document.querySelector('#exerciseList');
-exerciseCount.textContent = `${exerciseList.querySelectorAll('.exercise-row').length}/30 øvelser`;
+const exerciseList = document.querySelector('#exerciseList') || document.createElement('div');
+if (exerciseCount) exerciseCount.textContent = `${exerciseList.querySelectorAll('.exercise-row').length}/30 øvelser`;
 const sessionSwitcher = document.createElement('div');
 sessionSwitcher.className = 'session-switcher';
 sessionSwitcher.setAttribute('aria-label', 'Vælg træningssession');
@@ -4343,6 +4410,47 @@ const profileHeading = profileSection?.querySelector('.section-heading h2');
 if (profileHeading) {
   profileHeading.textContent = 'Dit personlige kcal-mål';
   profileHeading.insertAdjacentHTML('afterend', '<p class="profile-calculator-intro">Beregn et realistisk mål ud fra din krop, aktivitet og træning.</p>');
+}
+if (profileSection && !profileSection.querySelector('.aio-kcal-weight-goal')) {
+  const weightGoalPanel = document.createElement('section');
+  weightGoalPanel.className = 'aio-kcal-weight-goal';
+  weightGoalPanel.innerHTML = '<div class="aio-kcal-goal-title">⚖ VÆGTMÅL</div><div class="aio-kcal-goal-grid"><label>Nuværende vægt (kg)<input id="aioCurrentWeight" type="number" min="30" max="300" step="0.1"></label><label>Vægttab / mål (kg)<input id="aioTargetWeight" type="number" min="30" max="300" step="0.1" placeholder="Fx 65"></label><label>Tilladt under (kg)<input id="aioAllowedUnder" type="number" value="0.5" min="0" max="10" step="0.1"></label><label>Tilladt over (kg)<input id="aioAllowedOver" type="number" value="0.5" min="0" max="10" step="0.1"></label></div><div class="aio-kcal-goal-status" id="aioKcalGoalStatus"></div>';
+  profileSection.prepend(weightGoalPanel);
+  const currentWeight = weightGoalPanel.querySelector('#aioCurrentWeight');
+  const targetWeight = weightGoalPanel.querySelector('#aioTargetWeight');
+  const profileWeight = document.querySelector('#profileWeight');
+  const profileWeightGoal = document.querySelector('#profileWeightGoal');
+  currentWeight.value = localStorage.getItem('formlyAioCurrentWeight') || profileWeight?.value || '70';
+  targetWeight.value = localStorage.getItem('formlyAioTargetWeight') || profileWeightGoal?.value || '';
+  const updateWeightGoalStatus = () => {
+    const current = Number(currentWeight.value);
+    const target = Number(targetWeight.value);
+    const under = Number(weightGoalPanel.querySelector('#aioAllowedUnder').value) || 0;
+    const over = Number(weightGoalPanel.querySelector('#aioAllowedOver').value) || 0;
+    const status = weightGoalPanel.querySelector('#aioKcalGoalStatus');
+    if (!Number.isFinite(current) || !Number.isFinite(target)) {
+      status.textContent = 'VÆLG ET VÆGTMÅL FOR AT SÆTTE DIN RETNING';
+      status.dataset.mode = 'empty';
+      return;
+    }
+    const mode = target > current + over ? 'BULK' : target < current - under ? 'CUT' : 'VEDLIGEHOLD';
+    status.dataset.mode = mode;
+    status.textContent = mode === 'BULK' ? 'BULK • Dit vægtmål er højere' : mode === 'CUT' ? 'CUT • Dit vægtmål er lavere' : 'VEDLIGEHOLD • Du er inden for dit vægtområde';
+    localStorage.setItem('formlyAioCurrentWeight', String(current));
+    localStorage.setItem('formlyAioTargetWeight', String(target));
+    selectedGoal = mode === 'BULK' ? 'bulk' : mode === 'CUT' ? 'cut' : 'maintain';
+    goalTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.goal === selectedGoal));
+    if (profileWeight) {
+      profileWeight.value = current;
+      profileWeight.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (profileWeightGoal) {
+      profileWeightGoal.value = target;
+      profileWeightGoal.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+  weightGoalPanel.querySelectorAll('input').forEach((input) => input.addEventListener('input', updateWeightGoalStatus));
+  updateWeightGoalStatus();
 }
 const weightDevicePanel = document.createElement('div');
 weightDevicePanel.className = 'weight-device-panel';
@@ -4742,7 +4850,7 @@ function renderProHome() {
   const hasOnlineAccess = hasFullAppAccess();
   proHome.hidden = !hasOnlineAccess;
   const bottomNavEl = document.querySelector('#proHomeBottomNav');
-  if (bottomNavEl) bottomNavEl.hidden = !hasOnlineAccess;
+  if (bottomNavEl) bottomNavEl.hidden = !hasOnlineAccess && !['food', 'profile'].includes(document.querySelector('.content')?.dataset.activeAppPage);
   if (!hasOnlineAccess) return;
 
   const dashboardTabs = proHome.querySelectorAll('[data-dashboard-view]');
@@ -4989,16 +5097,16 @@ function renderProHome() {
     headerPhysiquePhoto.hidden = !newestPhysiquePhoto?.photo;
     headerPhysiquePlaceholder.hidden = Boolean(newestPhysiquePhoto?.photo);
   }
-  if (photoEntries.length) {
+  if (photoRow && photoEntries.length) {
     selectedHomePhotoIndex = selectedHomePhotoIndex < 0 ? photoEntries.length - 1 : Math.min(selectedHomePhotoIndex, photoEntries.length - 1);
     const selectedPhoto = photoEntries[selectedHomePhotoIndex];
     const last = photoEntries[photoEntries.length - 1];
     const formatAgo = (entry) => `${formatElapsedSinceDate(entry)} · ${entry.date || ''}`;
-    const nextPhotoText = `Nyt fysikfoto kan gemmes nu. Sidste billede: ${last.date || 'Uden dato'} (${formatElapsedSinceDate(last)}).`;
+    const nextPhotoText = getPhysiquePhotoSchedule().text;
     photoRow.innerHTML = `<div class="pro-home-photo-card"><img src="${selectedPhoto.photo}" alt="Fysikfoto"><span>${formatAgo(selectedPhoto)} · ${formatWeight(selectedPhoto.weight)} kg</span></div><small class="pro-home-photo-schedule">${nextPhotoText}</small>`;
     if (photoNav) photoNav.innerHTML = `<button type="button" aria-label="Forrige billede" onclick="window.changeHomePhotoPage(-1)">←</button><span>${(selectedHomePhotoIndex + 1).toLocaleString('da-DK')}/${MAX_PHYSIQUE_HISTORY_PAGES.toLocaleString('da-DK')}</span><button type="button" aria-label="Næste billede" onclick="window.changeHomePhotoPage(1)">→</button>`;
     photoRow.scrollLeft = photoRow.scrollWidth;
-  } else {
+  } else if (photoRow) {
     photoRow.innerHTML = '<p class="pro-home-photo-empty">Tilføj et fysikfoto ved vejning for at se din udvikling her. Første foto kan gemmes nu.</p>';
     if (photoNav) photoNav.innerHTML = `<button type="button" aria-label="Forrige billede" disabled>←</button><span>0/${MAX_PHYSIQUE_HISTORY_PAGES.toLocaleString('da-DK')}</span><button type="button" aria-label="Næste billede" disabled>→</button>`;
   }
@@ -5118,6 +5226,43 @@ function renderProProgress() {
   if (scoreNote) scoreNote.textContent = score >= 80 ? 'Virkelig godt gået!' : score >= 50 ? 'Godt på vej.' : 'Log flere træninger for at se din score.';
 
   const weightEntries = weightHistory.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  const latestWeight = weightEntries.length ? Number(weightEntries[weightEntries.length - 1].weight) || 0 : Number(profileWeight?.value) || 0;
+  const goalWeight = Number(profileWeightGoal?.value) || Number(localStorage.getItem('formlyAioTargetWeight')) || 0;
+  const weightDifference = goalWeight ? Math.round((goalWeight - latestWeight) * 10) / 10 : 0;
+  const currentWeightCard = document.querySelector('#proProgressCurrentWeight');
+  const goalWeightCard = document.querySelector('#proProgressGoalWeight');
+  const toGoalCard = document.querySelector('#proProgressToGoal');
+  const weeksLeftCard = document.querySelector('#proProgressWeeksLeft');
+  const daysLeftCard = document.querySelector('#proProgressDaysLeft');
+  const statusCard = document.querySelector('#proProgressGoalStatus');
+  if (currentWeightCard) currentWeightCard.textContent = latestWeight ? `${formatWeight(latestWeight)} kg` : '- kg';
+  if (goalWeightCard) goalWeightCard.textContent = goalWeight ? `${formatWeight(goalWeight)} kg` : '- kg';
+  if (toGoalCard) toGoalCard.textContent = goalWeight ? `${weightDifference > 0 ? '+' : ''}${formatWeight(weightDifference)} kg` : '- kg';
+  const weeklyChange = weightEntries.length > 1 ? Math.abs((latestWeight - (Number(weightEntries[0].weight) || latestWeight)) / Math.max(1, weightEntries.length - 1)) : 1.2;
+  const weeksLeft = goalWeight && weeklyChange > 0 ? Math.max(0, Math.ceil(Math.abs(weightDifference) / weeklyChange)) : 0;
+  if (weeksLeftCard) weeksLeftCard.textContent = goalWeight ? `${weeksLeft} uger` : '-';
+  if (daysLeftCard) daysLeftCard.textContent = goalWeight ? `${weeksLeft * 7} dage til målet` : 'Baseret på din trend';
+  if (statusCard) statusCard.textContent = goalWeight ? (weightDifference < 0 ? 'BULK' : weightDifference > 0 ? 'CUT 🔥' : 'MÅL NÅET') : '';
+  const goalDeltaCard = document.querySelector('#proProgressGoalDelta');
+  if (goalDeltaCard) goalDeltaCard.textContent = goalWeight ? `${formatWeight(Math.abs(weightDifference))} kg forskel` : 'Vægtmål fra din profil';
+  const startWeight = Number(weightEntries[0]?.weight) || latestWeight;
+  const totalGoalDistance = Math.max(0.1, Math.abs(startWeight - goalWeight));
+  const completedGoalDistance = Math.abs(startWeight - latestWeight);
+  const masterProgress = goalWeight && latestWeight ? Math.max(0, Math.min(100, Math.round((completedGoalDistance / totalGoalDistance) * 100))) : 0;
+  document.querySelector('#proProgressMasterPercent')?.replaceChildren(document.createTextNode(`${masterProgress}%`));
+  const masterRing = document.querySelector('#proProgressMasterRing');
+  if (masterRing) { masterRing.textContent = `${masterProgress}%`; masterRing.style.setProperty('--master-percent', `${masterProgress}%`); }
+  document.querySelector('#proProgressMasterBar')?.style.setProperty('width', `${masterProgress}%`);
+  const masterRemaining = document.querySelector('#proProgressMasterRemaining');
+  if (masterRemaining) masterRemaining.innerHTML = goalWeight ? `${weightDifference > 0 ? '-' : '+'}${formatWeight(Math.abs(weightDifference))} kg<br><small>tilbage</small>` : '- kg<br><small>tilbage</small>';
+  const masterHistory = document.querySelector('#proProgressMasterHistory');
+  if (masterHistory) masterHistory.innerHTML = weightEntries.slice().reverse().slice(0, 6).map((entry, index, entries) => {
+    const previous = entries[index + 1];
+    const change = previous ? Math.round((Number(entry.weight) - Number(previous.weight)) * 10) / 10 : 0;
+    return `<tr${index === 0 ? ' class="current"' : ''}><td><b>Uge ${weightEntries.length - index}</b></td><td>${entry.date || 'Uden dato'}</td><td>${formatWeight(entry.weight)}</td><td class="change">${previous ? `${change > 0 ? '+' : ''}${formatWeight(change)} kg` : '-'}</td><td>Seneste måling</td></tr>`;
+  }).join('');
+  const masterTip = document.querySelector('#proProgressMasterTip');
+  if (masterTip) masterTip.textContent = weeklyChange > 0 ? `Du udvikler dig i gennemsnit ${formatWeight(weeklyChange)} kg pr. måling. Fortsæt det gode arbejde!` : 'Registrér ugentlige målinger for at følge din udvikling.';
   const chartSvg = document.querySelector('#proProgressChartSvg');
   const axisEl = document.querySelector('#proProgressAxis');
   const weightValueEl = document.querySelector('#proProgressWeight');
@@ -5153,7 +5298,7 @@ function renderProProgress() {
   const photoGrid = document.querySelector('#proProgressPhotos');
   const photoNav = document.querySelector('#proProgressPhotoNav');
   if (photoGrid) {
-    const progressEntries = weightHistory.filter((entry) => entry.photo).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const progressEntries = weightHistory.filter((entry) => entry.photo).sort((a, b) => getPhysiquePhotoTimestamp(a) - getPhysiquePhotoTimestamp(b));
       const storedProgressPhotoIndex = Number(photoGrid.dataset.pageIndex);
     selectedProgressPhotoIndex = Number.isFinite(storedProgressPhotoIndex) && storedProgressPhotoIndex >= 0
       ? Math.min(storedProgressPhotoIndex, MAX_PHYSIQUE_HISTORY_PAGES - 1)
@@ -5162,15 +5307,17 @@ function renderProProgress() {
     {
       const entry = progressEntries[selectedProgressPhotoIndex];
       const previousEntry = progressEntries[selectedProgressPhotoIndex - 1];
-      const daysSincePrevious = previousEntry ? Math.max(0, Math.floor((getProgressTimestamp(entry) - getProgressTimestamp(previousEntry)) / 86400000)) : 0;
-      const intervalLabel = previousEntry ? (daysSincePrevious ? `${daysSincePrevious} dag${daysSincePrevious === 1 ? '' : 'e'} siden sidste billede` : 'Samme dato som sidste billede') : 'Første billede';
       const previousButton = `<button type="button" class="pro-progress-photo-nav" data-progress-photo-direction="previous" onclick="window.changeProgressPhotoPage(-1)" aria-label="Forrige billede">←</button>`;
       const nextButton = `<button type="button" class="pro-progress-photo-nav" data-progress-photo-direction="next" onclick="window.changeProgressPhotoPage(1)" aria-label="Næste billede">→</button>`;
-      const content = !entry
-        ? '<p class="pro-home-photo-empty">Denne side er ikke gemt endnu. Gem vægt og billede under Kropsvægt.</p>'
-        : entry.photo
-        ? `<div class="pro-progress-photo"><img src="${entry.photo}" alt="Fysikfoto"><span>${formatElapsedSinceDate(entry)} · ${entry.date || ''} · ${formatWeight(entry.weight)} kg · ${intervalLabel}</span></div>`
-        : `<div class="pro-progress-photo pro-progress-photo-weight"><strong>${formatWeight(entry.weight)} kg</strong><span>${formatElapsedSinceDate(entry)} · ${entry.date || 'Uden dato'} · ${intervalLabel}</span></div>`;
+      const visiblePhotos = progressEntries.slice(-5).reverse();
+      const content = visiblePhotos.length
+        ? visiblePhotos.map((photoEntry, photoIndex) => {
+          const chronologicalIndex = progressEntries.indexOf(photoEntry);
+          const previousPhoto = progressEntries[chronologicalIndex - 1];
+          const photoDate = photoEntry.photoDate || photoEntry.date || 'Uden dato';
+          return `<div class="pro-progress-photo${photoIndex === 0 ? ' current' : ''}">${photoEntry.photo ? `<img src="${photoEntry.photo}" alt="Fysikfoto fra ${photoDate}">` : '<div class="pro-progress-photo-placeholder" aria-hidden="true"></div>'}<span>Uge ${progressEntries.length - photoIndex}<small>${photoDate}</small><small>${formatPhotoInterval(photoEntry, previousPhoto)}</small></span></div>`;
+        }).join('')
+        : '<p class="pro-home-photo-empty">Denne side er ikke gemt endnu. Gem vægt og billede under Kropsvægt.</p>';
       if (photoNav) photoNav.innerHTML = `${previousButton}<span class="pro-progress-photo-index">${(selectedProgressPhotoIndex + 1).toLocaleString('da-DK')}/${MAX_PHYSIQUE_HISTORY_PAGES.toLocaleString('da-DK')}</span>${nextButton}`;
       photoGrid.innerHTML = content;
     }
@@ -5193,7 +5340,7 @@ sessionComplete.addEventListener('click', () => {
   showToast(isComplete ? 'Hele træningen er markeret som færdig' : 'Træningen er markeret som aktiv');
 });
 renderWorkoutOverview();
-progressButton?.addEventListener('click', () => document.querySelector('#progress').scrollIntoView({ behavior: 'smooth' }));
+progressButton?.addEventListener('click', () => window.showAppPage?.('progress'));
 
 window.setInterval(() => renderTrainingProgress(), 60 * 60 * 1000);
 window.setInterval(() => renderProHome(), 60 * 60 * 1000);
@@ -5878,7 +6025,7 @@ function refreshExerciseList() {
     while (completionState.length < rowCount) completionState.push(false);
     weeklyCompletion[weekKey] = completionState.slice(0, rowCount);
   });
-  exerciseCount.textContent = `${document.querySelectorAll('#exerciseList .exercise-row').length}/30 øvelser`;
+  if (exerciseCount) exerciseCount.textContent = `${document.querySelectorAll('#exerciseList .exercise-row').length}/30 øvelser`;
   if (selectedProgramWeek) syncWeekProgressState(selectedProgramWeek);
 }
 
@@ -6257,6 +6404,212 @@ function initializeExerciseLibrary() {
 }
 
 const exerciseRows = document.querySelectorAll('.exercise-row');
+
+// AIO Body Scan Functions
+function showView(viewName) {
+  alert(viewName + " — detaljer åbnes her.");
+}
+
+function aiNewScan() {
+  alert("Ny AI Body Scan klar — tilslut dine målinger/billeder for at starte.");
+}
+
+// AIO Exercise Library Functions
+function aioOpenMedia(kind) {
+  const modal = document.getElementById('aioMediaModal');
+  const title = document.getElementById('aioMediaTitle');
+  const text = document.getElementById('aioMediaText');
+  const status = document.getElementById('aioMediaStatus');
+  status.textContent = '';
+  title.textContent = kind === 'video' ? 'Tilføj video' : 'Tilføj billede / video';
+  text.textContent = 'Vælg medie her. Vinduet ligger ovenpå siden, så registreringsboksen flytter sig ikke.';
+  if (modal) modal.classList.add('show');
+}
+
+function aioChooseMedia(kind) {
+  const input = document.getElementById(kind === 'photo' ? 'aioPhotoInput' : 'aioVideoInput');
+  if (!input) return;
+  input.onchange = function() {
+    if (this.files && this.files[0]) {
+      document.getElementById('aioMediaStatus').textContent = '✓ ' + this.files[0].name + ' valgt';
+      setTimeout(aioCloseMedia, 700);
+    }
+  };
+  input.click();
+}
+
+function aioCloseMedia() {
+  const modal = document.getElementById('aioMediaModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function aioToast(text) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(window._aioToastTimer);
+  window._aioToastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function aioSelectDay(el) {
+  document.querySelectorAll('.aio-lib-day').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  aioToast('Session ' + el.textContent.trim());
+}
+
+function aioToggleDone(btn) {
+  btn.classList.toggle('active');
+  aioToast(btn.classList.contains('active') ? 'Øvelse markeret som færdig ✓' : 'Markering fjernet');
+}
+
+function aioRemoveExercise(btn) {
+  const card = btn.closest('.aio-lib-exercise');
+  if (card) {
+    card.remove();
+    aioToast('Øvelsen er fjernet');
+    aioUpdateExerciseCount();
+  }
+}
+
+// AIO Food Tracker Functions
+function aioFoodTabClick(btn) {
+  const tabs = document.querySelectorAll('.aio-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const mealNames = { breakfast: 'Morgenmad', lunch: 'Frokost', dinner: 'Aftensmad', snack: 'Snack' };
+  const mealInput = document.getElementById('mealInput');
+  if (mealInput) mealInput.value = mealNames[btn.dataset.meal] || 'Morgenmad';
+  aioToast('Viser ' + btn.textContent.trim());
+}
+
+function aioFoodMealPlus() {
+  const input = document.getElementById('foodNameInput');
+  if (input) input.focus();
+}
+
+function aioUpdateFoodProgress() {
+  const totalEl = document.getElementById('foodTotal');
+  const eatenEl = document.getElementById('foodTotalBig');
+  const barEl = document.getElementById('foodKcalBar');
+  if (!totalEl || !eatenEl || !barEl) return;
+  const eaten = Number(eatenEl.textContent) || 0;
+  barEl.style.width = Math.min(100, (eaten / 2647) * 100) + '%';
+  totalEl.textContent = eaten;
+}
+
+function aioInitializeFoodTracker() {
+  document.querySelectorAll('.aio-tab').forEach(tab => {
+    tab.addEventListener('click', function() { aioFoodTabClick(this); });
+  });
+  document.querySelectorAll('.aio-meal .plus').forEach(btn => {
+    btn.addEventListener('click', aioFoodMealPlus);
+  });
+  aioUpdateFoodProgress();
+}
+
+document.addEventListener('DOMContentLoaded', aioInitializeFoodTracker);
+
+function aioSaveExercise(btn) {
+  const log = btn.closest('.aio-lib-log');
+  const card = btn.closest('.aio-lib-exercise');
+  if (!log) return;
+  const w = Number(log.querySelector('.aio-weightInput')?.value) || 0;
+  const r = Number(log.querySelector('.aio-repsInput')?.value) || 0;
+  const sets = 3;
+  const volume = sets * r * w;
+  aioToast('✓ ' + sets + ' × ' + r + ' reps med ' + w + ' kg gemt! (' + volume + ' kg volumen)');
+}
+
+function aioUpdateExerciseCount() {
+  const list = document.getElementById('aioExerciseList');
+  const count = list ? list.querySelectorAll('.aio-lib-exercise').length : 0;
+  const countEl = document.getElementById('aioExerciseCount');
+  if (countEl) countEl.textContent = count;
+  const progressEl = document.getElementById('aioLibExerciseProgress');
+  if (progressEl) progressEl.textContent = count + ' / 30 registreret';
+}
+
+function aioInitializeExerciseLibrary() {
+  const modal = document.getElementById('aioMediaModal');
+  if (modal) {
+    modal.onclick = function(event) {
+      if (event.target === this) aioCloseMedia();
+    };
+  }
+
+  // Initialize days nav
+  const daysNav = document.getElementById('aioDaysNav');
+  if (daysNav) {
+    daysNav.innerHTML = '';
+    const daysButton = document.createElement('button');
+    daysButton.className = 'aio-lib-day';
+    daysButton.textContent = '←';
+    daysButton.onclick = function() { aioToast('Forrige session'); };
+    daysNav.appendChild(daysButton);
+
+    for (let i = 1; i <= 7; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'aio-lib-day';
+      if (i === 3) btn.classList.add('active');
+      btn.textContent = i;
+      btn.onclick = function() { aioSelectDay(this); };
+      daysNav.appendChild(btn);
+    }
+
+    const nextButton = document.createElement('button');
+    nextButton.className = 'aio-lib-day';
+    nextButton.textContent = '→';
+    nextButton.onclick = function() { aioToast('Næste session'); };
+    daysNav.appendChild(nextButton);
+  }
+
+  // Initialize training picker
+  const trainingPicker = document.getElementById('aioTrainingPicker');
+  if (trainingPicker) {
+    trainingPicker.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        trainingPicker.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        const days = this.dataset.days || '3';
+        const trainingValue = document.getElementById('aioTrainingValue');
+        if (trainingValue) trainingValue.textContent = days + ' træninger om ugen';
+      });
+    });
+  }
+
+  // Wire up exercise events
+  const exerciseList = document.getElementById('aioExerciseList');
+  if (exerciseList) {
+    exerciseList.querySelectorAll('.aio-lib-exercise').forEach(ex => {
+      const doneBtn = ex.querySelector('.aio-lib-done');
+      if (doneBtn) {
+        doneBtn.onclick = function() { aioToggleDone(this); };
+      }
+      const deleteBtn = ex.querySelector('.aio-lib-delete');
+      if (deleteBtn) {
+        deleteBtn.onclick = function() { aioRemoveExercise(this); };
+      }
+      const saveBtn = ex.querySelector('.aio-lib-save');
+      if (saveBtn) {
+        saveBtn.onclick = function() { aioSaveExercise(this); };
+      }
+    });
+  }
+
+  aioUpdateExerciseCount();
+}
+
+
+// Initialize AIO Body Scan event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const aiNewScanBtn = document.querySelector('#aiNewScan');
+  if (aiNewScanBtn) {
+    aiNewScanBtn.addEventListener('click', aiNewScan);
+  }
+
+  aioInitializeExerciseLibrary();
+});
 exerciseRows.forEach((row) => {
   row.dataset.bound = '';
   bindExerciseRow(row);
@@ -6281,7 +6634,7 @@ const appPageTargets = {
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
-  progress: ['#proProgress', '#progress', '.training-progress-panel'],
+  progress: ['#progress', '#proProgress'],
   physique: ['#physique-ai'],
   library: ['#library'],
   pro: ['#proAccessDialog']
@@ -6330,6 +6683,8 @@ if (appContent) {
     document.body.classList.toggle('app-paid-overview-active', selectedPage === 'overview' && hasFullAppAccess());
     document.body.classList.toggle('app-pro-active', selectedPage === 'pro');
     document.body.classList.toggle('app-physique-active', selectedPage === 'physique');
+    const bottomNav = document.querySelector('#proHomeBottomNav');
+    if (bottomNav) bottomNav.hidden = !hasFullAppAccess() && !['food', 'profile'].includes(selectedPage);
     const proHomePanel = document.querySelector('#proHome');
     if (proHomePanel) {
       if (selectedPage === 'overview') proHomePanel.style.removeProperty('display');
@@ -6349,6 +6704,9 @@ if (appContent) {
     document.querySelectorAll('.nav-link[data-app-page-target]').forEach((link) => {
       const target = link.dataset.appPageTarget === 'overview' ? resolveLandingPage() : link.dataset.appPageTarget;
       link.classList.toggle('active', target === visiblePage);
+    });
+    document.querySelectorAll('#proHomeBottomNav [data-category-target]').forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.categoryTarget === '#progress' && selectedPage === 'progress');
     });
     if (updateHash) history.replaceState({}, '', selectedPage === 'overview' ? '#top' : selectedPage === 'pro' ? '#pro' : `#${selectedPage}`);
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -6585,12 +6943,12 @@ programResetButton.addEventListener('click', () => {
   showToast(`Uge ${selectedProgramWeek} er nulstillet`);
 });
 
-programPreviousWeek.addEventListener('click', () => {
+programPreviousWeek?.addEventListener('click', () => {
   selectedProgramWeek = Math.max(1, selectedProgramWeek - 1);
   updateProgramWeek();
 });
 
-programNextWeek.addEventListener('click', () => {
+programNextWeek?.addEventListener('click', () => {
   persistCurrentWeekCompletion();
   selectedProgramWeek += 1;
   resetWeekCompletionState(selectedProgramWeek);

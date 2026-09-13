@@ -1024,6 +1024,60 @@ body .app-shell .health-overview {
 	border: 1px solid #24729a !important;
 }
 
+/* Compact layout refinement: slightly tighter overall spacing for a more refined app feel. */
+body .app-shell .sidebar {
+	padding: 18px 14px 16px !important;
+}
+
+body .app-shell .sidebar .brand-wrap {
+	gap: 4px !important;
+}
+
+body .app-shell .sidebar .brand {
+	font-size: 19px !important;
+}
+
+body .app-shell .sidebar .brand-status {
+	letter-spacing: 1.5px !important;
+	font-size: 8px !important;
+}
+
+body .app-shell .sidebar nav {
+	gap: 6px !important;
+}
+
+body .app-shell .sidebar .nav-link {
+	padding: 9px 10px !important;
+}
+
+body .app-shell .sidebar .nav-link b {
+	width: 18px !important;
+	margin-right: 6px !important;
+	font-size: 13px !important;
+}
+
+body .app-shell .sidebar .profile-card {
+	padding: 8px 10px !important;
+}
+
+body .app-shell .topbar {
+	padding: 8px 12px !important;
+	height: auto !important;
+}
+
+body .app-shell .welcome {
+	padding: 18px 0 12px !important;
+}
+
+body .app-shell .welcome h1 {
+	font-size: clamp(2rem, 4vw, 3rem) !important;
+	margin-bottom: 6px !important;
+}
+
+body .app-shell .content {
+	padding-top: 10px !important;
+}
+
 @media (max-width: 700px) {
 	body .app-shell .food-section > .section-heading .kcal-summary {
 		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;

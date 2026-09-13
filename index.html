@@ -17,8 +17,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20260903-layout-restore-1">
-	<link rel="stylesheet" href="homepage-restore.css?v=20260903-icons-2">
+	<link rel="stylesheet" href="styles%20sss.css?v=20260904-master-progression-3">
 </head>
 <body>
 	<div class="app-shell">
@@ -34,7 +33,7 @@
 				<a class="nav-link" href="#coach" data-app-page-target="coach"><b aria-hidden="true">AI</b><span>Coach</span></a>
 				<a class="nav-link" href="#profile" data-app-page-target="profile"><b aria-hidden="true">◌</b><span>Kcal-beregner</span></a>
 				<a class="nav-link" href="#weight" data-app-page-target="weight"><b aria-hidden="true">◒</b><span>Kropsvægt</span></a>
-				<a class="nav-link" href="#progress" data-app-page-target="progress"><b aria-hidden="true">↗</b><span>Fremskridt</span></a>
+				<a class="nav-link" href="#progress" data-app-page-target="progress"><b aria-hidden="true">↗</b><span>Din progression</span></a>
 				<a class="nav-link" href="#library" data-app-page-target="library"><b aria-hidden="true">▦</b><span>Øvelser</span></a>
 				<a class="nav-link nav-link-pro" href="#pro" data-app-page-target="pro"><b aria-hidden="true">PRO</b><span>Pro · 40 % første år</span></a>
 			</nav>
@@ -97,9 +96,51 @@
 					<span class="pro-home-body-model" aria-hidden="true">🫀</span>
 				</article>
 
-				<section class="pro-home-photos premium-dashboard-section" data-dashboard-section="physique">
-					<div class="pro-home-section-heading"><h2>FYSISK FREMSKRIDT</h2><div id="proHomePhotoNav" class="pro-home-photo-nav"></div></div>
-					<div class="pro-home-photo-row" id="proHomePhotoRow"><p class="pro-home-photo-empty">Tilføj et fysikfoto ved vejning for at se din udvikling her.</p></div>
+				<section class="premium-dashboard-section aio-body-scan" data-dashboard-section="physique">
+					<div class="aio-scan-header">
+						<div><h1>AI Body Scan ✨</h1><div class="aio-scan-sub">Din komplette fysikanalyse — drevet af AI</div></div>
+						<div class="aio-scan-actions"><button type="button" class="aio-btn">Scan historik</button><button type="button" class="aio-btn aio-btn-primary" id="aiNewScan">＋ Ny scan</button></div>
+					</div>
+
+					<div class="aio-hero">
+						<div class="aio-hero-grid">
+							<div class="aio-hero-text"><div class="aio-crown">♛ GULD OVERKROP</div><h2>Guld overkrop</h2><p>Din æstetiske vurdering ud fra dine mål, målinger og seneste analyse. Fortsæt med fokus på bryst, skuldre, ryg og arme for at nå næste niveau.</p><span class="aio-tag">AI COACH • SOLID PROGRESSION</span></div>
+							<div class="aio-score"><div class="aio-score-text"><b id="aiScore">60</b><span>/100 · FYSIK SCORE</span></div></div>
+							<div class="aio-body-model"><div class="aio-silhouette">♟</div><div class="aio-orbit"></div></div>
+						</div>
+					</div>
+
+					<section class="aio-section aio-grid">
+						<div class="aio-card"><div class="aio-title"><h3>▥ Oversigt vurdering</h3><span class="aio-muted">Seneste scan</span></div><div class="aio-ratings">
+							<div class="aio-rating"><span>Muskelmasse</span><div class="aio-track"><i style="width:68%"></i></div><b>68/100</b></div>
+							<div class="aio-rating"><span>Symmetri</span><div class="aio-track"><i style="width:87%"></i></div><b>87/100</b></div>
+							<div class="aio-rating"><span>Definition</span><div class="aio-track"><i style="width:69%"></i></div><b>69/100</b></div>
+							<div class="aio-rating"><span>Proportioner</span><div class="aio-track"><i style="width:64%"></i></div><b>64/100</b></div>
+							<div class="aio-rating"><span>Samlet balance</span><div class="aio-track"><i style="width:83%"></i></div><b>83/100</b></div>
+						</div></div>
+						<div class="aio-card aio-legend"><div class="aio-title"><h3>🏆 Hvad betyder din score?</h3></div><div><strong>GULD · 80–100</strong><span>Ekstraordinær fysik</span></div><div><strong style="color:#ddd">SØLV · 60–79</strong><span>Over gennemsnittet</span></div><div><strong style="color:#d98b32">BRONZE · 40–59</strong><span>Fortsæt arbejdet</span></div><div><strong style="color:#999">BEGYNDER · 0–39</strong><span>Byg fundamentet</span></div></div>
+					</section>
+
+					<section class="aio-section"><div class="aio-title"><h3>◈ Detaljeret Body Scan</h3><span class="aio-muted">Tryk på en vinkel for detaljer</span></div>
+						<div class="aio-views">
+							<div class="aio-card aio-view" onclick="showView('Front')"><h4>FRONT</h4><div class="aio-pose">♟</div><small>Bryst · Skuldre · Arme · Mave</small><div class="aio-detail"><span>Fysik score</span><b>72/100</b></div></div>
+							<div class="aio-card aio-view" onclick="showView('Højre side')"><h4>HØJRE SIDE</h4><div class="aio-pose">◑</div><small>Skuldre · Bryst · Arm · Core</small><div class="aio-detail"><span>Fysik score</span><b>74/100</b></div></div>
+							<div class="aio-card aio-view" onclick="showView('Venstre side')"><h4>VENSTRE SIDE</h4><div class="aio-pose">◒</div><small>Skuldre · Bryst · Arm · Core</small><div class="aio-detail"><span>Fysik score</span><b>73/100</b></div></div>
+							<div class="aio-card aio-view" onclick="showView('Ryg')"><h4>RYG</h4><div class="aio-pose">♟</div><small>Ryg · Skuldre · Lænd · Arme</small><div class="aio-detail"><span>Fysik score</span><b>70/100</b></div></div>
+						</div>
+					</section>
+
+					<section class="aio-section aio-lower">
+						<div class="aio-card"><div class="aio-title"><h3>▦ Målinger</h3><span class="aio-muted">Seneste</span></div><div class="aio-stats">
+							<div class="aio-stat"><span>Højde</span><b>182 cm</b></div><div class="aio-stat"><span>Vægt</span><b>82,4 kg</b><em>−0,4 kg</em></div><div class="aio-stat"><span>Fedt</span><b>12,1%</b><em>−0,6%</em></div><div class="aio-stat"><span>Muskelmasse</span><b>68,3 kg</b><em>+0,8 kg</em></div><div class="aio-stat"><span>Talje</span><b>78 cm</b><em>−1 cm</em></div><div class="aio-stat"><span>Bryst</span><b>104 cm</b><em>+1 cm</em></div>
+						</div></div>
+						<div class="aio-card"><div class="aio-title"><h3>↗ Progression over tid</h3><span class="aio-muted">3M · 6M · 1ÅR</span></div><div class="aio-chart">
+							<svg viewBox="0 0 500 170" preserveAspectRatio="none"><path d="M0 92 L45 82 L90 88 L135 72 L180 78 L225 62 L270 68 L315 51 L360 57 L405 42 L450 48 L500 35"/><path class="aio-c" d="M0 115 L45 110 L90 118 L135 103 L180 108 L225 96 L270 101 L315 88 L360 93 L405 80 L450 85 L500 72"/></svg>
+						</div><div class="aio-stats"><div class="aio-stat"><span>Vægt</span><b>+1,2 kg</b><em>3 måneder</em></div><div class="aio-stat"><span>Fedtprocent</span><b>−1,8%</b><em>3 måneder</em></div><div class="aio-stat"><span>Muskelmasse</span><b>+1,6 kg</b><em>3 måneder</em></div></div></div>
+						<div class="aio-card aio-ai"><div class="aio-title"><h3>🤖 AI Coach analyse</h3></div><div class="aio-muted">Din fysik er i stærk udvikling — her er dine prioriteter.</div><ol><li><b>Bryst øvre del</b><br><span class="aio-muted">Fokus på incline press og flyes</span></li><li><b>Side skuldre</b><br><span class="aio-muted">Mere volumen og isolation</span></li><li><b>Arme</b><br><span class="aio-muted">Triceps og biceps — detaljer</span></li><li><b>Ryg tykkelse</b><br><span class="aio-muted">Rows og deadlifts</span></li></ol><button class="aio-cta" onclick="alert('Personlig AI-plan åbnes')">Se din personlige plan →</button></div>
+					</section>
+
+					<div class="aio-streak"><div><div class="aio-muted">🔥 KONSISTENS SKABER RESULTATER</div><b>Du er kun 20 point fra næste niveau.</b></div><div class="aio-big">80/100<br><span class="aio-muted">PLATIN OVERKROP</span></div></div>
 				</section>
 
 				<section class="pro-home-quick-access">
@@ -113,28 +154,66 @@
 				<article class="quote-card training-brief-card"><div class="training-brief-top"><div><p class="card-kicker">SESSIONSTATUS</p><h3>Dagens plan</h3></div><span id="workoutCompletionPercent">0%</span></div><div class="training-progress-track" aria-hidden="true"><i id="workoutCompletionBar"></i></div><p id="workoutPlanSummary">Ingen øvelser gennemført endnu</p><div class="training-brief-list"><div><span>01</span><p><strong>Vælg øvelse</strong><small>Find næste bevægelse</small></p></div><div><span>02</span><p><strong>Registrér sæt</strong><small>Vægt, reps og arbejdssæt</small></p></div><div><span>03</span><p><strong>Afslut session</strong><small>Gem dagens fremgang</small></p></div></div><div class="training-last-log"><span>SENESTE LOG</span><strong id="workoutLastLog">Ingen endnu</strong></div></article>
 			</section>
 
-			<section class="food-section" id="food">
+			<section class="food-section aio-food-section" id="food">
+				<header class="aio-food-header">
+					<div class="aio-food-brand"><span>AIO</span> Fitness</div>
+					<button class="aio-food-back" type="button" data-category-target="#top">← <span>Tilbage til oversigt</span></button>
+				</header>
 				<div class="food-date-nav"><button type="button" id="foodDatePrev" aria-label="Forrige dag">‹</button><strong id="foodDateLabel">24. AUG</strong><button type="button" id="foodDateNext" aria-label="Næste dag">›</button></div>
 				<div class="section-heading"><div><p class="eyebrow">MAD TRACKER</p><h2>Hvad har du spist?</h2><p>Vej maden i gram og få et mere præcist kcal-estimat.</p></div></div>
-				<div class="food-kcal-card">
-					<div class="food-kcal-ring" id="foodKcalRing"><div class="food-kcal-ring-inner"><strong id="foodTotal">0</strong><small>kcal</small></div></div>
-					<div class="food-kcal-info">
-						<span class="food-kcal-label">DAGENS INDTAG</span>
-						<div class="food-kcal-big"><strong id="foodTotalBig">0</strong> <span>/ <span id="foodTarget">2.000 kcal</span></span></div>
-						<div class="food-kcal-bar"><i id="foodKcalBar"></i></div>
-						<p class="food-kcal-remaining" id="kcalRemainingValue">2.000 kcal tilbage</p>
+				<section class="aio-intake">
+					<div class="aio-ring"><div class="aio-ring-in"><div><strong id="foodTotal">0</strong><br><small>kcal</small></div></div></div>
+					<div class="aio-intake-info">
+						<div class="aio-kicker">DAGENS INDTAG</div>
+						<div class="aio-big"><span id="foodTotalBig">0</span> <span>/ <span id="foodTarget">2.647 kcal</span></span></div>
+						<div class="aio-progress"><i id="foodKcalBar"></i></div>
+						<div class="aio-remaining" id="kcalRemainingValue">2.647 kcal<br>tilbage</div>
 					</div>
+				</section>
+
+				<section class="aio-macros">
+					<div class="aio-macro aio-protein"><h3>PROTEIN</h3><div class="amount" id="proteinProgressText">0 <span class="unit">/ 146 g</span></div><div class="aio-mini-progress"><i id="proteinProgressBar"></i></div><p>0 g tilbage</p></div>
+					<div class="aio-macro aio-carb"><h3>KULHYDRAT</h3><div class="amount" id="carbsProgressText">0 <span class="unit">/ 325 g</span></div><div class="aio-mini-progress"><i id="carbsProgressBar"></i></div><p>0 g tilbage</p></div>
+					<div class="aio-macro aio-fat"><h3>FEDT</h3><div class="amount" id="fatProgressText">0 <span class="unit">/ 85 g</span></div><div class="aio-mini-progress"><i id="fatProgressBar"></i></div><p>0 g tilbage</p></div>
+				</section>
+
+				<div class="aio-meal-tabs">
+					<button class="aio-tab breakfast active" type="button" data-meal="breakfast">🌅 Morgenmad</button>
+					<button class="aio-tab lunch" type="button" data-meal="lunch">☀️ Frokost</button>
+					<button class="aio-tab dinner" type="button" data-meal="dinner">🌙 Aftensmad</button>
+					<button class="aio-tab snack" type="button" data-meal="snack">🍎 Snack</button>
 				</div>
-				<div class="kcal-remaining-banner" hidden><small id="kcalRemainingLabel">KCAL TILBAGE (CUT)</small></div>
-				<div class="macro-grid">
-					<article class="macro-card macro-protein"><span class="macro-label">PROTEIN</span><strong id="proteinProgressText">0/0 g</strong><div class="macro-bar"><i id="proteinProgressBar"></i></div></article>
-					<article class="macro-card macro-carbs"><span class="macro-label">KULHYDRAT</span><strong id="carbsProgressText">0/0 g</strong><div class="macro-bar"><i id="carbsProgressBar"></i></div></article>
-					<article class="macro-card macro-fat"><span class="macro-label">FEDT</span><strong id="fatProgressText">0/0 g</strong><div class="macro-bar"><i id="fatProgressBar"></i></div></article>
+
+				<section class="aio-meal-grid">
+					<article class="aio-meal aio-breakfast-card"><h3>MORGENMAD <span class="kcal">0 kcal</span></h3><p>Intet logget endnu</p><small>Tilføj din første mad</small><button class="plus" type="button">+</button></article>
+					<article class="aio-meal aio-lunch-card"><h3>FROKOST <span class="kcal">0 kcal</span></h3><p>Intet logget endnu</p><small>Tilføj din første mad</small><button class="plus" type="button">+</button></article>
+					<article class="aio-meal aio-dinner-card"><h3>AFTENSMAD <span class="kcal">0 kcal</span></h3><p>Intet logget endnu</p><small>Tilføj din første mad</small><button class="plus" type="button">+</button></article>
+					<article class="aio-meal aio-snack-card"><h3>SNACK <span class="kcal">0 kcal</span></h3><p>Intet logget endnu</p><small>Tilføj din første mad</small><button class="plus" type="button">+</button></article>
+				</section>
+
+				<section class="aio-entry">
+					<div class="aio-entry-top">
+						<button class="aio-btn camera" id="startScanner" type="button">📷 Åbn kamera</button>
+						<input class="aio-input barcode" id="barcodeInput" placeholder="Stregkode">
+						<div class="field amount"><label>MÆNGDE (G)</label><input class="aio-input" id="foodGramsInput" value="100" type="number" min="1"></div>
+					</div>
+					<div class="aio-entry-note">🔒 Kamera kræver HTTPS eller localhost på mobilen.</div>
+					<button id="useBarcode" type="button" hidden>Brug kode</button>
+					<video id="scannerVideo" hidden playsinline></video>
+					<span id="scannerStatus" hidden></span>
+					<form id="foodForm" class="aio-food-form">
+						<input id="foodNameInput" class="aio-input" placeholder="Mad eller drikke" required>
+						<input id="foodProteinInput" type="hidden" value="25"><input id="foodCarbsInput" type="hidden" value="0"><input id="foodFatInput" type="hidden" value="0"><input id="foodKcalInput" type="hidden">
+						<input id="mealInput" type="hidden" value="Morgenmad">
+						<button class="aio-add" type="submit">Tilføj mad +</button>
+					</form>
+				</section>
+
+				<div class="aio-empty" id="foodList">
+					<strong>🧺 Ingen mad logget denne dag</strong>
+					<span>Tilføj din første mad eller scan en stregkode.</span>
 				</div>
-				<div class="meal-quick-select"><button type="button" data-meal="Morgenmad">Morgenmad</button><button type="button" data-meal="Frokost">Frokost</button><button type="button" data-meal="Aftensmad">Aftensmad</button><button type="button" data-meal="Snack">Snack</button></div>
-				<div class="scanner-controls"><button id="startScanner" type="button">Åbn kamera</button><input id="barcodeInput" placeholder="Stregkode" aria-label="Manuel kode"><button id="useBarcode" type="button">Brug kode</button><video id="scannerVideo" hidden playsinline></video></div><p id="scannerStatus">Kamera kræver HTTPS eller localhost på mobilen.</p>
-				<form id="foodForm" class="form-grid"><input type="hidden" id="mealInput" value="Morgenmad"><label>Mad eller drikke<input id="foodNameInput" placeholder="Scan stregkode eller skriv varen" required><small id="foodLookupStatus"></small></label><label>Mængde (g)<input id="foodGramsInput" type="number" value="100" min="1" required></label><input id="foodKcalInput" type="hidden" value=""><input id="foodProteinInput" type="hidden" value="25"><input id="foodCarbsInput" type="hidden" value="0"><input id="foodFatInput" type="hidden" value="0"><button type="submit">Tilføj mad +</button></form>
-				<div id="foodList" class="food-list"></div>
+
 			</section>
 
 			<div id="mealOverviewModal" class="meal-overview-modal" hidden>
@@ -152,8 +231,15 @@
 
 			<section id="proProgress" class="pro-progress" hidden>
 				<header class="pro-progress-reference-top"><div class="pro-progress-reference-brand"><span>A</span><span>I</span><span>O</span> Fitness</div><div class="pro-progress-reference-pro">ALLE FUNKTIONER</div></header>
-				<h1 class="pro-progress-page-title">Progression</h1>
-				<p class="pro-progress-page-subtitle">Se din udvikling over tid.</p>
+				<h1 class="pro-progress-page-title">Din <span>progression fra uge til uge</span></h1>
+				<p class="pro-progress-page-subtitle">Følg din rejse. Én uge ad gangen. Ét mål ad gangen.</p>
+				<div class="pro-progress-summary-cards">
+					<article><small>Nuværende vægt</small><strong id="proProgressCurrentWeight">- kg</strong><span>♙ Seneste måling</span></article>
+					<article class="is-purple"><small>Målvægt</small><strong id="proProgressGoalWeight">- kg</strong><span id="proProgressGoalDelta">Vægtmål fra din profil</span></article>
+					<article><small>Til mål</small><strong id="proProgressToGoal">- kg</strong><span>Vægt tilbage</span></article>
+					<article><small>Uger tilbage</small><strong id="proProgressWeeksLeft">-</strong><span id="proProgressDaysLeft">Baseret på din trend</span></article>
+					<article class="is-red"><small>Status</small><strong id="proProgressGoalStatus">-</strong><span>Din aktuelle retning</span></article>
+				</div>
 				<div class="pro-progress-tabs">
 					<button type="button" data-range="week">Uge</button>
 					<button type="button" data-range="month" class="active">Måned</button>
@@ -174,6 +260,8 @@
 					<div class="pro-progress-chart"><svg id="proProgressChartSvg" viewBox="0 0 600 165" preserveAspectRatio="none"></svg></div>
 					<div class="pro-progress-axis" id="proProgressAxis"></div>
 				</article>
+				<article class="pro-progress-master-progress"><div><small>FREMGANG</small><strong id="proProgressMasterPercent">0%</strong><span>af vejen til målet</span></div><div class="pro-progress-master-ring" id="proProgressMasterRing">0%</div><div class="pro-progress-master-message"><p id="proProgressMasterMessage">Registrér din vægt for at se din fremgang.</p><div><i id="proProgressMasterBar"></i></div></div><strong id="proProgressMasterRemaining">- kg<br><small>tilbage</small></strong></article>
+				<section class="pro-progress-master-history"><div class="pro-progress-master-title"><h2>⌁　UGEHISTORIK</h2><span>Seneste målinger først</span></div><div class="pro-progress-history-scroll"><table><thead><tr><th>UGE</th><th>DATO</th><th>VÆGT (KG)</th><th>ÆNDRING</th><th>NOTE</th></tr></thead><tbody id="proProgressMasterHistory"></tbody></table></div><button type="button" class="pro-progress-master-all" id="proProgressMasterAll">Vis alle data　⌄</button></section>
 				<article class="pro-progress-strength">
 					<div class="pro-progress-section-title"><span class="pro-progress-label">STYRKEUDVIKLING</span><button type="button" class="pro-progress-link" data-category-target="#library">Se alle</button></div>
 					<div id="proProgressStrengthRows"></div>
@@ -184,9 +272,203 @@
 				<article class="pro-progress-photos-card">
 					<div class="pro-progress-photos" id="proProgressPhotos"></div>
 				</article>
+				<article class="pro-progress-master-tip"><span>🏆</span><div><h3>PRO TIP</h3><p id="proProgressMasterTip">Registrér ugentlige målinger for at følge din udvikling.</p></div><strong>↗</strong></article>
 			</section>
 			<section id="progress"><div class="section-heading"><div><p class="eyebrow">FREMSKRIDT</p><h2>Din udvikling</h2></div><div id="progressViews"><button type="button" class="active" data-view="week">Uge</button><button type="button" data-view="day">Dag</button></div></div><div class="stats-grid"><article class="stat-card">VOLUMEN<strong id="volumeStat">0 kg</strong></article><article class="stat-card">BEDSTE 1RM<strong id="bestOrmStat">0,0 kg</strong></article><article class="stat-card">REPS<strong id="repsStat">0</strong></article><article class="stat-card">STATUS<strong id="progressStat">+0%</strong></article></div><div id="weekHistory"></div></section>
-			<section id="library"><div class="section-heading"><div><p class="eyebrow">MIT PROGRAM</p><h2>Øvelsesbibliotek</h2></div><span id="exerciseCount">3/30 øvelser</span></div><div id="exerciseList" class="exercise-list"><article class="exercise-row"><span class="exercise-number">01</span><div class="exercise-visual"></div><div class="exercise-info"><h3>Goblet squat</h3><p>20 kg <span>•</span> 10 reps <span>•</span> 3 sæt</p></div><button class="complete-button" type="button">✓</button><button class="more-button" type="button">...</button></article><article class="exercise-row"><span class="exercise-number">02</span><div class="exercise-visual"></div><div class="exercise-info"><h3>Bench press</h3><p>40 kg <span>•</span> 8 reps <span>•</span> 3 sæt</p></div><button class="complete-button" type="button">✓</button><button class="more-button" type="button">...</button></article></div><div class="form-grid"><input id="customExerciseName" type="text" list="exerciseOptions" placeholder="Skriv egen øvelse" aria-label="Skriv egen øvelse"><select id="newExerciseSelect"><option value="">Vælg ny øvelse</option></select><button id="addExercise" type="button">Tilføj øvelse +</button></div><datalist id="exerciseOptions"></datalist><div id="trainingPicker"><button type="button" data-days="1">1</button><button type="button" data-days="2">2</button><button type="button" data-days="3" class="selected">3</button><button type="button" data-days="4">4</button><button type="button" data-days="5">5</button><button type="button" data-days="6">6</button><button type="button" data-days="7">7</button></div><span id="trainingValue">3 træninger om ugen</span><p id="trainingTip">God balance mellem fremgang og restitution.</p><button id="programPreviousWeek" type="button">&lt;</button><span id="programWeekLabel">Uge 1</span><button id="programNextWeek" type="button">&gt;</button></section>
+			<section id="library" class="aio-library"><div class="aio-lib-hero">
+				<div class="aio-lib-content">
+					<div>
+						<p class="aio-lib-kicker">MIT PROGRAM</p>
+						<h1 class="aio-lib-gradient">Øvelsesbibliotek</h1>
+						<p>Billeder, registrering og progression samlet i ét enkelt flow. Byg træningen uden besvær.</p>
+						<div class="aio-lib-stats">
+							<div class="aio-lib-stat-pill"><b id="aioExerciseCount">2</b>/30 øvelser</div>
+							<div class="aio-lib-stat-pill">⚡ Hurtig registrering</div>
+							<div class="aio-lib-stat-pill">🤖 AI klar</div>
+						</div>
+					</div>
+					<div class="aio-lib-art">♟</div>
+				</div>
+			</div>
+
+			<div class="aio-lib-session">
+				<div><strong>▣ SESSION <span id="aioSessionNo">12</span> / 20.000</strong><br><span>Din aktive træningssession</span></div>
+				<button class="aio-lib-top-btn" id="aioEditSession">✎ Rediger session</button>
+			</div>
+			<div class="aio-lib-days" style="margin-top:10px" id="aioDaysNav"></div>
+
+			<div class="aio-lib-section-head">
+				<h2>Dagens øvelser</h2>
+				<span id="aioLibExerciseProgress">2 / 30 registreret</span>
+			</div>
+
+			<div id="aioExerciseList">
+				<article class="aio-lib-exercise" data-name="Goblet squat" data-cat="Ben" data-weight="20" data-reps="10">
+					<div class="aio-lib-exercise-head">
+						<div>
+							<div class="aio-lib-media"><span class="aio-lib-number">01</span><div class="aio-lib-figure">🏋️</div></div>
+							<div class="aio-lib-media-actions"><button type="button" onclick="aioOpenMedia('capture')">▣ Tag foto/video</button><button type="button" onclick="aioOpenMedia('photo')">▧ Vælg foto</button><button type="button" onclick="aioOpenMedia('video')">▣ Vælg video</button></div>
+						</div>
+						<div>
+							<span class="aio-lib-badge">BEN</span><h3>Goblet squat</h3><div class="aio-lib-last">SENEST REGISTRERET</div>
+							<div class="aio-lib-quick"><div class="aio-lib-q weight"><b>20 kg</b><span>Vægt</span></div><div class="aio-lib-q"><b>10 reps</b><span>pr. sæt</span></div><div class="aio-lib-q"><b>3</b><span>arbejdssæt</span></div></div>
+						</div>
+						<div><button class="aio-lib-done">✓</button><br><button class="aio-lib-delete">Slet</button></div>
+					</div>
+					<div class="aio-lib-log">
+						<div class="aio-lib-log-head"><div><div class="aio-lib-log-kicker">REGISTRER TRÆNING</div><h4>Hvad gennemførte du?</h4><p>Én registrering gemmer hele øvelsen fra denne træning.</p></div></div>
+						<div class="aio-lib-fields">
+							<div class="aio-lib-field"><label>ØVELSESNAVN</label><input value="Goblet squat"></div>
+							<div class="aio-lib-field"><label>KATEGORI</label><select><option>Ben</option><option>Bryst</option><option>Ryg</option><option>Skuldre</option><option>Arme</option></select></div>
+							<div class="aio-lib-field"><label>VÆGT (KG)</label><input class="aio-weightInput" type="number" value="20"></div>
+							<div class="aio-lib-field"><label>REPS PR. SÆT</label><input class="aio-repsInput" type="number" value="10"></div>
+						</div>
+						<div class="aio-lib-summary"><small>DU GEMMER</small><b class="aio-summaryMain">3 arbejdssæt × 10 reps med 20 kg</b><span class="aio-volume">Samlet volumen: 600 kg</span></div>
+						<div class="aio-lib-log-footer"><button class="aio-lib-save">Gem træning ✓</button></div>
+					</div>
+				</article>
+
+				<article class="aio-lib-exercise" data-name="Bench press" data-cat="Bryst" data-weight="40" data-reps="8">
+					<div class="aio-lib-exercise-head">
+						<div>
+							<div class="aio-lib-media"><span class="aio-lib-number">02</span><div class="aio-lib-figure">🏋️‍♂️</div></div>
+							<div class="aio-lib-media-actions"><button type="button" onclick="aioOpenMedia('capture')">▣ Tag foto/video</button><button type="button" onclick="aioOpenMedia('photo')">▧ Vælg foto</button><button type="button" onclick="aioOpenMedia('video')">▣ Vælg video</button></div>
+						</div>
+						<div>
+							<span class="aio-lib-badge">BRYST</span><h3>Bench press</h3><div class="aio-lib-last">SENEST REGISTRERET</div>
+							<div class="aio-lib-quick"><div class="aio-lib-q weight"><b>40 kg</b><span>Vægt</span></div><div class="aio-lib-q"><b>8 reps</b><span>pr. sæt</span></div><div class="aio-lib-q"><b>3</b><span>arbejdssæt</span></div></div>
+						</div>
+						<div><button class="aio-lib-done">✓</button><br><button class="aio-lib-delete">Slet</button></div>
+					</div>
+					<div class="aio-lib-log">
+						<div class="aio-lib-log-head"><div><div class="aio-lib-log-kicker">REGISTRER TRÆNING</div><h4>Hvad gennemførte du?</h4><p>Én registrering gemmer hele øvelsen fra denne træning.</p></div></div>
+						<div class="aio-lib-fields">
+							<div class="aio-lib-field"><label>ØVELSESNAVN</label><input value="Bench press"></div>
+							<div class="aio-lib-field"><label>KATEGORI</label><select><option>Bryst</option><option>Ben</option><option>Ryg</option><option>Skuldre</option><option>Arme</option></select></div>
+							<div class="aio-lib-field"><label>VÆGT (KG)</label><input class="aio-weightInput" type="number" value="40"></div>
+							<div class="aio-lib-field"><label>REPS PR. SÆT</label><input class="aio-repsInput" type="number" value="8"></div>
+						</div>
+						<div class="aio-lib-summary"><small>DU GEMMER</small><b class="aio-summaryMain">3 arbejdssæt × 8 reps med 40 kg</b><span class="aio-volume">Samlet volumen: 960 kg</span></div>
+						<div class="aio-lib-log-footer"><button class="aio-lib-save">Gem træning ✓</button></div>
+					</div>
+				</article>
+
+				<article class="aio-lib-exercise" data-name="Barbell rows" data-cat="Ryg" data-weight="50" data-reps="6">
+					<div class="aio-lib-exercise-head">
+						<div>
+							<div class="aio-lib-media"><span class="aio-lib-number">03</span><div class="aio-lib-figure">🏋️</div></div>
+							<div class="aio-lib-media-actions"><button type="button" onclick="aioOpenMedia('capture')">▣ Tag foto/video</button><button type="button" onclick="aioOpenMedia('photo')">▧ Vælg foto</button><button type="button" onclick="aioOpenMedia('video')">▣ Vælg video</button></div>
+						</div>
+						<div>
+							<span class="aio-lib-badge">RYG</span><h3>Barbell rows</h3><div class="aio-lib-last">SENEST REGISTRERET</div>
+							<div class="aio-lib-quick"><div class="aio-lib-q weight"><b>50 kg</b><span>Vægt</span></div><div class="aio-lib-q"><b>6 reps</b><span>pr. sæt</span></div><div class="aio-lib-q"><b>4</b><span>arbejdssæt</span></div></div>
+						</div>
+						<div><button class="aio-lib-done">✓</button><br><button class="aio-lib-delete">Slet</button></div>
+					</div>
+					<div class="aio-lib-log">
+						<div class="aio-lib-log-head"><div><div class="aio-lib-log-kicker">REGISTRER TRÆNING</div><h4>Hvad gennemførte du?</h4><p>Én registrering gemmer hele øvelsen fra denne træning.</p></div></div>
+						<div class="aio-lib-fields">
+							<div class="aio-lib-field"><label>ØVELSESNAVN</label><input value="Barbell rows"></div>
+							<div class="aio-lib-field"><label>KATEGORI</label><select><option>Ryg</option><option>Ben</option><option>Bryst</option><option>Skuldre</option><option>Arme</option></select></div>
+							<div class="aio-lib-field"><label>VÆGT (KG)</label><input class="aio-weightInput" type="number" value="50"></div>
+							<div class="aio-lib-field"><label>REPS PR. SÆT</label><input class="aio-repsInput" type="number" value="6"></div>
+						</div>
+						<div class="aio-lib-summary"><small>DU GEMMER</small><b class="aio-summaryMain">4 arbejdssæt × 6 reps med 50 kg</b><span class="aio-volume">Samlet volumen: 1.200 kg</span></div>
+						<div class="aio-lib-log-footer"><button class="aio-lib-save">Gem træning ✓</button></div>
+					</div>
+				</article>
+
+				<article class="aio-lib-exercise" data-name="Shoulder press" data-cat="Skuldre" data-weight="25" data-reps="10">
+					<div class="aio-lib-exercise-head">
+						<div>
+							<div class="aio-lib-media"><span class="aio-lib-number">04</span><div class="aio-lib-figure">💪</div></div>
+							<div class="aio-lib-media-actions"><button type="button" onclick="aioOpenMedia('capture')">▣ Tag foto/video</button><button type="button" onclick="aioOpenMedia('photo')">▧ Vælg foto</button><button type="button" onclick="aioOpenMedia('video')">▣ Vælg video</button></div>
+						</div>
+						<div>
+							<span class="aio-lib-badge">SKULDRE</span><h3>Shoulder press</h3><div class="aio-lib-last">SENEST REGISTRERET</div>
+							<div class="aio-lib-quick"><div class="aio-lib-q weight"><b>25 kg</b><span>Vægt</span></div><div class="aio-lib-q"><b>10 reps</b><span>pr. sæt</span></div><div class="aio-lib-q"><b>3</b><span>arbejdssæt</span></div></div>
+						</div>
+						<div><button class="aio-lib-done">✓</button><br><button class="aio-lib-delete">Slet</button></div>
+					</div>
+					<div class="aio-lib-log">
+						<div class="aio-lib-log-head"><div><div class="aio-lib-log-kicker">REGISTRER TRÆNING</div><h4>Hvad gennemførte du?</h4><p>Én registrering gemmer hele øvelsen fra denne træning.</p></div></div>
+						<div class="aio-lib-fields">
+							<div class="aio-lib-field"><label>ØVELSESNAVN</label><input value="Shoulder press"></div>
+							<div class="aio-lib-field"><label>KATEGORI</label><select><option>Skuldre</option><option>Ben</option><option>Bryst</option><option>Ryg</option><option>Arme</option></select></div>
+							<div class="aio-lib-field"><label>VÆGT (KG)</label><input class="aio-weightInput" type="number" value="25"></div>
+							<div class="aio-lib-field"><label>REPS PR. SÆT</label><input class="aio-repsInput" type="number" value="10"></div>
+						</div>
+						<div class="aio-lib-summary"><small>DU GEMMER</small><b class="aio-summaryMain">3 arbejdssæt × 10 reps med 25 kg</b><span class="aio-volume">Samlet volumen: 750 kg</span></div>
+						<div class="aio-lib-log-footer"><button class="aio-lib-save">Gem træning ✓</button></div>
+					</div>
+				</article>
+
+				<article class="aio-lib-exercise" data-name="Dumbbell curls" data-cat="Arme" data-weight="15" data-reps="12">
+					<div class="aio-lib-exercise-head">
+						<div>
+							<div class="aio-lib-media"><span class="aio-lib-number">05</span><div class="aio-lib-figure">🏋️‍♂️</div></div>
+							<div class="aio-lib-media-actions"><button type="button" onclick="aioOpenMedia('capture')">▣ Tag foto/video</button><button type="button" onclick="aioOpenMedia('photo')">▧ Vælg foto</button><button type="button" onclick="aioOpenMedia('video')">▣ Vælg video</button></div>
+						</div>
+						<div>
+							<span class="aio-lib-badge">ARME</span><h3>Dumbbell curls</h3><div class="aio-lib-last">SENEST REGISTRERET</div>
+							<div class="aio-lib-quick"><div class="aio-lib-q weight"><b>15 kg</b><span>Vægt</span></div><div class="aio-lib-q"><b>12 reps</b><span>pr. sæt</span></div><div class="aio-lib-q"><b>3</b><span>arbejdssæt</span></div></div>
+						</div>
+						<div><button class="aio-lib-done">✓</button><br><button class="aio-lib-delete">Slet</button></div>
+					</div>
+					<div class="aio-lib-log">
+						<div class="aio-lib-log-head"><div><div class="aio-lib-log-kicker">REGISTRER TRÆNING</div><h4>Hvad gennemførte du?</h4><p>Én registrering gemmer hele øvelsen fra denne træning.</p></div></div>
+						<div class="aio-lib-fields">
+							<div class="aio-lib-field"><label>ØVELSESNAVN</label><input value="Dumbbell curls"></div>
+							<div class="aio-lib-field"><label>KATEGORI</label><select><option>Arme</option><option>Ben</option><option>Bryst</option><option>Ryg</option><option>Skuldre</option></select></div>
+							<div class="aio-lib-field"><label>VÆGT (KG)</label><input class="aio-weightInput" type="number" value="15"></div>
+							<div class="aio-lib-field"><label>REPS PR. SÆT</label><input class="aio-repsInput" type="number" value="12"></div>
+						</div>
+						<div class="aio-lib-summary"><small>DU GEMMER</small><b class="aio-summaryMain">3 arbejdssæt × 12 reps med 15 kg</b><span class="aio-volume">Samlet volumen: 540 kg</span></div>
+						<div class="aio-lib-log-footer"><button class="aio-lib-save">Gem træning ✓</button></div>
+					</div>
+				</article>
+			</div>
+
+			<div class="aio-lib-form-grid">
+				<input id="aioCustomExerciseName" type="text" list="aioExerciseOptions" placeholder="Skriv egen øvelse" aria-label="Skriv egen øvelse">
+				<select id="aioNewExerciseSelect"><option value="">Vælg ny øvelse</option></select>
+				<button id="aioAddExercise" type="button">Tilføj øvelse +</button>
+			</div>
+			<datalist id="aioExerciseOptions"></datalist>
+
+			<div id="aioTrainingPicker">
+				<button type="button" data-days="1">1</button>
+				<button type="button" data-days="2">2</button>
+				<button type="button" data-days="3" class="selected">3</button>
+				<button type="button" data-days="4">4</button>
+				<button type="button" data-days="5">5</button>
+				<button type="button" data-days="6">6</button>
+				<button type="button" data-days="7">7</button>
+			</div>
+			<span id="aioTrainingValue">3 træninger om ugen</span>
+			<p id="aioTrainingTip">God balance mellem fremgang og restitution.</p>
+
+			<div style="margin-top: 20px;">
+				<button id="aioLibPrevWeek" type="button">&lt;</button>
+				<span id="aioLibWeekLabel">Uge 1</span>
+				<button id="aioLibNextWeek" type="button">&gt;</button>
+			</div>
+
+			<div id="aioMediaModal" class="aio-lib-media-modal" onclick="if(event.target===this) aioCloseMedia()">
+				<div class="aio-lib-media-dialog">
+					<h3 id="aioMediaTitle">Tilføj billede/video</h3>
+					<p id="aioMediaText">Vælg hvordan du vil tilføje medie til øvelsen. Log-boksen nedenunder bliver helt urørt.</p>
+					<div class="aio-lib-media-choice">
+						<button type="button" onclick="aioChooseMedia('photo')">📷 Vælg foto</button>
+						<button type="button" onclick="aioChooseMedia('video')">🎥 Vælg video</button>
+					</div>
+					<div id="aioMediaStatus" class="aio-lib-media-status"></div>
+					<button type="button" class="aio-lib-media-close" onclick="aioCloseMedia()">Luk</button>
+				</div>
+			</div>
+			<input id="aioPhotoInput" type="file" accept="image/*" style="display:none">
+			<input id="aioVideoInput" type="file" accept="video/*" style="display:none">
+			</section>
 		</main>
 	</div>
 	<nav class="pro-home-bottom-nav" id="proHomeBottomNav" hidden aria-label="Hovednavigation">
@@ -197,7 +479,7 @@
 		<button type="button" data-category-target="#profile"><span aria-hidden="true">◌</span>Profile</button>
 	</nav>
 	<div id="toast" role="status"></div>
-	<script src="app.js?v=20260902-kcal-sync-1"></script>
+	<script src="app.js?v=20260905-progression-status-2"></script>
 	<script type="module" src="physique-3d.js?v=20260830-physique-progress-15"></script>
 	<script>
 		(() => {

@@ -26,7 +26,7 @@ def load_env_file(path: Path):
             continue
         key, value = [part.strip() for part in line.split('=', 1)]
         if key:
-            os.environ[key] = value.strip('"\'')
+            os.environ.setdefault(key, value.strip('"\''))
 
 
 load_env_file(ROOT / os.environ.get('ENV_FILE', '.env'))
