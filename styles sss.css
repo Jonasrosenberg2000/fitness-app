@@ -15652,6 +15652,27 @@ body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="tr
 }
 
 @media (max-width: 700px) {
+	html,
+	body {
+		height: auto !important;
+		min-height: 100% !important;
+		overflow-x: hidden !important;
+		overflow-y: auto !important;
+	}
+
+	body.app-single-page .app-shell {
+		height: auto !important;
+		min-height: 100dvh !important;
+		overflow: visible !important;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode {
+		height: auto !important;
+		min-height: 100dvh !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
+
 	body.app-single-page .app-shell .sidebar {
 		display: block !important;
 		position: fixed !important;
@@ -15745,4 +15766,19 @@ body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="ov
 
 body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > #proHome {
 	display: flex !important;
+}
+
+@media (max-width: 700px) {
+	body.app-single-page .app-shell {
+		height: auto !important;
+		min-height: 100dvh !important;
+		overflow: visible !important;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode {
+		height: auto !important;
+		min-height: 100dvh !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
 }
