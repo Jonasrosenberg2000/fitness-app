@@ -15770,15 +15770,38 @@ body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="ov
 
 @media (max-width: 700px) {
 	body.app-single-page .app-shell {
-		height: auto !important;
+		height: 100dvh !important;
 		min-height: 100dvh !important;
-		overflow: visible !important;
+		overflow: hidden !important;
 	}
 
 	body.app-single-page .app-shell .content.app-pages-mode {
+		height: 100dvh !important;
+		min-height: 0 !important;
+		max-height: 100dvh !important;
+		overflow-x: hidden !important;
+		overflow-y: auto !important;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode > [data-app-page]:not([hidden]) {
 		height: auto !important;
-		min-height: 100dvh !important;
+		min-height: 0 !important;
 		max-height: none !important;
 		overflow: visible !important;
+	}
+
+	body.app-single-page .app-shell {
+		height: 100dvh !important;
+		min-height: 100dvh !important;
+		overflow: hidden !important;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode {
+		height: 100dvh !important;
+		min-height: 0 !important;
+		max-height: 100dvh !important;
+		overflow-x: hidden !important;
+		overflow-y: auto !important;
 	}
 }

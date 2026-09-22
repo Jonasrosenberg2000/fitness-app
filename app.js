@@ -6865,6 +6865,14 @@ if (appContent) {
     if (selectedPage === 'pro' && updateHash) proStartWasAutomatic = false;
     appContent.dataset.activeAppPage = visiblePage;
     appContent.classList.add('app-pages-mode');
+    if (window.matchMedia('(max-width: 700px)').matches) {
+      document.querySelector('.app-shell')?.style.setProperty('height', '100dvh', 'important');
+      document.querySelector('.app-shell')?.style.setProperty('overflow', 'hidden', 'important');
+      appContent.style.setProperty('height', '100dvh', 'important');
+      appContent.style.setProperty('max-height', '100dvh', 'important');
+      appContent.style.setProperty('overflow-y', 'auto', 'important');
+      appContent.style.setProperty('overflow-x', 'hidden', 'important');
+    }
     document.body.classList.toggle('app-overview-active', renderedPage === 'overview' && !hasFullAppAccess());
     document.body.classList.toggle('app-paid-overview-active', selectedPage === 'overview' && hasFullAppAccess());
     document.body.classList.toggle('app-pro-active', selectedPage === 'pro');
