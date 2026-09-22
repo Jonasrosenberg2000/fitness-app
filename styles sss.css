@@ -6471,12 +6471,18 @@ body.has-pro-access .nav-pro-access {
 	display: none;
 }
 
-body.has-pro-access .welcome,
 body.has-pro-access .hero-grid,
 body.has-pro-access .workout-flow,
-body.has-pro-access .backup-bar,
-body.has-pro-access .overview-categories:not(.pro-overview-categories):not(.training-overview-categories) {
+body.has-pro-access .backup-bar {
 	display: none !important;
+}
+
+body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .welcome,
+body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .daily-quick-actions,
+body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .daily-focus-card,
+body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .coach-panel,
+body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .overview-categories {
+	display: block !important;
 }
 
 html body.has-pro-access .app-shell #progress,
@@ -15576,7 +15582,8 @@ body .app-shell #library .aio-lib-save.saved {
 	body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .welcome:not([hidden]),
 	body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .daily-quick-actions:not([hidden]),
 	body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .daily-focus-card:not([hidden]),
-	body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .coach-panel:not([hidden]) {
+	body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .coach-panel:not([hidden]),
+	body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .overview-categories:not([hidden]) {
 		display: block !important;
 		height: auto !important;
 		max-height: none !important;

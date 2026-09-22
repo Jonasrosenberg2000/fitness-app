@@ -6839,7 +6839,7 @@ if (document.readyState === 'loading') {
 }
 
 const appPageTargets = {
-  overview: ['.welcome', '.daily-quick-actions', '.daily-focus-card', '.coach-panel'],
+  overview: ['.welcome', '.daily-quick-actions', '.daily-focus-card', '.coach-panel', '.overview-categories'],
   training: ['#workout', '.training-overview-categories', '#library'],
   food: ['#food'],
   coach: ['.coach-panel'],
@@ -6912,8 +6912,9 @@ if (appContent) {
       if (isVisiblePage && element.parentElement === appContent) element.scrollTop = 0;
     });
     if (selectedPage === 'overview') {
-      appContent.querySelectorAll('.welcome, .daily-quick-actions, .daily-focus-card, .coach-panel').forEach((element) => {
+      appContent.querySelectorAll('.welcome, .daily-quick-actions, .daily-focus-card, .coach-panel, .overview-categories').forEach((element) => {
         element.hidden = false;
+        element.style.setProperty('display', 'block', 'important');
       });
     }
     document.querySelectorAll('.nav-link[data-app-page-target]').forEach((link) => {
