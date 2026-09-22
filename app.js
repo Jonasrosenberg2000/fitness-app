@@ -6839,7 +6839,7 @@ if (document.readyState === 'loading') {
 }
 
 const appPageTargets = {
-  overview: ['#proHome'],
+  overview: ['.welcome', '.daily-quick-actions', '.daily-focus-card', '.coach-panel'],
   training: ['#workout', '.training-overview-categories', '#library'],
   food: ['#food'],
   coach: ['.coach-panel'],
@@ -6911,6 +6911,11 @@ if (appContent) {
       element.hidden = !isVisiblePage && !isLandingSection;
       if (isVisiblePage && element.parentElement === appContent) element.scrollTop = 0;
     });
+    if (selectedPage === 'overview') {
+      appContent.querySelectorAll('.welcome, .daily-quick-actions, .daily-focus-card, .coach-panel').forEach((element) => {
+        element.hidden = false;
+      });
+    }
     document.querySelectorAll('.nav-link[data-app-page-target]').forEach((link) => {
       const target = link.dataset.appPageTarget === 'overview' ? resolveLandingPage() : link.dataset.appPageTarget;
       link.classList.toggle('active', target === visiblePage);
