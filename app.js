@@ -6845,7 +6845,7 @@ const appPageTargets = {
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
-  progress: ['#progress', '#proProgress'],
+  progress: ['#progress', '#proProgress', '.training-progress-panel'],
   physique: ['#physique-ai'],
   pro: ['#proAccessDialog']
 };
@@ -6857,7 +6857,7 @@ if (appContent) {
   document.body.classList.add('app-single-page');
   [...appContent.children].forEach((element) => {
     if (element.id === 'mealOverviewModal' || element.classList.contains('topbar')) return;
-    element.dataset.appPage = 'inactive';
+    element.dataset.appPage = element.id === 'proHome' ? 'inactive' : 'overview';
   });
 
   Object.entries(appPageTargets).forEach(([pageName, selectors]) => {
