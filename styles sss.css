@@ -15651,6 +15651,64 @@ body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="tr
 	overflow: visible !important;
 }
 
+@media (max-width: 700px) {
+	body.app-single-page .app-shell .sidebar {
+		display: block !important;
+		position: fixed !important;
+		inset: auto 0 0 0 !important;
+		z-index: 200 !important;
+		width: 100% !important;
+		height: auto !important;
+		min-height: 0 !important;
+		padding: 6px 8px max(6px, env(safe-area-inset-bottom)) !important;
+		border: 0 !important;
+		background: rgba(3, 10, 19, .98) !important;
+		box-shadow: 0 -8px 24px rgba(0, 0, 0, .35) !important;
+		overflow: visible !important;
+	}
+
+	body.app-single-page .app-shell .sidebar .brand-wrap,
+	body.app-single-page .app-shell .sidebar .sidebar-bottom {
+		display: none !important;
+	}
+
+	body.app-single-page .app-shell .sidebar nav {
+		display: grid !important;
+		grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+		gap: 4px !important;
+		width: 100% !important;
+		height: auto !important;
+	}
+
+	body.app-single-page .app-shell .sidebar .nav-link {
+		display: grid !important;
+		grid-template-columns: 18px minmax(0, 1fr) !important;
+		align-items: center !important;
+		justify-items: start !important;
+		gap: 3px !important;
+		min-width: 0 !important;
+		min-height: 31px !important;
+		padding: 4px 5px !important;
+		border: 1px solid rgba(255, 255, 255, .12) !important;
+		border-radius: 6px !important;
+		background: rgba(12, 24, 39, .95) !important;
+		font-size: 9px !important;
+		line-height: 1.1 !important;
+		white-space: normal !important;
+	}
+
+	body.app-single-page .app-shell .sidebar .nav-link b {
+		width: 18px !important;
+		margin: 0 !important;
+		font-size: 12px !important;
+		text-align: center !important;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode {
+		padding-bottom: 132px !important;
+	}
+}
+
 body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > [data-app-page]:not([hidden]) {
 	display: block !important;
 	height: auto !important;
