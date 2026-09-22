@@ -1767,6 +1767,10 @@ async function askLocalCoach(question, selectedImages = null) {
     openProAccess();
     return '';
   }
+  if (/\bkcal\b|kalori/i.test(question)) {
+    coachStatus.textContent = 'AI svarer ud fra dine kcal-data';
+    return answerCoach(question);
+  }
   coachStatus.textContent = 'Lokal AI tænker...';
   const physiqueQuestion = /fysik|billede|foto|krop/i.test(question);
   const physiquePhotos = [...JSON.parse(localStorage.getItem('formlyWeightHistory') || '[]')]
@@ -2452,28 +2456,28 @@ physiqueAiPanel.innerHTML = `
   <section class="aio-section"><div class="aio-title"><h3>◈ Detaljeret Body Scan</h3><span class="aio-muted">Upload dine 4 vinkler</span></div>
     <div class="aio-views">
       <label class="physique-angle-card aio-view" data-angle="front">
-        <input id="physiquePhotoInput" type="file" accept="image/*" capture="environment">
+        <input id="physiquePhotoInput" type="file" accept="image/*">
         <h4>FRONT</h4>
         <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiquePreview" alt="Frontfoto til fysik AI" hidden></div>
         <small>Bryst · Skuldre · Arme · Mave</small>
         <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
       </label>
       <label class="physique-angle-card aio-view" data-angle="right">
-        <input id="physiqueRightPhotoInput" type="file" accept="image/*" capture="environment">
+        <input id="physiqueRightPhotoInput" type="file" accept="image/*">
         <h4>HØJRE SIDE</h4>
         <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiqueRightPreview" alt="Højre sidefoto til fysik AI" hidden></div>
         <small>Skuldre · Bryst · Arm · Core</small>
         <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
       </label>
       <label class="physique-angle-card aio-view" data-angle="left">
-        <input id="physiqueLeftSidePhotoInput" type="file" accept="image/*" capture="environment">
+        <input id="physiqueLeftSidePhotoInput" type="file" accept="image/*">
         <h4>VENSTRE SIDE</h4>
         <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiqueLeftSidePreview" alt="Venstre sidefoto til fysik AI" hidden></div>
         <small>Skuldre · Bryst · Arm · Core</small>
         <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
       </label>
       <label class="physique-angle-card aio-view" data-angle="back">
-        <input id="physiqueLeftPhotoInput" type="file" accept="image/*" capture="environment">
+        <input id="physiqueLeftPhotoInput" type="file" accept="image/*">
         <h4>RYG</h4>
         <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiqueLeftPreview" alt="Rygfoto til fysik AI" hidden></div>
         <small>Ryg · Skuldre · Lænd · Arme</small>
