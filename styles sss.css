@@ -7,7 +7,6 @@
 	--accent: #2cc8ff;
 }
 
-
 .pro-home {
 	--ph-border: #252532;
 }
@@ -15599,4 +15598,49 @@ body .app-shell #library .aio-lib-save.saved {
 		top: 12px !important;
 		left: 10px !important;
 	}
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] {
+	height: auto !important;
+	min-height: 100vh;
+	max-height: none !important;
+	overflow-y: auto !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > [data-app-page]:not([hidden]) {
+	display: block !important;
+	height: auto !important;
+	min-height: 0 !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .welcome {
+	position: relative !important;
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 70px 0 42px !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .welcome > div {
+	position: static !important;
+	transform: none !important;
+	white-space: normal !important;
+	text-align: left !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .welcome .streak {
+	position: static !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .welcome,
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .daily-quick-actions,
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .daily-focus-card,
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .coach-panel,
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > .overview-categories {
+	display: none !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > #proHome {
+	display: flex !important;
 }

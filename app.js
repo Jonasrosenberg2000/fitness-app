@@ -6838,13 +6838,13 @@ if (document.readyState === 'loading') {
 }
 
 const appPageTargets = {
-  overview: ['.welcome', '.daily-quick-actions', '.daily-focus-card', '.coach-panel', '.overview-categories'],
+  overview: ['#proHome'],
   training: ['#workout', '.training-overview-categories', '#library'],
   food: ['#food'],
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
-  progress: ['#progress', '#proProgress', '.training-progress-panel'],
+  progress: ['#proProgress'],
   physique: ['#physique-ai'],
   pro: ['#proAccessDialog']
 };
@@ -6910,12 +6910,6 @@ if (appContent) {
       element.hidden = !isVisiblePage && !isLandingSection;
       if (isVisiblePage && element.parentElement === appContent) element.scrollTop = 0;
     });
-    if (selectedPage === 'overview') {
-      appContent.querySelectorAll('.welcome, .daily-quick-actions, .daily-focus-card, .coach-panel, .overview-categories').forEach((element) => {
-        element.hidden = false;
-        element.style.setProperty('display', 'block', 'important');
-      });
-    }
     document.querySelectorAll('.nav-link[data-app-page-target]').forEach((link) => {
       const target = link.dataset.appPageTarget === 'overview' ? resolveLandingPage() : link.dataset.appPageTarget;
       link.classList.toggle('active', target === visiblePage);
@@ -6936,12 +6930,13 @@ if (appContent) {
     });
   });
 
-  const initialPage = window.location.hash.slice(1) === 'library' ? 'training' : window.location.hash.slice(1);
+  const resolveHashPage = (hash) => ({ library: 'training', workout: 'training', 'physique-ai': 'physique' }[hash] || hash);
+  const initialPage = resolveHashPage(window.location.hash.slice(1));
   const homePage = resolveLandingPage();
   showAppPage(appPageTargets[initialPage] ? initialPage : homePage, false);
   window.showAppPage = showAppPage;
   window.addEventListener('hashchange', () => {
-    const hashPage = window.location.hash.slice(1) === 'library' ? 'training' : window.location.hash.slice(1);
+    const hashPage = resolveHashPage(window.location.hash.slice(1));
     if (appPageTargets[hashPage]) showAppPage(hashPage, false);
   });
   if (pendingAccountLandingPage) {
