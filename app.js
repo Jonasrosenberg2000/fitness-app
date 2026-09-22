@@ -1,7 +1,7 @@
 const toast = document.querySelector('#toast');
 const programExercisesKey = 'formlyProgramExercises';
 const exerciseImageRegistryKey = 'formlyExerciseImageRegistry';
-const APP_OPEN_ACCESS = false;
+const APP_OPEN_ACCESS = true;
 let selectedHomePhotoIndex = -1;
 let selectedProgressPhotoIndex = -1;
 const boundSaveButtons = new WeakSet();
