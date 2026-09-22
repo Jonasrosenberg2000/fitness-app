@@ -4089,6 +4089,24 @@ body .app-shell .profile-result-panel {
 	scroll-behavior: auto;
 }
 
+.content.app-pages-mode > [data-app-page="inactive"][hidden],
+.content.app-pages-mode > [data-app-page][hidden] {
+	display: none !important;
+}
+
+.content.app-pages-mode > [data-app-page]:not([hidden]) {
+	display: block !important;
+	box-sizing: border-box;
+	width: 100%;
+	height: calc(100vh - 24px);
+	max-height: calc(100vh - 24px);
+	margin: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
 .app-page-back {
 	position: fixed;
 	z-index: 20;
@@ -4267,12 +4285,6 @@ body.app-single-page::before {
 	to { filter: hue-rotate(360deg); }
 }
 
-.content.app-pages-mode > [data-app-page]:not([hidden]) {
-	max-height: calc(100vh - 20px);
-	overflow-y: auto;
-	overscroll-behavior: contain;
-}
-
 .content.app-pages-mode > [data-app-page] {
 	animation: app-page-in 180ms ease-out;
 }
@@ -4283,14 +4295,15 @@ body.app-single-page::before {
 
 /* Oversigten stabler mange sektioner over hinanden og skal derfor scrolle som en normal side, ikke klippes til 100vh. */
 .content.app-pages-mode[data-active-app-page="overview"] {
-	height: auto;
+	height: 100vh;
 	min-height: 100vh;
-	overflow: visible;
+	overflow: hidden;
 }
 
 .content.app-pages-mode[data-active-app-page="overview"] > [data-app-page]:not([hidden]) {
-	max-height: none;
-	overflow: visible;
+	height: calc(100vh - 24px);
+	max-height: calc(100vh - 24px);
+	overflow-y: auto;
 }
 
 .content.app-pages-mode[data-active-app-page="overview"] .hero-grid,
@@ -15488,4 +15501,83 @@ body .app-shell #library .aio-lib-save.saved {
 	border: 1px solid #7bffb3 !important;
 	color: #032016 !important;
 	box-shadow: 0 0 30px rgba(53, 239, 145, .55), inset 0 0 12px rgba(255, 255, 255, .25) !important;
+}
+
+@media (max-width: 700px) {
+	html,
+	body {
+		height: 100%;
+		min-height: 100%;
+		overflow: hidden !important;
+	}
+
+	body.app-single-page .app-shell {
+		height: 100dvh;
+		min-height: 100dvh;
+		overflow: hidden !important;
+	}
+
+	body.app-single-page .app-shell .sidebar {
+		height: auto !important;
+		min-height: 0 !important;
+		padding: 6px 8px max(6px, env(safe-area-inset-bottom)) !important;
+	}
+
+	body.app-single-page .app-shell .sidebar nav {
+		display: grid !important;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 2px 4px !important;
+		width: 100%;
+	}
+
+	body.app-single-page .app-shell .sidebar .nav-link {
+		display: grid !important;
+		grid-template-columns: 22px minmax(0, 1fr);
+		align-items: center;
+		justify-items: start;
+		gap: 4px;
+		min-height: 32px;
+		padding: 4px 5px !important;
+		font-size: 9px !important;
+		line-height: 1.1;
+		text-align: left;
+	}
+
+	body.app-single-page .app-shell .sidebar .nav-link b {
+		width: 22px;
+		font-size: 14px !important;
+		text-align: center;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode {
+		height: 100dvh !important;
+		min-height: 0 !important;
+		padding: 64px 10px 112px !important;
+		overflow: hidden !important;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode > [data-app-page] {
+		display: none !important;
+		height: 100% !important;
+		max-height: none !important;
+		min-height: 0 !important;
+		margin: 0 !important;
+		overflow-x: hidden !important;
+		overflow-y: auto !important;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode > [data-app-page]:not([hidden]) {
+		display: block !important;
+	}
+
+	body.app-single-page .app-shell .content.app-pages-mode > [data-app-page][hidden] {
+		display: none !important;
+	}
+
+	body.app-single-page .app-page-back {
+		top: 12px !important;
+		left: 10px !important;
+	}
 }
