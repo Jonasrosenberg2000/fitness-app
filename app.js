@@ -1,7 +1,7 @@
 const toast = document.querySelector('#toast');
 const programExercisesKey = 'formlyProgramExercises';
 const exerciseImageRegistryKey = 'formlyExerciseImageRegistry';
-const APP_OPEN_ACCESS = true;
+const APP_OPEN_ACCESS = false;
 let selectedHomePhotoIndex = -1;
 let selectedProgressPhotoIndex = -1;
 const boundSaveButtons = new WeakSet();
@@ -726,51 +726,50 @@ proAccessDialog.innerHTML = `
       </header>
       <div class="pro-demo-player" data-demo-scene="physique">
         <div class="pro-demo-scene pro-demo-scene-physique" data-demo-panel="physique">
-          <div class="pro-demo-appbar"><b>TOOLNOVA</b><span>RANGE OF MOTION ANALYTICS</span><i>LIVE</i></div>
+          <div class="pro-demo-appbar"><b>AIO FITNESS</b><span>FYSIK AI</span><i>PREVIEW</i></div>
           <div class="pro-demo-analytics-layout">
             <div class="pro-demo-left-panel">
               <div class="pro-demo-patient">
-                <span>PATIENT OVERVIEW</span>
-                <h4>ALEX MORGAN</h4>
-                <small>28 years</small>
+                <span>DIN FYSIK</span>
+                <h4>PERSONLIG ANALYSE</h4>
+                <small>Gemte mål og målinger</small>
               </div>
               <div class="pro-demo-session-summary">
-                <div><span>Duration</span><strong>45 min</strong></div>
-                <div><span>Exercises</span><strong>7</strong></div>
-                <div><span>Calories</span><strong>320 kcal</strong></div>
+                <div><span>Registreret tid</span><strong>–</strong></div>
+                <div><span>Øvelser</span><strong>0</strong></div>
+                <div><span>Kalorier</span><strong>–</strong></div>
               </div>
               <div class="pro-demo-ring">
                 <div class="pro-demo-ring-inner">
-                  <strong>126°</strong>
-                  <small>Current</small>
+                  <strong>–</strong>
+                  <small>Dine data</small>
                 </div>
                 <div class="pro-demo-ring-meta">
-                  <span>Current</span>
-                  <span>Target</span>
+                  <span>Seneste scan</span>
+                  <span>Ingen data</span>
                 </div>
               </div>
             </div>
             <div class="pro-demo-right-panel">
               <div class="pro-demo-topline">
                 <div class="pro-demo-angle-readout">
-                  <span>KNEE FLEXION</span>
-                  <strong>126°</strong>
-                  <em>135°</em>
+                  <span>FYSIK SCORE</span>
+                  <strong>–</strong>
+                  <em>Efter scan</em>
                 </div>
                 <div class="pro-demo-angle-readout accent">
-                  <span>IMPROVEMENT</span>
-                  <strong>+18%</strong>
-                  <em>vs last week</em>
+                  <span>STATUS</span>
+                  <strong>KLAR</strong>
+                  <em>Afventer data</em>
                 </div>
               </div>
               <div class="pro-demo-body-stage">
-                <img class="pro-demo-hologram-photo" src="assets/anatomy-hologram.jpg" alt="Anatomisk hologram af en mand under træning" loading="lazy">
                 <span class="pro-demo-body-stage-label">3D MOVEMENT TRACKING</span>
               </div>
               <div class="pro-demo-metrics-panel">
-                <div><span>Hip flexion</span><strong>98°</strong></div>
-                <div><span>Knee flexion</span><strong>126°</strong></div>
-                <div><span>Ankle dorsiflexion</span><strong>24°</strong></div>
+                <div><span>Front</span><strong>Upload foto</strong></div>
+                <div><span>Side</span><strong>Upload foto</strong></div>
+                <div><span>Ryg</span><strong>Upload foto</strong></div>
               </div>
               <div class="pro-demo-footer-nav" aria-label="Sektioner i dashboardet">
                 <span>DASHBOARD</span>
@@ -783,30 +782,32 @@ proAccessDialog.innerHTML = `
           </div>
         </div>
         <div class="pro-demo-scene pro-demo-scene-coach" data-demo-panel="coach" hidden>
-          <div class="pro-demo-appbar"><b>AIO</b><span>AI-COACH</span><i>ONLINE</i></div>
+          <div class="pro-demo-appbar"><b>AIO</b><span>AI-COACH</span><i>PREVIEW</i></div>
           <div class="pro-demo-chat">
             <p><small>DIT SPØRGSMÅL</small>Hvordan øger jeg min bænkpres uden et ekstra træningspas?</p>
-            <p><small>AI-COACH</small>Behold tre pas. Læg 2,5 kg på dit topsæt og stop med to reps i reserve.</p>
+            <p><small>AI-COACH</small>Dit svar vises her efter du har stillet et spørgsmål.</p>
           </div>
-          <div class="pro-demo-metrics"><span><b>+2,5 kg</b>næste topsæt</span><span><b>2 RIR</b>intensitet</span><span><b>3 pas</b>pr. uge</span></div>
+          <div class="pro-demo-metrics"><span><b>Dine data</b>træning</span><span><b>Dine data</b>kost</span><span><b>Dine data</b>fysik</span></div>
         </div>
         <div class="pro-demo-scene pro-demo-scene-analysis" data-demo-panel="analysis" hidden>
           <div class="pro-demo-appbar"><b>AIO</b><span>FYSIKANALYSE</span><i>KLAR</i></div>
-          <div class="pro-demo-angles"><span>FRONT<i></i></span><span>HØJRE<i></i></span><span>VENSTRE<i></i></span></div>
-          <div class="pro-demo-result"><b>Fokus de næste 4 uger</b><span>Øvre ryg · Skulderkontrol · Symmetri</span></div>
+          <div class="pro-demo-physique-head"><div><small>DIN FYSISKE VURDERING</small><strong>Guld overkrop</strong><span>AI COACH · SOLID PROGRESSION</span></div><b>60<small>/100</small></b></div>
+          <div class="pro-demo-physique-bars"><div><span>Muskelmasse</span><i style="--value:0%"></i><b>–</b></div><div><span>Symmetri</span><i style="--value:0%"></i><b>–</b></div><div><span>Definition</span><i style="--value:0%"></i><b>–</b></div><div><span>Proportioner</span><i style="--value:0%"></i><b>–</b></div></div>
+          <div class="pro-demo-angles"><span>FRONT<i></i></span><span>HØJRE SIDE<i></i></span><span>VENSTRE SIDE<i></i></span><span>RYG<i></i></span></div>
+          <div class="pro-demo-result"><b>Fokus efter din analyse</b><span>Ingen resultater endnu · upload og kør en scan</span></div>
         </div>
         <div class="pro-demo-scene pro-demo-scene-training" data-demo-panel="training" hidden>
-          <div class="pro-demo-appbar"><b>AIO</b><span>DAGENS TRÆNING</span><i>67%</i></div>
-          <div class="pro-demo-workout"><p><span>01</span><b>Bench press</b><small>62,5 kg · 8 reps · 3 sæt</small><i>✓</i></p><p><span>02</span><b>Barbell row</b><small>55 kg · 10 reps · 3 sæt</small><i>✓</i></p><p><span>03</span><b>Shoulder press</b><small>32,5 kg · 8 reps · 3 sæt</small><i></i></p></div>
+          <div class="pro-demo-appbar"><b>AIO</b><span>DAGENS TRÆNING</span><i>DIN LOG</i></div>
+          <div class="pro-demo-workout"><p><span>01</span><b>Øvelse</b><small>Vægt · reps · sæt</small><i></i></p><p><span>02</span><b>Øvelse</b><small>Vægt · reps · sæt</small><i></i></p><p><span>03</span><b>Øvelse</b><small>Log træning for at se data</small><i></i></p></div>
         </div>
         <div class="pro-demo-scene pro-demo-scene-progress" data-demo-panel="progress" hidden>
-          <div class="pro-demo-appbar"><b>AIO</b><span>DIN UDVIKLING</span><i>+12%</i></div>
-          <div class="pro-demo-chart" aria-hidden="true"><i style="--value:34%"></i><i style="--value:43%"></i><i style="--value:48%"></i><i style="--value:60%"></i><i style="--value:72%"></i><i style="--value:88%"></i></div>
-          <div class="pro-demo-metrics"><span><b>82,5 kg</b>bedste 1RM</span><span><b>+8,5 kg</b>siden start</span><span><b>12 uger</b>registreret</span></div>
+          <div class="pro-demo-appbar"><b>AIO</b><span>DIN UDVIKLING</span><i>DINE DATA</i></div>
+          <div class="pro-demo-chart" aria-label="Din progression efter loggede målinger"></div>
+          <div class="pro-demo-metrics"><span><b>–</b>bedste 1RM</span><span><b>–</b>siden start</span><span><b>–</b>uger registreret</span></div>
         </div>
         <div class="pro-demo-scene pro-demo-scene-food" data-demo-panel="food" hidden>
           <div class="pro-demo-appbar"><b>AIO</b><span>MAD & KCal</span><i>I DAG</i></div>
-          <div class="pro-demo-food"><div><strong>1.842</strong><small>af 2.200 kcal</small></div><p><span style="--fill:78%"><b>156 g</b>Protein</span><span style="--fill:64%"><b>210 g</b>Kulhydrat</span><span style="--fill:52%"><b>58 g</b>Fedt</span></p></div>
+          <div class="pro-demo-food"><div><strong>0</strong><small>Registrér dagens mad</small></div><p><span style="--fill:0%"><b>0 g</b>Protein</span><span style="--fill:0%"><b>0 g</b>Kulhydrat</span><span style="--fill:0%"><b>0 g</b>Fedt</span></p></div>
         </div>
       </div>
       <p id="proDemoCaption" class="pro-demo-caption">Se den levende 3D-krop fremhæve de muskelgrupper, din analyse finder.</p>
@@ -940,7 +941,7 @@ function announceLatestProDrop(hasOnlineAccess) {
 renderProMonthlyNews();
 
 const proDemoScenes = [
-  { key: 'physique', eyebrow: 'INTERAKTIV 3D', title: 'Se din udvikling fra alle vinkler', caption: 'Se den levende 3D-krop fremhæve de muskelgrupper, din analyse finder.' },
+  { key: 'physique', eyebrow: 'FYSIK AI PREVIEW', title: 'Se hvordan din analyse fungerer', caption: 'Upload dine egne billeder og mål for at få en personlig analyse. Demoen viser kun funktionerne, ikke et lovet resultat.' },
   { key: 'coach', eyebrow: 'PERSONLIG AI-COACH', title: 'Få et konkret næste skridt', caption: 'AI-coachen bruger dine mål, træningspas og registreringer til et personligt svar.' },
   { key: 'analysis', eyebrow: '4-VINKELS ANALYSE', title: 'Gør billeder til et træningsfokus', caption: 'Front, højre side, venstre side og ryg samles i synlige prioriteter og en praktisk plan.' },
   { key: 'training', eyebrow: 'TRÆNINGSLOG', title: 'Registrér hvert arbejdssæt', caption: 'Vægt, reps og sæt samles i én rolig træningsoversigt.' },
@@ -950,6 +951,48 @@ const proDemoScenes = [
 let proDemoIndex = 0;
 let proDemoPaused = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let proDemoTimer = null;
+
+function updateProDemoFromAppData() {
+  const setText = (selector, value) => {
+    const element = proAccessDialog.querySelector(selector);
+    if (element && value !== undefined && value !== null) element.textContent = String(value);
+  };
+  const workoutRows = [...document.querySelectorAll('#exerciseList .exercise-row')].slice(0, 3);
+  proAccessDialog.querySelectorAll('.pro-demo-workout p').forEach((item, index) => {
+    const row = workoutRows[index];
+    item.querySelector('b').textContent = row?.querySelector('h3')?.textContent?.trim() || 'Ingen øvelse logget';
+    item.querySelector('small').textContent = row?.querySelector('.exercise-info p')?.textContent?.trim() || 'Log vægt, reps og sæt i Træning';
+    item.querySelector('i').textContent = row?.classList.contains('completed') ? '✓' : '';
+  });
+  const workoutLogEntries = JSON.parse(localStorage.getItem('formlyWorkoutLog') || '[]');
+  setText('.pro-demo-scene-training .pro-demo-appbar i', workoutLogEntries.length ? `${workoutLogEntries.length} LOG` : 'INGEN LOG');
+  const foodTotal = document.querySelector('#foodTotalBig')?.textContent?.trim() || '0';
+  const foodTarget = document.querySelector('#foodTarget')?.textContent?.trim() || '0 kcal';
+  const foodScene = proAccessDialog.querySelector('.pro-demo-scene-food');
+  if (foodScene) {
+    foodScene.querySelector('strong').textContent = foodTotal;
+    foodScene.querySelector('small').textContent = `af ${foodTarget}`;
+    const macroValues = [
+      document.querySelector('#proteinProgressText')?.textContent?.trim() || '0 g',
+      document.querySelector('#carbsProgressText')?.textContent?.trim() || '0 g',
+      document.querySelector('#fatProgressText')?.textContent?.trim() || '0 g'
+    ];
+    foodScene.querySelectorAll('p span b').forEach((element, index) => { element.textContent = macroValues[index] || '0 g'; });
+    foodScene.querySelector('.pro-demo-appbar i').textContent = foodTotal === '0' ? 'INGEN DATA' : 'I DAG';
+  }
+  setText('.pro-demo-scene-progress .pro-demo-metrics span:nth-child(1) b', document.querySelector('#proProgressWeight')?.textContent || '– kg');
+  setText('.pro-demo-scene-progress .pro-demo-metrics span:nth-child(2) b', document.querySelector('#proProgressWeightDelta')?.textContent || 'Ingen trend');
+  setText('.pro-demo-scene-progress .pro-demo-metrics span:nth-child(3) b', document.querySelector('#proProgressWeeksLeft')?.textContent || '– uger');
+  setText('.pro-demo-scene-progress .pro-demo-appbar i', document.querySelector('#proProgressScore')?.textContent ? 'DIN SCORE' : 'INGEN DATA');
+  const physiqueScore = document.querySelector('#physiqueScore')?.textContent?.trim();
+  const physiqueGrade = document.querySelector('#physiqueGrade')?.textContent?.trim();
+  setText('.pro-demo-scene-analysis .pro-demo-physique-head > b', physiqueScore && physiqueScore !== '0' ? physiqueScore : '–');
+  setText('.pro-demo-scene-analysis .pro-demo-physique-head > b small', physiqueScore && physiqueScore !== '0' ? '/100' : 'EFTER SCAN');
+  setText('.pro-demo-scene-analysis .pro-demo-physique-head strong', physiqueGrade || 'Venter på scan');
+  setText('.pro-demo-scene-analysis .pro-demo-result span', document.querySelector('#physiquePriorities')?.textContent?.trim() || 'Ingen fokusområder endnu · kør en fysik AI-scan.');
+  setText('.pro-demo-scene-coach .pro-demo-chat p:nth-child(2)', document.querySelector('#coachAnswer')?.textContent || 'Ingen Coach-svar endnu · stil dit første spørgsmål.');
+  setText('.pro-demo-scene-coach .pro-demo-appbar i', document.querySelector('#coachAnswer')?.textContent ? 'DIT SVAR' : 'KLAR');
+}
 
 function renderProDemo(index, restart = true) {
   proDemoIndex = (index + proDemoScenes.length) % proDemoScenes.length;
@@ -964,6 +1007,7 @@ function renderProDemo(index, restart = true) {
   proDemoEyebrow.textContent = scene.eyebrow;
   proDemoTitle.textContent = scene.title;
   proDemoCaption.textContent = scene.caption;
+  updateProDemoFromAppData();
   proDemoProgress.classList.remove('is-running');
   void proDemoProgress.offsetWidth;
   if (!proDemoPaused) proDemoProgress.classList.add('is-running');
@@ -1599,20 +1643,7 @@ async function updateAiProviderStatus() {
 }
 
 updateAiProviderStatus();
-const overviewQuickLinks = document.createElement('nav');
-overviewQuickLinks.className = 'overview-quick-links';
-overviewQuickLinks.setAttribute('aria-label', 'Hurtige genveje');
-overviewQuickLinks.innerHTML = '<button type="button" data-quick-target="#food"><span>◒</span>Mad Tracker</button><button type="button" data-quick-target=".coach-panel"><span>AI</span>AI-coach</button><button type="button" data-quick-target=".profile-section"><span>◌</span>Kcal-mål</button><button type="button" data-quick-target="#library"><span>▦</span>Øvelsesbibliotek</button>';
-document.querySelector('.topbar')?.after(overviewQuickLinks);
-overviewQuickLinks.querySelectorAll('[data-quick-target]').forEach((button) => button.addEventListener('click', () => {
-  const target = button.dataset.quickTarget;
-  const targetPage = pageForTarget(target);
-  if (appPageTargets[targetPage]) {
-    showAppPage(targetPage);
-    return;
-  }
-  document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}));
+const overviewQuickLinks = null;
 const overviewStatsGrid = document.querySelector('.stats-grid');
 const overviewCategories = document.createElement('section');
 overviewCategories.className = 'overview-categories';
@@ -1799,6 +1830,7 @@ function getLocalCoachContext() {
 }
 async function askLocalCoach(question, selectedImages = null) {
   const coachStatus = coachPanel.querySelector('#coachStatus');
+  const cleanCoachAnswer = (answer) => String(answer || '').replace(/^assistant\s*/i, '').trim();
   if (!hasFullAppAccess()) {
     coachStatus.textContent = authState.authenticated ? 'KRÆVER PRO · ONLINE AI' : 'Log ind for at bruge online AI';
     openProAccess();
@@ -1818,9 +1850,12 @@ async function askLocalCoach(question, selectedImages = null) {
   };
 
   try {
+    const localController = new AbortController();
+    const localTimeout = window.setTimeout(() => localController.abort(), 3500);
     const response = await fetch(getCoachEndpoint(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: localController.signal,
       body: JSON.stringify({
         question,
         context: getLocalCoachContext(),
@@ -1828,6 +1863,7 @@ async function askLocalCoach(question, selectedImages = null) {
         isPhysiqueQuestion: physiqueQuestion
       })
     });
+    window.clearTimeout(localTimeout);
 
     const result = await response.json();
     if (response.status === 401) {
@@ -1843,15 +1879,15 @@ async function askLocalCoach(question, selectedImages = null) {
     }
     if (response.status === 429) {
       applyBillingStatus(result.billing);
-      coachStatus.textContent = 'Månedlig Pro-kvote er brugt';
-      showToast(result.message || 'Din månedlige Pro-kvote er brugt');
-      return '';
+      coachStatus.textContent = 'Online-kvote brugt · lokalt svar aktivt';
+      showToast(result.message || 'Online-kvoten er brugt. Lokalt svar bruges.');
+      return fallbackLocalCoach();
     }
     if (!response.ok) throw new Error('local-api-error');
-    if (result?.answer && String(result.answer).trim()) {
+    if (result?.answer && cleanCoachAnswer(result.answer)) {
       applyBillingStatus(result.billing);
       coachStatus.textContent = 'AI er klar';
-      return String(result.answer).trim();
+      return cleanCoachAnswer(result.answer);
     }
     throw new Error('empty-local-answer');
   } catch {
@@ -1867,7 +1903,7 @@ async function askLocalCoach(question, selectedImages = null) {
       window.clearTimeout(coachTimeout);
       if (!response.ok) throw new Error('ollama-error');
       const result = await response.json();
-      const answer = result.message?.content?.trim() || '';
+      const answer = cleanCoachAnswer(result.message?.content);
       if (answer) {
         coachStatus.textContent = 'AI er klar';
         return answer;
@@ -2024,14 +2060,12 @@ progressExercisePicker.setAttribute('aria-label', 'Vælg øvelse til progression
 exerciseOptions.forEach((exercise) => progressExercisePicker.insertAdjacentHTML('beforeend', `<option value="${exercise}">${exercise}</option>`));
 trainingProgressPanel.querySelector('.training-tabs').after(progressExercisePicker);
 progressExercisePicker.value = 'Bench press';
+// StrengthLevel-compatible Epley estimate used consistently for every 1RM value in the app.
 function estimateOneRepMax(weight, reps) {
   const safeWeight = Number(weight) || 0;
   const safeReps = Number(reps) || 0;
   if (safeReps <= 1) return safeWeight;
-  if (safeReps >= 37) return safeWeight * (1 + safeReps / 30);
-  const epley = safeWeight * (1 + safeReps / 30);
-  const brzycki = safeWeight * (36 / (37 - safeReps));
-  return (epley + brzycki) / 2;
+  return safeWeight * (1 + safeReps / 30);
 }
 function getExerciseProfile(exerciseName = '') {
   const name = exerciseName.trim().toLowerCase();
@@ -2441,9 +2475,9 @@ physiqueAiPanel.className = 'physique-ai-panel';
 physiqueAiPanel.id = 'physique-ai';
 physiqueAiPanel.innerHTML = `
   <div class="aio-scan-header">
-    <div><h1>AI Body Scan ✨</h1><div class="aio-scan-sub">Tilføj hel krop forfra, højre side, venstre side og bagfra. AI sammenligner vinklerne og bygger en målrettet muskelplan.</div></div>
-    <div class="aio-scan-actions"><span class="progress-live">4 ANGLE SCAN</span><button type="button" id="aiNewScan" class="aio-btn aio-btn-primary">＋ Ny scan</button></div>
+    <div><h1>Fysik AI</h1><div class="aio-scan-sub">Din komplette fysikanalyse drevet af AI</div></div>
   </div>
+  <nav class="physique-reference-tabs" aria-label="Fysik AI visning"><button type="button" class="active">Oversigt</button><button type="button">Kropsscanning</button><button type="button">Sammenlign</button><button type="button">Anbefalinger</button><button type="button">Historik</button></nav>
   <div id="physiqueProGate" class="pro-inline-gate">
     <span class="pro-gate-lock" aria-hidden="true"></span>
     <div><span>KRÆVER PRO</span><strong>4-vinkels AI Body Scan</strong><small>4 personlige scanninger hver måned · 39 kr./måned + 20 kr./uge</small></div>
@@ -2590,7 +2624,7 @@ if (physiqueProgressPanel) {
   physiqueProgressPanel.hidden = true;
   document.querySelector('.content')?.insertBefore(physiqueProgressPanel, physiqueAiPanel);
 }
-physiqueAiPanel.querySelector('#aiNewScan').addEventListener('click', () => {
+physiqueAiPanel.querySelector('#aiNewScan')?.addEventListener('click', () => {
   physiqueAiPanel.querySelector('.aio-views')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 physiqueAiPanel.querySelector('#physiqueSeePlan').addEventListener('click', () => physiqueCoachPanel.querySelector('input')?.focus());
@@ -3967,7 +4001,7 @@ const fatGramsByGoal = { cut: 65, maintain: 85, bulk: 85 };
 function calculateCalorieTarget() {
   const maintenance = Number(maintenanceInput.value || 0);
   if (maintenance <= 0) return 0;
-  const adjustment = getGoalAdjustment(selectedGoal, intensitySelect.value);
+  const adjustment = getGoalAdjustment(selectedGoal, selectedGoalPace);
   return maintenance + adjustment;
 }
 
@@ -4391,6 +4425,8 @@ async function findExerciseImage(exerciseName, imageElement) {
 }
 const progressStat = document.querySelector('#progressStat');
 let selectedGoal = 'cut';
+// Diet pace (surplus/deficit rate) is independent from #intensitySelect, which is workout intensity for TDEE.
+let selectedGoalPace = 'moderate';
 
 const profileSection = document.querySelector('.profile-section');
 const profileHeading = profileSection?.querySelector('.section-heading h2');
@@ -4409,6 +4445,8 @@ if (profileSection && !profileSection.querySelector('.aio-kcal-weight-goal')) {
   const profileWeightGoal = document.querySelector('#profileWeightGoal');
   currentWeight.value = localStorage.getItem('formlyAioCurrentWeight') || profileWeight?.value || '70';
   targetWeight.value = localStorage.getItem('formlyAioTargetWeight') || profileWeightGoal?.value || '';
+  weightGoalPanel.querySelector('#aioAllowedUnder').value = localStorage.getItem('formlyAioAllowedUnder') || '0.5';
+  weightGoalPanel.querySelector('#aioAllowedOver').value = localStorage.getItem('formlyAioAllowedOver') || '0.5';
   const updateWeightGoalStatus = () => {
     const current = Number(currentWeight.value);
     const target = Number(targetWeight.value);
@@ -4425,8 +4463,21 @@ if (profileSection && !profileSection.querySelector('.aio-kcal-weight-goal')) {
     status.textContent = mode === 'BULK' ? 'BULK • Dit vægtmål er højere' : mode === 'CUT' ? 'CUT • Dit vægtmål er lavere' : 'VEDLIGEHOLD • Du er inden for dit vægtområde';
     localStorage.setItem('formlyAioCurrentWeight', String(current));
     localStorage.setItem('formlyAioTargetWeight', String(target));
-    selectedGoal = mode === 'BULK' ? 'bulk' : mode === 'CUT' ? 'cut' : 'maintain';
-    goalTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.goal === selectedGoal));
+    localStorage.setItem('formlyAioAllowedUnder', String(under));
+    localStorage.setItem('formlyAioAllowedOver', String(over));
+    syncGoalState(mode === 'BULK' ? 'bulk' : mode === 'CUT' ? 'cut' : 'maintain');
+    if (current > 0) {
+      const todayIso = getIsoDateValue(new Date());
+      const todayEntry = weightHistory.find((entry) => entry.dateValue === todayIso);
+      if (todayEntry) {
+        todayEntry.weight = current;
+      } else {
+        weightHistory.push({ dateValue: todayIso, timestamp: Date.now(), weight: current, date: new Date().toLocaleDateString('da-DK'), photo: '' });
+      }
+      localStorage.setItem('formlyWeightHistory', JSON.stringify(weightHistory));
+      if (typeof renderWeightHistory === 'function') renderWeightHistory();
+      if (typeof renderProHome === 'function') renderProHome();
+    }
     if (profileWeight) {
       profileWeight.value = current;
       profileWeight.dispatchEvent(new Event('input', { bubbles: true }));
@@ -4437,7 +4488,8 @@ if (profileSection && !profileSection.querySelector('.aio-kcal-weight-goal')) {
     }
   };
   weightGoalPanel.querySelectorAll('input').forEach((input) => input.addEventListener('input', updateWeightGoalStatus));
-  updateWeightGoalStatus();
+  // goalData is declared further down the script, so defer the first sync until the whole script has run.
+  window.setTimeout(updateWeightGoalStatus, 0);
 }
 const weightDevicePanel = document.createElement('div');
 weightDevicePanel.className = 'weight-device-panel';
@@ -4478,7 +4530,7 @@ const profileHealthSync = document.createElement('div');
 profileHealthSync.className = 'profile-health-sync';
 const bulkGoalPanel = document.createElement('div');
 bulkGoalPanel.className = 'bulk-goal-panel';
-bulkGoalPanel.innerHTML = '<div class="bulk-goal-panel-heading"><span>BULK STRATEGI</span><small>Vælg dit tempo</small></div><div class="bulk-goal-tabs"><button type="button" data-bulk-intensity="low">Slow bulk</button><button type="button" data-bulk-intensity="moderate">Moderat bulk</button><button type="button" data-bulk-intensity="moderateHigh">Moderat til høj</button><button type="button" data-bulk-intensity="high">Aggressiv</button></div>';
+bulkGoalPanel.innerHTML = '<div class="bulk-goal-panel-heading"><span>BULK STRATEGI</span><small>Vælg dit tempo</small></div><div class="bulk-goal-tabs"><button type="button" data-bulk-intensity="low">Lavt</button><button type="button" data-bulk-intensity="moderate">Moderat</button><button type="button" data-bulk-intensity="moderateHigh">Moderat til højt</button><button type="button" data-bulk-intensity="high">Højt</button></div>';
 const goalTempo = document.createElement('span');
 goalTempo.className = 'profile-goal-tempo';
 const goalTarget = document.createElement('span');
@@ -4487,7 +4539,7 @@ const goalStrategy = document.createElement('p');
 goalStrategy.className = 'profile-goal-strategy';
 const bulkStrategyOptions = document.createElement('div');
 bulkStrategyOptions.className = 'bulk-strategy-options';
-bulkStrategyOptions.innerHTML = '<div class="bulk-strategy-option" data-strategy-option="low"><div><b>Slow bulk</b><strong data-option-delta></strong></div><p>Langsom vægtstigning med fokus på en kontrolleret udvikling.</p></div><div class="bulk-strategy-option" data-strategy-option="moderate"><div><b>Moderat bulk</b><strong data-option-delta></strong></div><p>En kontrolleret tilgang med fokus på stabil fremgang.</p></div><div class="bulk-strategy-option" data-strategy-option="moderateHigh"><div><b>Moderat til høj</b><strong data-option-delta></strong></div><p>Mere energi til træning med en tydelig, men stadig kontrolleret vægtstigning.</p></div><div class="bulk-strategy-option" data-strategy-option="high"><div><b>Aggressiv bulk</b><strong data-option-delta></strong></div><p>Hurtigere vægtstigning med større risiko for unødvendig fedtøgning.</p></div><div class="bulk-smart-goal"><b>AIO Smart Goal</b><span>Efter dine næste vejninger kan appen sammenligne målet med din faktiske vægttrend.</span></div>';
+bulkStrategyOptions.innerHTML = '<div class="bulk-strategy-option" data-strategy-option="low"><div><b>Lavt</b><strong data-option-delta></strong></div><p>Langsom vægtstigning med fokus på en kontrolleret udvikling.</p></div><div class="bulk-strategy-option" data-strategy-option="moderate"><div><b>Moderat</b><strong data-option-delta></strong></div><p>En kontrolleret tilgang med fokus på stabil fremgang.</p></div><div class="bulk-strategy-option" data-strategy-option="moderateHigh"><div><b>Moderat til højt</b><strong data-option-delta></strong></div><p>Mere energi til træning med en tydelig, men stadig kontrolleret vægtstigning.</p></div><div class="bulk-strategy-option" data-strategy-option="high"><div><b>Højt</b><strong data-option-delta></strong></div><p>Hurtigere vægtstigning med større risiko for unødvendig fedtøgning.</p></div><div class="bulk-smart-goal"><b>AIO Smart Goal</b><span>Efter dine næste vejninger kan appen sammenligne målet med din faktiske vægttrend.</span></div>';
 
 profileResultPanel.append(bulkGoalPanel, goalTabsElement, goalPrimary, goalTempo, goalTarget, goalStrategy, goalInsights, bulkStrategyOptions, profileSummary, profileActivitySummary, profileHealthSync);
 goalPrimary.append(goalCalories, goalChange);
@@ -4975,18 +5027,27 @@ function renderProHome() {
       });
       const firstPoint = points[0];
       const lastPoint = points.at(-1);
-      trendBars.innerHTML = `<svg viewBox="0 0 700 145" preserveAspectRatio="none" aria-label="Vægtudvikling"><defs><linearGradient id="premiumWeightArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#c457ff" stop-opacity=".42"></stop><stop offset=".28" stop-color="#a43ced" stop-opacity=".22"></stop><stop offset=".72" stop-color="#7020bd" stop-opacity=".06"></stop><stop offset="1" stop-color="#521883" stop-opacity="0"></stop></linearGradient></defs><path class="premium-weight-area" d="M${firstPoint} L${points.slice(1).join(' L')} L${lastPoint.split(',')[0]},145 L${firstPoint.split(',')[0]},145 Z"></path><polyline class="premium-weight-glow" points="${points.join(' ')}"></polyline><polyline class="premium-weight-line" points="${points.join(' ')}"></polyline></svg>`;
+      const middleSegment = points.slice(1).join(' L');
+      const areaPath = `M${firstPoint}${middleSegment ? ` L${middleSegment}` : ''} L${lastPoint.split(',')[0]},145 L${firstPoint.split(',')[0]},145 Z`;
+      trendBars.innerHTML = `<svg viewBox="0 0 700 145" preserveAspectRatio="none" aria-label="Vægtudvikling"><defs><linearGradient id="premiumWeightArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#c457ff" stop-opacity=".42"></stop><stop offset=".28" stop-color="#a43ced" stop-opacity=".22"></stop><stop offset=".72" stop-color="#7020bd" stop-opacity=".06"></stop><stop offset="1" stop-color="#521883" stop-opacity="0"></stop></linearGradient></defs><path class="premium-weight-area" d="${areaPath}"></path><polyline class="premium-weight-glow" points="${points.join(' ')}"></polyline><polyline class="premium-weight-line" points="${points.join(' ')}"></polyline></svg>`;
     } else {
       trendBars.innerHTML = '<span>Ingen vægtdata endnu</span>';
     }
   }
-  const dailySteps = Number(exactStepsInput?.value || stepsInput?.value || 0);
+  const savedHealthOverview = (() => {
+    try { return JSON.parse(localStorage.getItem('formlyHealthOverview') || '{}'); } catch { return {}; }
+  })();
+  const savedHealthKit = (() => {
+    try { return JSON.parse(localStorage.getItem('formlyHealthKitData') || '{}'); } catch { return {}; }
+  })();
+  const hasRealHealthSteps = Number(savedHealthOverview.steps || savedHealthKit.steps || 0) > 0;
+  const dailySteps = hasRealHealthSteps ? Number(savedHealthOverview.steps || savedHealthKit.steps) : 0;
   const stepGoal = 10000;
   const stepsPercent = Math.min(100, Math.round((dailySteps / stepGoal) * 100));
-  setPremiumText('#premiumStepsValue', dailySteps.toLocaleString('da-DK'));
-  setPremiumText('#premiumStepsPercent', `${stepsPercent}%`);
-  setPremiumText('#premiumStepsDetail', `${Math.max(0, stepGoal - dailySteps).toLocaleString('da-DK')} steps til ${stepGoal.toLocaleString('da-DK')}`);
-  document.querySelector('#premiumStepsBar')?.style.setProperty('width', `${stepsPercent}%`);
+  setPremiumText('#premiumStepsValue', hasRealHealthSteps ? dailySteps.toLocaleString('da-DK') : '–');
+  setPremiumText('#premiumStepsPercent', hasRealHealthSteps ? `${stepsPercent}%` : 'IKKE FORBUNDET');
+  setPremiumText('#premiumStepsDetail', hasRealHealthSteps ? `${Math.max(0, stepGoal - dailySteps).toLocaleString('da-DK')} steps til ${stepGoal.toLocaleString('da-DK')}` : 'Forbind Apple Sundhed før steps vises');
+  document.querySelector('#premiumStepsBar')?.style.setProperty('width', `${hasRealHealthSteps ? stepsPercent : 0}%`);
   const exerciseGroups = new Map();
   workoutLog.forEach((entry) => {
     const name = String(entry.exercise || '').trim();
@@ -5084,13 +5145,48 @@ function renderProHome() {
     headerPhysiquePhoto.hidden = !newestPhysiquePhoto?.photo;
     headerPhysiquePlaceholder.hidden = Boolean(newestPhysiquePhoto?.photo);
   }
+  const trendPhotoBox = document.querySelector('#premiumTrendPhotoBox');
+  const trendBarsForPhoto = document.querySelector('#premiumTrendBars');
+  if (trendPhotoBox) {
+    const latestPhotoEntry = photoEntries.at(-1);
+    if (latestPhotoEntry) {
+      trendPhotoBox.hidden = false;
+      trendPhotoBox.style.setProperty('display', 'flex', 'important');
+      if (trendBarsForPhoto) trendBarsForPhoto.style.removeProperty('display');
+      trendPhotoBox.querySelector('#premiumTrendPhoto').src = latestPhotoEntry.photo;
+      const priorPhotoEntry = photoEntries.at(-2);
+      const trendChangeLabel = trendPhotoBox.querySelector('#premiumTrendChangeLabel');
+      const trendProgressBar = trendPhotoBox.querySelector('#premiumTrendProgressBar');
+      const photoChange = priorPhotoEntry ? Math.round((Number(latestPhotoEntry.weight) - Number(priorPhotoEntry.weight)) * 10) / 10 : null;
+      if (photoChange === null) {
+        trendChangeLabel.textContent = 'Første billede gemt';
+        trendChangeLabel.className = '';
+        trendProgressBar.style.width = '0%';
+        trendProgressBar.className = '';
+      } else {
+        trendChangeLabel.textContent = `${photoChange > 0 ? '+' : ''}${formatWeight(photoChange)} kg siden sidst`;
+        trendChangeLabel.className = photoChange > 0 ? 'is-up' : photoChange < 0 ? 'is-down' : '';
+        trendProgressBar.style.width = `${Math.min(100, Math.round((Math.abs(photoChange) / 2) * 100))}%`;
+        trendProgressBar.className = photoChange > 0 ? 'is-up' : photoChange < 0 ? 'is-down' : '';
+      }
+    } else {
+      trendPhotoBox.hidden = true;
+      trendPhotoBox.style.setProperty('display', 'none', 'important');
+      if (trendBarsForPhoto) trendBarsForPhoto.style.removeProperty('display');
+    }
+  }
   if (photoRow && photoEntries.length) {
     selectedHomePhotoIndex = selectedHomePhotoIndex < 0 ? photoEntries.length - 1 : Math.min(selectedHomePhotoIndex, photoEntries.length - 1);
     const selectedPhoto = photoEntries[selectedHomePhotoIndex];
+    const previousPhoto = photoEntries[selectedHomePhotoIndex - 1];
     const last = photoEntries[photoEntries.length - 1];
     const formatAgo = (entry) => `${formatElapsedSinceDate(entry)} · ${entry.date || ''}`;
     const nextPhotoText = getPhysiquePhotoSchedule().text;
-    photoRow.innerHTML = `<div class="pro-home-photo-card"><img src="${selectedPhoto.photo}" alt="Fysikfoto"><span>${formatAgo(selectedPhoto)} · ${formatWeight(selectedPhoto.weight)} kg</span></div><small class="pro-home-photo-schedule">${nextPhotoText}</small>`;
+    const weightChangeSinceLastPhoto = previousPhoto ? Math.round((Number(selectedPhoto.weight) - Number(previousPhoto.weight)) * 10) / 10 : null;
+    const weightChangeLabel = weightChangeSinceLastPhoto === null
+      ? ''
+      : `<b class="pro-home-photo-change${weightChangeSinceLastPhoto > 0 ? ' is-up' : weightChangeSinceLastPhoto < 0 ? ' is-down' : ''}">${weightChangeSinceLastPhoto > 0 ? '+' : ''}${formatWeight(weightChangeSinceLastPhoto)} kg siden sidste billede</b>`;
+    photoRow.innerHTML = `<div class="pro-home-photo-card"><img src="${selectedPhoto.photo}" alt="Fysikfoto"><span>${formatAgo(selectedPhoto)} · ${formatWeight(selectedPhoto.weight)} kg</span>${weightChangeLabel}</div><small class="pro-home-photo-schedule">${nextPhotoText}</small>`;
     if (photoNav) photoNav.innerHTML = `<button type="button" aria-label="Forrige billede" onclick="window.changeHomePhotoPage(-1)">←</button><span>${(selectedHomePhotoIndex + 1).toLocaleString('da-DK')}/${MAX_PHYSIQUE_HISTORY_PAGES.toLocaleString('da-DK')}</span><button type="button" aria-label="Næste billede" onclick="window.changeHomePhotoPage(1)">→</button>`;
     photoRow.scrollLeft = photoRow.scrollWidth;
   } else if (photoRow) {
@@ -5222,14 +5318,44 @@ function renderProProgress() {
   const weeksLeftCard = document.querySelector('#proProgressWeeksLeft');
   const daysLeftCard = document.querySelector('#proProgressDaysLeft');
   const statusCard = document.querySelector('#proProgressGoalStatus');
+  const streakLabelCard = document.querySelector('#proProgressStreakLabel');
+  const streakValueCard = document.querySelector('#proProgressStreakValue');
+  const streakDetailCard = document.querySelector('#proProgressStreakDetail');
   if (currentWeightCard) currentWeightCard.textContent = latestWeight ? `${formatWeight(latestWeight)} kg` : '- kg';
   if (goalWeightCard) goalWeightCard.textContent = goalWeight ? `${formatWeight(goalWeight)} kg` : '- kg';
   if (toGoalCard) toGoalCard.textContent = goalWeight ? `${weightDifference > 0 ? '+' : ''}${formatWeight(weightDifference)} kg` : '- kg';
-  const weeklyChange = weightEntries.length > 1 ? Math.abs((latestWeight - (Number(weightEntries[0].weight) || latestWeight)) / Math.max(1, weightEntries.length - 1)) : 1.2;
+  const weeklyChangeFromHistory = weightEntries.length > 1 ? Math.abs((latestWeight - (Number(weightEntries[0].weight) || latestWeight)) / Math.max(1, weightEntries.length - 1)) : 0;
+  let dailyKcalAdjustment = 0;
+  try {
+    // getGoalAdjustment reads selectedGoal/goalData, which may not be initialized yet on very early calls.
+    dailyKcalAdjustment = typeof getGoalAdjustment === 'function' ? getGoalAdjustment() : 0;
+  } catch {
+    dailyKcalAdjustment = 0;
+  }
+  const weeklyChangeFromKcal = Math.abs(dailyKcalAdjustment) * 7 / 7700;
+  const weeklyChange = weeklyChangeFromKcal > 0 ? weeklyChangeFromKcal : weeklyChangeFromHistory;
   const weeksLeft = goalWeight && weeklyChange > 0 ? Math.max(0, Math.ceil(Math.abs(weightDifference) / weeklyChange)) : 0;
-  if (weeksLeftCard) weeksLeftCard.textContent = goalWeight ? `${weeksLeft} uger` : '-';
-  if (daysLeftCard) daysLeftCard.textContent = goalWeight ? `${weeksLeft * 7} dage til målet` : 'Baseret på din trend';
-  if (statusCard) statusCard.textContent = goalWeight ? (weightDifference < 0 ? 'BULK' : weightDifference > 0 ? 'CUT 🔥' : 'MÅL NÅET') : '';
+  if (weeksLeftCard) weeksLeftCard.textContent = goalWeight && weeklyChange > 0 ? `${weeksLeft} uger` : '-';
+  if (daysLeftCard) daysLeftCard.textContent = goalWeight && weeklyChange > 0 ? `${weeksLeft * 7} dage · ca. ${formatWeight(weeklyChange)} kg/uge fra dit kcal-mål` : 'Sæt et kalorieoverskud/-underskud i Kcal-beregneren';
+  const savedProgressGoal = localStorage.getItem('formlyGoal') || (weightDifference < 0 ? 'bulk' : weightDifference > 0 ? 'cut' : 'maintain');
+  const progressGoal = ['bulk', 'cut', 'maintain'].includes(savedProgressGoal) ? savedProgressGoal : 'maintain';
+  const streakDirection = progressGoal === 'bulk' ? 1 : progressGoal === 'cut' ? -1 : 0;
+  let streak = 0;
+  if (streakDirection && weightEntries.length > 1) {
+    for (let index = weightEntries.length - 1; index > 0; index -= 1) {
+      const delta = Number(weightEntries[index].weight) - Number(weightEntries[index - 1].weight);
+      if (delta * streakDirection > 0.05) streak += 1;
+      else break;
+    }
+  }
+  if (statusCard) statusCard.textContent = progressGoal === 'bulk' ? 'BULK' : progressGoal === 'cut' ? 'CUT 🔥' : 'VEDLIGEHOLD';
+  if (streakLabelCard) streakLabelCard.textContent = progressGoal === 'bulk' ? 'Bulk streak' : progressGoal === 'cut' ? 'Cut streak' : 'Streak';
+  if (streakValueCard) streakValueCard.textContent = `${streak} ${streak === 1 ? 'måling' : 'målinger'}`;
+  if (streakDetailCard) streakDetailCard.textContent = progressGoal === 'bulk'
+    ? 'Målinger med stigende vægt mod dit Bulk-mål'
+    : progressGoal === 'cut'
+      ? 'Målinger med faldende vægt mod dit Cut-mål'
+      : 'Vælg Bulk eller Cut for at følge din streak';
   const goalDeltaCard = document.querySelector('#proProgressGoalDelta');
   if (goalDeltaCard) goalDeltaCard.textContent = goalWeight ? `${formatWeight(Math.abs(weightDifference))} kg forskel` : 'Vægtmål fra din profil';
   const startWeight = Number(weightEntries[0]?.weight) || latestWeight;
@@ -5335,7 +5461,7 @@ window.setInterval(() => renderProProgress(), 60 * 60 * 1000);
 
 const restTimer = document.createElement('div');
 restTimer.className = 'rest-timer';
-restTimer.innerHTML = '<div><p class="eyebrow">PAUSE SYSTEM</p><h3>Rest mellem sæt</h3><strong id="restTime">01:30</strong></div><div class="rest-controls"><select id="restDuration"><option value="60">60 sek</option><option value="90" selected>90 sek</option><option value="120">120 sek</option><option value="180">180 sek</option></select><button id="startRest" type="button">Start pause</button><button id="resetRest" type="button">Nulstil</button><button id="restAlarm" type="button">Aktivér alarm</button></div>';
+restTimer.innerHTML = '<div><p class="eyebrow">PAUSE SYSTEM</p><h3>Rest mellem sæt</h3><strong id="restTime">01:30</strong></div><div class="rest-controls"><select id="restDuration"><option value="60">60 sek</option><option value="90" selected>90 sek</option><option value="120">120 sek</option><option value="180">180 sek</option><option value="custom">Brugerdefineret</option></select><input id="restCustomSeconds" type="number" min="5" max="1800" step="5" placeholder="Sek." aria-label="Brugerdefineret pause i sekunder" hidden><button id="startRest" type="button">Start pause</button><button id="resetRest" type="button">Nulstil</button><button id="restAlarm" type="button">Aktivér alarm</button></div>';
 document.querySelector('#library').append(restTimer);
 let restSeconds = 90;
 let restInterval;
@@ -5344,15 +5470,42 @@ let restWakeLock = null;
 let restAudioContext = null;
 const restTime = restTimer.querySelector('#restTime');
 const restAlarm = restTimer.querySelector('#restAlarm');
+const restDurationSelect = restTimer.querySelector('#restDuration');
+const restCustomInput = restTimer.querySelector('#restCustomSeconds');
 const formatRestTime = () => `${String(Math.floor(restSeconds / 60)).padStart(2, '0')}:${String(restSeconds % 60).padStart(2, '0')}`;
 const updateRestTime = () => { restTime.textContent = formatRestTime(); };
+const getRestDurationSeconds = () => {
+  if (restDurationSelect.value === 'custom') return Math.max(5, Number(restCustomInput.value) || 90);
+  return Number(restDurationSelect.value) || 90;
+};
 const savedRestDuration = localStorage.getItem('formlyRestDuration');
-if (savedRestDuration) {
-  restTimer.querySelector('#restDuration').value = savedRestDuration;
+const savedRestCustomSeconds = localStorage.getItem('formlyRestCustomSeconds');
+if (savedRestDuration === 'custom') {
+  restDurationSelect.value = 'custom';
+  restCustomInput.hidden = false;
+  restCustomInput.value = savedRestCustomSeconds || '90';
+  restSeconds = getRestDurationSeconds();
+  updateRestTime();
+} else if (savedRestDuration) {
+  restDurationSelect.value = savedRestDuration;
   restSeconds = Number(savedRestDuration);
   updateRestTime();
 }
-restTimer.querySelector('#restDuration').addEventListener('change', (event) => { restSeconds = Number(event.target.value); localStorage.setItem('formlyRestDuration', event.target.value); updateRestTime(); });
+restDurationSelect.addEventListener('change', (event) => {
+  restCustomInput.hidden = event.target.value !== 'custom';
+  if (event.target.value === 'custom') {
+    if (!restCustomInput.value) restCustomInput.value = '90';
+    restCustomInput.focus();
+  }
+  restSeconds = getRestDurationSeconds();
+  localStorage.setItem('formlyRestDuration', event.target.value);
+  updateRestTime();
+});
+restCustomInput.addEventListener('input', () => {
+  restSeconds = getRestDurationSeconds();
+  localStorage.setItem('formlyRestCustomSeconds', restCustomInput.value);
+  updateRestTime();
+});
 let restAlarmEnabled = localStorage.getItem('formlyRestAlarm') === 'true';
 const updateRestAlarmButton = () => { restAlarm.textContent = restAlarmEnabled ? 'Alarm aktiv' : 'Aktivér alarm'; restAlarm.classList.toggle('enabled', restAlarmEnabled); };
 let alarmPermissionRequested = restAlarmEnabled;
@@ -5400,7 +5553,7 @@ const finishRest = () => {
   restTimer.classList.remove('running');
   announceRestComplete();
   showToast('Pause slut - klar til næste sæt');
-  restSeconds = Number(restTimer.querySelector('#restDuration').value);
+  restSeconds = getRestDurationSeconds();
   restEndsAt = 0;
   updateRestTime();
   releaseRestWakeLock();
@@ -5425,7 +5578,7 @@ restTimer.querySelector('#startRest').addEventListener('click', () => {
   }, 1000);
 });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && restEndsAt) { updateRestFromClock(); requestRestWakeLock(); } });
-restTimer.querySelector('#resetRest').addEventListener('click', () => { window.clearInterval(restInterval); restTimer.classList.remove('running'); restEndsAt = 0; restSeconds = Number(restTimer.querySelector('#restDuration').value); updateRestTime(); releaseRestWakeLock(); });
+restTimer.querySelector('#resetRest').addEventListener('click', () => { window.clearInterval(restInterval); restTimer.classList.remove('running'); restEndsAt = 0; restSeconds = getRestDurationSeconds(); updateRestTime(); releaseRestWakeLock(); });
 
 function updateSteps() {
   const steps = Math.max(0, Math.min(20000, Number(stepsInput.value) || 0));
@@ -5458,15 +5611,15 @@ const goalData = {
     moderate: { rate: 0, label: 'Vedligehold', pros: 'Stabil vægt, god energi og et stærkt udgangspunkt for træning.', cons: 'Kropssammensætningen ændrer sig typisk langsommere.' }
   },
   bulk: {
-    low: { rate: 0.02, label: 'Slow bulk', pros: 'Langsom, kontrolleret vægtstigning med minimal unødig fedtøgning.', cons: 'Muskel- og vægtstigningen går langsomt.' },
+    low: { rate: 0.02, label: 'Lavt', pros: 'Langsom, kontrolleret vægtstigning med minimal unødig fedtøgning.', cons: 'Muskel- og vægtstigningen går langsomt.' },
     moderate: { rate: 0.04, label: 'Moderat', pros: 'Et moderat overskud med god balance mellem muskelopbygning og fedtøgning.', cons: 'Kræver løbende vægtkontrol for at ramme det ønskede tempo.' },
-    moderateHigh: { rate: 0.08, label: 'Moderat til høj', pros: 'Mere energi til træning og et tydeligt, men stadig kontrolleret kalorieoverskud.', cons: 'Risikoen for fedtøgning er højere end ved et forsigtigt bulk.' },
-    high: { rate: 0.115, label: 'Aggressiv', pros: 'Hurtigere vægtstigning og rigeligt med energi til hård træning.', cons: 'En større del af vægtstigningen kan være fedt frem for muskelmasse.' }
+    moderateHigh: { rate: 0.08, label: 'Moderat til højt', pros: 'Mere energi til træning og et tydeligt, men stadig kontrolleret kalorieoverskud.', cons: 'Risikoen for fedtøgning er højere end ved et forsigtigt bulk.' },
+    high: { rate: 0.115, label: 'Højt', pros: 'Hurtigere vægtstigning og rigeligt med energi til hård træning.', cons: 'En større del af vægtstigningen kan være fedt frem for muskelmasse.' }
   }
 };
 // Falls back safely if a stale/unknown intensity value ever lingers (e.g. from an older cached version).
 function getIntensityData() {
-  return goalData[selectedGoal][intensitySelect.value] || goalData[selectedGoal].moderate;
+  return goalData[selectedGoal][selectedGoalPace] || goalData[selectedGoal].moderate;
 }
 
 function getSelectedTrainingDays() {
@@ -5504,7 +5657,7 @@ function applyTrainingDaySelection(days) {
   updateMaintenance();
 }
 
-function getGoalAdjustment(goalKey = selectedGoal, intensityKey = intensitySelect.value) {
+function getGoalAdjustment(goalKey = selectedGoal, intensityKey = selectedGoalPace) {
   const safeGoal = goalData[goalKey] ? goalKey : 'cut';
   const safeIntensity = goalData[safeGoal][intensityKey] ? intensityKey : 'moderate';
   const rate = goalData[safeGoal][safeIntensity]?.rate ?? goalData[safeGoal].moderate.rate ?? 0;
@@ -5513,25 +5666,11 @@ function getGoalAdjustment(goalKey = selectedGoal, intensityKey = intensitySelec
   return Math.round((maintenance * rate) / 10) * 10;
 }
 
+// Updates the diet-pace cards (surplus/deficit tempo), independent from #intensitySelect (workout intensity for TDEE).
 function updateIntensityLabels() {
   const safeGoal = getSafeGoal(selectedGoal);
-  const selectedIntensity = getValidIntensityForGoal(safeGoal, intensitySelect.value || 'moderate');
-  intensitySelect.replaceChildren();
-  const intensityLabelsByValue = { low: 'Lav alene', moderate: 'Moderat alene', moderateHigh: 'Moderat-højt (blandet)', high: 'Højt alene', failure: 'Failure' };
-  Object.entries(goalData[safeGoal]).forEach(([value, data]) => {
-    const option = document.createElement('option');
-    const adjustedAmount = getGoalAdjustment(safeGoal, value);
-    const sign = adjustedAmount > 0 ? '+' : '';
-    const percentage = Math.round(Math.abs(data.rate) * 100);
-    option.value = value;
-    option.text = `${intensityLabelsByValue[value] || data.label} · (${sign}${adjustedAmount} kcal)`;
-    intensitySelect.append(option);
-  });
-  intensitySelect.value = selectedIntensity;
-  if (intensitySelect.value && intensitySelect.selectedIndex >= 0) {
-    const selectedOption = intensitySelect.options[intensitySelect.selectedIndex];
-    intensitySelect.title = selectedOption?.text || 'Intensitet';
-  }
+  selectedGoalPace = getValidIntensityForGoal(safeGoal, selectedGoalPace || 'moderate');
+  localStorage.setItem('formlyGoalPace', selectedGoalPace);
 }
 
 function updateGoal() {
@@ -5539,22 +5678,30 @@ function updateGoal() {
   const calories = calculateCalorieTarget();
   goalCalories.innerHTML = `${calories.toLocaleString('da-DK')} <small>kcal</small>`;
   goalChange.textContent = change === 0 ? 'På dit estimerede vedligeholdelsesniveau' : `${change > 0 ? '+' : ''}${change} kcal fra vedligeholdelse`;
-  const bulkActive = selectedGoal === 'bulk';
-  bulkGoalPanel.hidden = !bulkActive;
-  bulkStrategyOptions.hidden = !bulkActive;
-  bulkGoalPanel.querySelectorAll('[data-bulk-intensity]').forEach((button) => button.classList.toggle('active', bulkActive && button.dataset.bulkIntensity === intensitySelect.value));
+  const paceActive = selectedGoal !== 'maintain';
+  bulkGoalPanel.hidden = !paceActive;
+  bulkStrategyOptions.hidden = !paceActive;
+  const paceHeading = bulkGoalPanel.querySelector('.bulk-goal-panel-heading span');
+  if (paceHeading) paceHeading.textContent = selectedGoal === 'bulk' ? 'BULK STRATEGI' : 'CUT STRATEGI';
+  bulkGoalPanel.querySelectorAll('[data-bulk-intensity]').forEach((button) => button.classList.toggle('active', paceActive && button.dataset.bulkIntensity === selectedGoalPace));
   bulkStrategyOptions.querySelectorAll('[data-strategy-option]').forEach((option) => {
     const intensity = option.dataset.strategyOption;
-    const optionData = goalData.bulk[intensity];
-    const delta = getGoalAdjustment('bulk', intensity);
-    option.classList.toggle('selected', bulkActive && intensity === intensitySelect.value);
-    option.querySelector('[data-option-delta]').textContent = `+${delta} kcal`;
+    const optionData = goalData[selectedGoal]?.[intensity];
+    const delta = getGoalAdjustment(selectedGoal, intensity);
+    option.classList.toggle('selected', paceActive && intensity === selectedGoalPace);
+    if (optionData) {
+      const labelEl = option.querySelector('b');
+      const copyEl = option.querySelector('p');
+      if (labelEl) labelEl.textContent = optionData.label;
+      if (copyEl) copyEl.textContent = optionData.pros;
+    }
+    option.querySelector('[data-option-delta]').textContent = `${delta > 0 ? '+' : ''}${delta} kcal`;
     option.onclick = () => {
-      syncGoalState('bulk');
-      intensitySelect.value = intensity;
-      localStorage.setItem('formlyIntensity', intensity);
+      selectedGoalPace = intensity;
+      localStorage.setItem('formlyGoalPace', intensity);
       updateIntensityLabels();
       updateGoal();
+      updateMaintenance();
     };
   });
   const weeklyChange = Number(profileWeight.value) > 0 ? Math.abs(change * 7 / 7700) : 0;
@@ -5562,9 +5709,7 @@ function updateGoal() {
   const targetWeight = Number(document.querySelector('#profileWeightGoal')?.value) || 0;
   const currentWeight = Number(profileWeight.value) || 0;
   goalTarget.textContent = targetWeight ? `Mål: ${targetWeight.toFixed(1).replace('.', ',')} kg · ${Math.abs(targetWeight - currentWeight).toFixed(1).replace('.', ',')} kg fra nu` : 'Mål: tilføj din målvægt for at se afstanden';
-  goalStrategy.textContent = bulkActive ? `${getIntensityData().label} bulk: ${getIntensityData().pros}` : `${getIntensityData().label}: ${getIntensityData().pros}`;
-  const intensityLabel = intensitySelect.options[intensitySelect.selectedIndex]?.text || 'Intensitet';
-  intensitySelect.title = `${intensityLabel}: ${change > 0 ? '+' : ''}${change} kcal`;
+  goalStrategy.textContent = paceActive ? `${getIntensityData().label} ${selectedGoal}: ${getIntensityData().pros}` : `${getIntensityData().label}: ${getIntensityData().pros}`;
   goalPros.textContent = getIntensityData().pros;
   goalCons.textContent = getIntensityData().cons;
   if (profileSummary) profileSummary.textContent = `${calories.toLocaleString('da-DK')} kcal · ${getIntensityData().pros}`;
@@ -5823,12 +5968,10 @@ function syncGoalState(goalKey) {
   localStorage.setItem('formlyWeightPhase', selectedWeightPhase);
   if (weightPhaseLabel) weightPhaseLabel.textContent = weightPhaseLabels[selectedWeightPhase];
   if (fysikStartWeight) fysikStartWeight.value = localStorage.getItem(`formlyFysikStartWeight:${selectedWeightPhase}`) || '';
-  const nextIntensity = getValidIntensityForGoal(safeGoal, intensitySelect.value || 'moderate');
-  intensitySelect.value = nextIntensity;
+  selectedGoalPace = getValidIntensityForGoal(safeGoal, selectedGoalPace || 'moderate');
   localStorage.setItem('formlyGoal', safeGoal);
-  localStorage.setItem('formlyIntensity', nextIntensity);
+  localStorage.setItem('formlyGoalPace', selectedGoalPace);
   goalTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.goal === safeGoal));
-  intensitySelect.disabled = safeGoal === 'maintain';
   updateIntensityLabels();
   updateGoal();
   updateMaintenance();
@@ -5842,25 +5985,19 @@ function initializeGoalState() {
   localStorage.setItem('formlyWeightPhase', selectedWeightPhase);
   if (weightPhaseLabel) weightPhaseLabel.textContent = weightPhaseLabels[selectedWeightPhase];
   if (fysikStartWeight) fysikStartWeight.value = localStorage.getItem(`formlyFysikStartWeight:${selectedWeightPhase}`) || '';
-  const savedIntensity = localStorage.getItem('formlyIntensity');
-  const safeIntensity = getValidIntensityForGoal(safeGoal, savedIntensity || 'moderate');
-  intensitySelect.value = safeIntensity;
+  const savedPace = localStorage.getItem('formlyGoalPace');
+  selectedGoalPace = getValidIntensityForGoal(safeGoal, savedPace || 'moderate');
   localStorage.setItem('formlyGoal', safeGoal);
-  localStorage.setItem('formlyIntensity', safeIntensity);
+  localStorage.setItem('formlyGoalPace', selectedGoalPace);
   goalTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.goal === safeGoal));
-  intensitySelect.disabled = safeGoal === 'maintain';
   updateIntensityLabels();
   updateGoal();
   updateMaintenance();
 }
 
+// #intensitySelect is workout intensity only (feeds TDEE); it no longer drives the diet pace/surplus.
 intensitySelect.addEventListener('change', () => {
-  if (!goalData[selectedGoal]?.[intensitySelect.value]) {
-    intensitySelect.value = getValidIntensityForGoal(selectedGoal, 'moderate');
-  }
   localStorage.setItem('formlyIntensity', intensitySelect.value);
-  updateIntensityLabels();
-  updateGoal();
   updateMaintenance();
 });
 trainingWeekSelect.addEventListener('change', () => {
@@ -5877,10 +6014,11 @@ goalTabs.forEach((tab) => tab.addEventListener('click', () => {
 }));
 bulkGoalPanel.querySelectorAll('[data-bulk-intensity]').forEach((button) => button.addEventListener('click', () => {
   syncGoalState('bulk');
-  intensitySelect.value = getValidIntensityForGoal('bulk', button.dataset.bulkIntensity);
-  localStorage.setItem('formlyIntensity', intensitySelect.value);
+  selectedGoalPace = getValidIntensityForGoal('bulk', button.dataset.bulkIntensity);
+  localStorage.setItem('formlyGoalPace', selectedGoalPace);
   updateIntensityLabels();
   updateGoal();
+  updateMaintenance();
 }));
 
 document.querySelectorAll('#trainingPicker button').forEach((button) => button.addEventListener('click', () => {
@@ -6447,6 +6585,9 @@ function aioSelectDay(el) {
 
 function aioToggleDone(btn) {
   btn.classList.toggle('active');
+  const card = btn.closest('.aio-lib-exercise');
+  const exerciseName = card?.dataset.name || '';
+  if (exerciseName) localStorage.setItem(`formlyAioExerciseDone:${normalizeExerciseNameForComparison(exerciseName)}`, String(btn.classList.contains('active')));
   aioToast(btn.classList.contains('active') ? 'Øvelse markeret som færdig ✓' : 'Markering fjernet');
 }
 
@@ -6470,7 +6611,22 @@ function aioFoodTabClick(btn) {
   aioToast('Viser ' + btn.textContent.trim());
 }
 
-function aioFoodMealPlus() {
+function aioFoodMealPlus(event) {
+  const mealCard = event?.currentTarget?.closest('.aio-meal');
+  const mealByClass = {
+    'aio-breakfast-card': 'Morgenmad',
+    'aio-lunch-card': 'Frokost',
+    'aio-dinner-card': 'Aftensmad',
+    'aio-snack-card': 'Snack'
+  };
+  const mealInput = document.getElementById('mealInput');
+  const meal = Object.entries(mealByClass).find(([className]) => mealCard?.classList.contains(className))?.[1];
+  if (mealInput && meal) mealInput.value = meal;
+  const scannerButton = document.getElementById('startScanner');
+  if (scannerButton) {
+    scannerButton.click();
+    return;
+  }
   const input = document.getElementById('foodNameInput');
   if (input) input.focus();
 }
@@ -6500,11 +6656,47 @@ document.addEventListener('DOMContentLoaded', aioInitializeFoodTracker);
 function aioSaveExercise(btn) {
   const log = btn.closest('.aio-lib-log');
   const card = btn.closest('.aio-lib-exercise');
-  if (!log) return;
+  if (!log || !card) return;
+  const nameInput = log.querySelector('.aio-lib-fields input');
+  const exerciseName = nameInput?.value?.trim() || card.dataset.name || 'Øvelse';
   const w = Number(log.querySelector('.aio-weightInput')?.value) || 0;
   const r = Number(log.querySelector('.aio-repsInput')?.value) || 0;
   const sets = 3;
   const volume = sets * r * w;
+  const timestamp = Date.now();
+  const progressEntry = {
+    exercise: exerciseName,
+    weight: w,
+    reps: r,
+    setNumber: sets,
+    session: activeWorkoutSession,
+    week: selectedProgramWeek,
+    timestamp,
+    date: new Date(timestamp).toLocaleDateString('da-DK'),
+    isPR: false,
+    prType: ''
+  };
+  workoutLog.unshift(progressEntry);
+  recalculatePrStatus(workoutLog);
+  workoutLog.sort((a, b) => (getProgressTimestamp(b) || 0) - (getProgressTimestamp(a) || 0));
+  localStorage.setItem('formlyWorkoutLog', JSON.stringify(workoutLog));
+  card.dataset.weight = String(w);
+  card.dataset.reps = String(r);
+  const quickValues = card.querySelectorAll('.aio-lib-quick b');
+  if (quickValues[0]) quickValues[0].textContent = `${w} kg`;
+  if (quickValues[1]) quickValues[1].textContent = `${r} reps`;
+  if (quickValues[2]) quickValues[2].textContent = String(sets);
+  const lastRecorded = card.querySelector('.aio-lib-last');
+  if (lastRecorded) lastRecorded.textContent = `SENEST REGISTRERET · ${progressEntry.date}`;
+  if (typeof renderWorkoutStats === 'function') renderWorkoutStats();
+  if (typeof renderWorkoutOverview === 'function') renderWorkoutOverview();
+  if (typeof renderProProgress === 'function') renderProProgress();
+  aioUpdateExerciseCount();
+  const saveButton = card.querySelector('.aio-lib-save');
+  if (saveButton) {
+    saveButton.classList.add('saved');
+    saveButton.textContent = 'Gemt ✓';
+  }
   aioToast('✓ ' + sets + ' × ' + r + ' reps med ' + w + ' kg gemt! (' + volume + ' kg volumen)');
 }
 
@@ -6514,7 +6706,8 @@ function aioUpdateExerciseCount() {
   const countEl = document.getElementById('aioExerciseCount');
   if (countEl) countEl.textContent = count;
   const progressEl = document.getElementById('aioLibExerciseProgress');
-  if (progressEl) progressEl.textContent = count + ' / 30 registreret';
+  const loggedCount = list ? [...list.querySelectorAll('.aio-lib-exercise')].filter((exercise) => workoutLog.some((entry) => normalizeExerciseNameForComparison(entry.exercise) === normalizeExerciseNameForComparison(exercise.dataset.name || ''))).length : 0;
+  if (progressEl) progressEl.textContent = loggedCount + ' / 30 registreret';
 }
 
 function aioInitializeExerciseLibrary() {
@@ -6572,6 +6765,7 @@ function aioInitializeExerciseLibrary() {
       const doneBtn = ex.querySelector('.aio-lib-done');
       if (doneBtn) {
         doneBtn.onclick = function() { aioToggleDone(this); };
+        doneBtn.classList.toggle('active', localStorage.getItem(`formlyAioExerciseDone:${normalizeExerciseNameForComparison(ex.dataset.name || '')}`) === 'true');
       }
       const deleteBtn = ex.querySelector('.aio-lib-delete');
       if (deleteBtn) {
@@ -6580,6 +6774,36 @@ function aioInitializeExerciseLibrary() {
       const saveBtn = ex.querySelector('.aio-lib-save');
       if (saveBtn) {
         saveBtn.onclick = function() { aioSaveExercise(this); };
+      }
+      const exerciseName = ex.dataset.name || ex.querySelector('h3')?.textContent.trim() || '';
+      const latestLog = workoutLog
+        .filter((entry) => normalizeExerciseNameForComparison(entry.exercise) === normalizeExerciseNameForComparison(exerciseName))
+        .sort((a, b) => getProgressTimestamp(b) - getProgressTimestamp(a))[0];
+      if (latestLog) {
+        const log = ex.querySelector('.aio-lib-log');
+        const weightInput = log?.querySelector('.aio-weightInput');
+        const repsInput = log?.querySelector('.aio-repsInput');
+        const setCount = getExerciseSetCount(latestLog);
+        if (weightInput) weightInput.value = String(latestLog.weight ?? '');
+        if (repsInput) repsInput.value = String(latestLog.reps ?? '');
+        ex.dataset.weight = String(latestLog.weight ?? '');
+        ex.dataset.reps = String(latestLog.reps ?? '');
+        const quickValues = ex.querySelectorAll('.aio-lib-quick b');
+        if (quickValues[0]) quickValues[0].textContent = `${latestLog.weight} kg`;
+        if (quickValues[1]) quickValues[1].textContent = `${latestLog.reps} reps`;
+        if (quickValues[2]) quickValues[2].textContent = String(setCount);
+        const lastRecorded = ex.querySelector('.aio-lib-last');
+        if (lastRecorded) lastRecorded.textContent = `SENEST REGISTRERET · ${latestLog.date || 'I dag'}`;
+        const summary = ex.querySelector('.aio-summaryMain');
+        const volume = (Number(latestLog.weight) || 0) * (Number(latestLog.reps) || 0) * setCount;
+        if (summary) summary.textContent = `${setCount} arbejdssæt × ${latestLog.reps} reps med ${latestLog.weight} kg`;
+        const volumeLabel = ex.querySelector('.aio-volume');
+        if (volumeLabel) volumeLabel.textContent = `Samlet volumen: ${volume.toLocaleString('da-DK')} kg`;
+        const saveButton = ex.querySelector('.aio-lib-save');
+        if (saveButton) {
+          saveButton.classList.add('saved');
+          saveButton.textContent = 'Gemt ✓';
+        }
       }
     });
   }
@@ -6711,6 +6935,10 @@ if (appContent) {
   const homePage = resolveLandingPage();
   showAppPage(appPageTargets[initialPage] ? initialPage : homePage, false);
   window.showAppPage = showAppPage;
+  window.addEventListener('hashchange', () => {
+    const hashPage = window.location.hash.slice(1) === 'library' ? 'training' : window.location.hash.slice(1);
+    if (appPageTargets[hashPage]) showAppPage(hashPage, false);
+  });
   if (pendingAccountLandingPage) {
     const landingPage = pendingAccountLandingPage;
     pendingAccountLandingPage = '';

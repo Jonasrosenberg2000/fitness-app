@@ -17,7 +17,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles%20sss.css?v=20260922-no-chess-2">
+	<link rel="stylesheet" href="styles%20sss.css?v=20260922-exercise-save-green-1">
 </head>
 <body>
 	<div class="app-shell">
@@ -34,6 +34,7 @@
 				<a class="nav-link" href="#profile" data-app-page-target="profile"><b aria-hidden="true">◌</b><span>Kcal-beregner</span></a>
 				<a class="nav-link" href="#weight" data-app-page-target="weight"><b aria-hidden="true">◒</b><span>Kropsvægt</span></a>
 				<a class="nav-link" href="#progress" data-app-page-target="progress"><b aria-hidden="true">↗</b><span>Din progression</span></a>
+				<a class="nav-link" href="#physique-ai" data-app-page-target="physique"><b aria-hidden="true">◈</b><span>Fysik AI vurdering</span></a>
 				<a class="nav-link nav-link-pro" href="#pro" data-app-page-target="pro"><b aria-hidden="true">PRO</b><span>Pro · 40 % første år</span></a>
 			</nav>
 			<div class="sidebar-bottom"><div class="profile-card" id="sidebarProfileCard"><span id="sidebarInitial">+</span><span class="profile-card-fields"><input id="sidebarNameInput" type="text" placeholder="Dit navn" maxlength="40" aria-label="Dit navn"><small>Min profil</small></span></div></div>
@@ -46,7 +47,7 @@
 			<section class="pro-home premium-dashboard-home" id="proHome" hidden>
 				<header class="pro-home-topbar">
 					<div><h1 id="proHomeGreeting">God aften, Jonas <span aria-hidden="true">👋</span></h1><p>Her er dit fremskridtsoverblik</p></div>
-					<div class="pro-home-header-actions"><button type="button" id="proHomeQuickToggle" class="pro-home-quick-toggle" aria-label="Åbn genveje" aria-expanded="false">▦</button><button type="button" id="proHomePhysiquePhoto" class="pro-home-physique-photo" data-dashboard-view="physique" aria-label="Se dit fysikfoto"><img id="proHomePhysiquePhotoImage" alt="Dit seneste fysikfoto" hidden><span id="proHomePhysiquePhotoPlaceholder" aria-hidden="true">◌</span></button><button type="button" class="pro-home-bell pro-home-score-orb" aria-label="Fitness Score"><strong id="premiumHeaderFitnessScore">0</strong><small>/100</small></button></div>
+					<div class="pro-home-header-actions"><button type="button" id="proHomePhysiquePhoto" class="pro-home-physique-photo" data-dashboard-view="physique" aria-label="Se dit fysikfoto"><img id="proHomePhysiquePhotoImage" alt="Dit seneste fysikfoto" hidden><span id="proHomePhysiquePhotoPlaceholder" aria-hidden="true">◌</span></button><button type="button" class="pro-home-bell pro-home-score-orb" aria-label="Fitness Score"><strong id="premiumHeaderFitnessScore">0</strong><small>/100</small></button></div>
 				</header>
 				<nav class="premium-home-tabs" aria-label="Dashboard-visning"><button type="button" class="active" data-dashboard-view="overview">Oversigt</button><button type="button" data-dashboard-view="activity">Aktivitet</button><button type="button" data-dashboard-view="nutrition">Kost</button><button type="button" data-dashboard-view="physique">Fysik</button></nav>
 				<section class="premium-home-grid premium-dashboard-section" data-dashboard-section="overview" aria-label="Dit fitness-overblik">
@@ -56,7 +57,7 @@
 					<article class="premium-home-card premium-home-mini"><div class="premium-home-mini-head"><span>↗ VOLUMEN</span><b id="premiumVolumeDelta">+0%</b></div><strong id="premiumVolumeValue">0 kg</strong><small id="premiumVolumeDetail">Denne uge</small><svg class="premium-home-spark" viewBox="0 0 160 60" aria-hidden="true"><polyline points="0,48 18,36 33,42 48,22 65,27 83,12 98,30 116,20 134,25 158,8"></polyline></svg></article>
 					<article class="premium-home-card premium-home-mini premium-home-recovery"><div class="premium-home-mini-head"><span>♥ RECOVERY</span><b id="premiumRecoveryDelta">0%</b></div><strong id="premiumRecoveryValue">0%</strong><small id="premiumRecoveryDetail">Klar til træning</small><svg class="premium-home-spark" viewBox="0 0 160 60" aria-hidden="true"><polyline points="0,45 20,40 38,44 55,30 70,34 86,22 103,26 120,17 138,20 158,8"></polyline></svg></article>
 				</section>
-				<section class="premium-home-trend premium-dashboard-section" data-dashboard-section="overview"><div><span>VÆGTUDVIKLING</span><strong id="premiumTrendWeight">- kg</strong><small id="premiumTrendDetail">Tilføj vejninger for at se din trend.</small></div><div id="premiumTrendBars" class="premium-home-bars" aria-hidden="true"></div></section>
+				<section class="premium-home-trend premium-dashboard-section" data-dashboard-section="overview"><div><span>VÆGTUDVIKLING</span><strong id="premiumTrendWeight">- kg</strong><small id="premiumTrendDetail">Tilføj vejninger for at se din trend.</small></div><div class="premium-trend-photo-box" id="premiumTrendPhotoBox" hidden><img id="premiumTrendPhoto" alt="Seneste fysikfoto"><div class="premium-trend-change"><span id="premiumTrendChangeLabel">-</span><div class="premium-trend-progress"><i id="premiumTrendProgressBar"></i></div></div></div><div id="premiumTrendBars" class="premium-home-bars" aria-hidden="true"></div></section>
 				<section class="premium-home-middle premium-dashboard-section" data-dashboard-section="activity">
 					<article class="premium-home-card premium-home-steps"><div class="premium-home-card-head"><span>STEPS I DAG</span><b id="premiumStepsPercent">0%</b></div><strong id="premiumStepsValue">0</strong><small id="premiumStepsDetail">af dit dagsmål</small><div class="premium-home-step-track"><i id="premiumStepsBar"></i></div></article>
 					<article class="premium-home-card premium-home-strength"><div class="premium-home-card-head"><span>STYRKEPROGRESSION</span><button type="button" data-category-target="#library">Se alle</button></div><div id="premiumStrengthRows" class="premium-home-strength-rows"></div></article>
@@ -95,10 +96,6 @@
 					<span class="pro-home-body-model" aria-hidden="true">🫀</span>
 				</article>
 
-				<section class="pro-home-quick-access">
-					<div class="pro-home-section-heading"><h2>HURTIG ADGANG</h2></div>
-					<div class="pro-home-quick-grid" id="proHomeQuickGrid"></div>
-				</section>
 			</section>
 
 			<section class="hero-grid" id="workout">
@@ -228,6 +225,7 @@
 				</div>
 				<div class="pro-progress-bottom-row">
 					<article class="pro-progress-status"><span class="pro-progress-card-icon" aria-hidden="true">🔥</span><small>Status</small><strong id="proProgressGoalStatus">-</strong><span>Din aktuelle retning</span></article>
+					<article class="pro-progress-streak"><span class="pro-progress-card-icon" aria-hidden="true">↗</span><small id="proProgressStreakLabel">Streak</small><strong id="proProgressStreakValue">0 uger</strong><span id="proProgressStreakDetail">Vælg Bulk eller Cut for at følge din streak</span></article>
 					<article class="pro-progress-tip"><span class="pro-progress-card-icon" aria-hidden="true">🏆</span><div><h3>PRO TIP</h3><p id="proProgressMasterTip">Registrér ugentlige målinger for at følge din udvikling.</p></div></article>
 				</div>
 				<article class="pro-progress-score">
@@ -446,15 +444,8 @@
 			</section>
 		</main>
 	</div>
-	<nav class="pro-home-bottom-nav" id="proHomeBottomNav" hidden aria-label="Hovednavigation">
-		<button type="button" class="is-active" data-category-target="#top"><span aria-hidden="true">⌂</span>Home</button>
-		<button type="button" data-category-target="#workout"><span aria-hidden="true">▤</span>Plan</button>
-		<button type="button" class="pro-home-bottom-nav-add" data-category-target="#library" aria-label="Tilføj"><span aria-hidden="true">+</span></button>
-		<button type="button" data-category-target="#progress"><span aria-hidden="true">📊</span>Progress</button>
-		<button type="button" data-category-target="#profile"><span aria-hidden="true">◌</span>Profile</button>
-	</nav>
 	<div id="toast" role="status"></div>
-	<script src="app.js?v=20260922-no-chess-2"></script>
+	<script src="app.js?v=20260922-pro-demo-realdata-2"></script>
 	<script type="module" src="physique-3d.js?v=20260830-physique-progress-15"></script>
 	<script>
 		(() => {
