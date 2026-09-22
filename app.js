@@ -1135,7 +1135,7 @@ function updateBillingUi() {
     if (gate) gate.hidden = true;
     const previewLock = physiquePanel.querySelector('#physiquePreviewLock');
     if (previewLock) previewLock.hidden = true;
-    physiquePanel.querySelectorAll('.physique-scan-row input').forEach((control) => {
+    physiquePanel.querySelectorAll('.aio-stats input').forEach((control) => {
       control.disabled = false;
     });
     physiquePanel.querySelectorAll('.physique-angle-card input[type="file"]').forEach((control) => {
@@ -1629,18 +1629,16 @@ overviewCategories.innerHTML = `
     <button type="button" data-category-target="#food"><strong>Mad &amp; kcal</strong><span>Kalorier og makroer</span></button>
     <button type="button" data-category-target="#weight"><strong>Krop</strong><span>Billeder og vægt</span></button>
     <button type="button" data-category-target=".training-progress-panel"><strong>Progression</strong><span>1RM og volumen</span></button>
-    <button type="button" data-category-target="#library"><strong>Øvelser</strong><span>Bibliotek og log</span></button>
     <button type="button" data-category-target=".coach-panel"><strong>AI-coach</strong><span>Personlig guidance</span></button>
     <button type="button" data-category-target="#profile"><strong>Kcal-beregner</strong><span>Personlige mål og kalorier</span></button>
     <button type="button" data-category-target="#weight"><strong>Kropsvægt</strong><span>Vejninger og trend</span></button>
-    <button type="button" data-category-target=".coach-panel"><strong>Coach</strong><span>Samtale og forslag</span></button>
     <button type="button" data-category-target="#physique-ai"><strong>Fysik vurdering AI</strong><span>4-vinkels body scan</span></button>
   </div>
 `;
 const overviewCategoryGrid = overviewCategories.querySelector('.overview-category-grid');
 const quickAccessIcons = {
-  'Træning': '📅', 'Mad & kcal': '🍎', 'Krop': '❤️', 'Progression': '📊', 'Øvelser': '🏋️',
-  'AI-coach': '🧠', 'Kcal-beregner': '🧮', 'Kropsvægt': '🖼️', 'Coach': '💬', 'Fysik vurdering AI': '🧍'
+  'Træning': '📅', 'Mad & kcal': '🍎', 'Krop': '❤️', 'Progression': '📊',
+  'AI-coach': '🧠', 'Kcal-beregner': '🧮', 'Kropsvægt': '🖼️', 'Fysik vurdering AI': '🧍'
 };
 overviewCategoryGrid?.querySelectorAll('button').forEach((button) => {
   const label = button.querySelector('strong')?.textContent?.trim() || '';
@@ -1696,15 +1694,13 @@ if (workoutSection) {
   workoutSection.after(overviewCategories);
 }
 const featureHelpItems = [
-  { name: 'Træning', access: 'Gratis', page: 'training', text: 'Se dagens træning, åbn øvelserne og registrér sæt, reps og vægt.' },
+  { name: 'Træning', access: 'Gratis', page: 'training', text: 'Se dagens træning, byg dit øvelsesbibliotek og registrér sæt, reps og vægt.' },
   { name: 'Mad & kcal', access: 'Gratis', page: 'food', text: 'Registrér måltider og følg kalorier, protein, kulhydrat og fedt.' },
   { name: 'Krop', access: 'Gratis', page: 'weight', text: 'Saml din fase, dine kropsmål, vejninger og udviklingsbilleder.' },
   { name: 'Progression', access: 'KRÆVER PRO', page: 'progress', text: 'Lås lineær udvikling, volumen, rekorder og beregnet 1RM op fra din gratis workout-log.' },
-  { name: 'Øvelser', access: 'Gratis', page: 'library', text: 'Byg dit øvelsesbibliotek og vælg de bevægelser, du vil træne.' },
   { name: 'AI-coach', access: 'KRÆVER PRO', page: 'coach', text: 'Få personlige AI-svar ud fra dine mål, måltider og træningsdata.' },
   { name: 'Kcal-beregner', access: 'Gratis', page: 'profile', text: 'Beregn et personligt kaloriemål ud fra krop, aktivitet og mål.' },
   { name: 'Kropsvægt', access: 'Gratis', page: 'weight', text: 'Registrér vejninger og se den langsigtede vægttrend uge for uge.' },
-  { name: 'Coach', access: 'KRÆVER PRO', page: 'coach', text: 'Åbn coachens samtale, forslag og tidligere personlige svar.' },
   { name: 'Fysik vurdering AI', access: 'KRÆVER PRO', page: 'physique', text: 'Upload tre vinkler og få fokusområder, træningsplan og 3D-muskelkort.' }
 ];
 const featureHelpDialog = document.createElement('div');
@@ -2444,24 +2440,16 @@ const physiqueAiPanel = document.createElement('section');
 physiqueAiPanel.className = 'physique-ai-panel';
 physiqueAiPanel.id = 'physique-ai';
 physiqueAiPanel.innerHTML = `
-  <div class="training-progress-header">
-    <div>
-      <p class="eyebrow">FYSIK VURDERING AI</p>
-      <h2>4-vinkels AI Body Scan</h2>
-      <p>Tilføj hel krop forfra, højre side, venstre side og hel krop bagfra. AI sammenligner vinklerne og bygger en målrettet muskelplan.</p>
-    </div>
-    <div class="physique-header-actions">
-      <button type="button" id="physiqueGoldModeButton" class="physique-gold-mode-button">♛ Guld Overkrop</button>
-      <button type="button" id="physiqueBackButton" class="physique-back-button">← Tilbage til oversigt</button>
-      <span class="progress-live">4 ANGLE SCAN</span>
-    </div>
+  <div class="aio-scan-header">
+    <div><h1>AI Body Scan ✨</h1><div class="aio-scan-sub">Tilføj hel krop forfra, højre side, venstre side og bagfra. AI sammenligner vinklerne og bygger en målrettet muskelplan.</div></div>
+    <div class="aio-scan-actions"><span class="progress-live">4 ANGLE SCAN</span><button type="button" id="aiNewScan" class="aio-btn aio-btn-primary">＋ Ny scan</button></div>
   </div>
   <div id="physiqueProGate" class="pro-inline-gate">
     <span class="pro-gate-lock" aria-hidden="true"></span>
     <div><span>KRÆVER PRO</span><strong>4-vinkels AI Body Scan</strong><small>4 personlige scanninger hver måned · 39 kr./måned + 20 kr./uge</small></div>
     <button type="button" data-open-pro>Se Pro</button>
   </div>
-  <div id="physique3dStage" class="physique-3d-stage" role="group" aria-label="Interaktiv tredimensionel visualisering af AI kropsscanning">
+  <div id="physique3dStage" class="physique-3d-stage" role="group" aria-label="Interaktiv tredimensionel visualisering af AI kropsscanning" hidden>
     <canvas id="physique3dCanvas" aria-hidden="true"></canvas>
     <img id="physiquePosterPhoto" class="physique-poster-photo" src="assets/anatomy-hologram.jpg" alt="" aria-hidden="true" hidden>
     <div id="physiquePreviewLock" class="pro-preview-lock">
@@ -2476,94 +2464,94 @@ physiqueAiPanel.innerHTML = `
       <button type="button" data-physique-view="left" aria-pressed="false"><span>Venstre</span><small>-90°</small></button>
     </div>
   </div>
-  <div class="physique-ai-grid">
-    <div class="physique-ai-card">
-      <div class="physique-scan-row">
-        <label>Højde (cm)<input id="physiqueHeight" type="number" min="120" max="230" value="178"></label>
-        <label>Vægt (kg)<input id="physiqueWeight" type="number" min="30" max="200" step="0.1" value="75"></label>
-        <label>Talje (cm)<input id="physiqueWaist" type="number" min="40" max="150" value="82"></label>
-      </div>
-      <div class="physique-scan-row">
-        <label>Skulderbredde (cm)<input id="physiqueShoulders" type="number" min="30" max="200" value="48"></label>
-        <label>Bryst (cm)<input id="physiqueChest" type="number" min="40" max="200" value="95"></label>
-        <label>Arm (cm)<input id="physiqueArm" type="number" min="15" max="80" value="36"></label>
-      </div>
-      <div class="physique-scan-console">
-        <label class="physique-angle-card" data-angle="front">
-          <input id="physiquePhotoInput" type="file" accept="image/*" capture="environment">
-          <span class="physique-angle-index">01</span>
-          <span class="physique-angle-copy"><strong>Front</strong><small>Hele kroppen forfra</small></span>
-          <span class="physique-angle-state">Tilføj foto</span>
-          <img id="physiquePreview" class="physique-angle-preview" alt="Frontfoto til fysik AI" hidden>
-        </label>
-        <label class="physique-angle-card" data-angle="right">
-          <input id="physiqueRightPhotoInput" type="file" accept="image/*" capture="environment">
-          <span class="physique-angle-index">02</span>
-          <span class="physique-angle-copy"><strong>Højre side</strong><small>Stå afslappet fra siden</small></span>
-          <span class="physique-angle-state">Tilføj foto</span>
-          <img id="physiqueRightPreview" class="physique-angle-preview" alt="Højre sidefoto til fysik AI" hidden>
-        </label>
-        <label class="physique-angle-card" data-angle="left">
-          <input id="physiqueLeftSidePhotoInput" type="file" accept="image/*" capture="environment">
-          <span class="physique-angle-index">03</span>
-          <span class="physique-angle-copy"><strong>Venstre side</strong><small>Stå afslappet fra siden</small></span>
-          <span class="physique-angle-state">Tilføj foto</span>
-          <img id="physiqueLeftSidePreview" class="physique-angle-preview" alt="Venstre sidefoto til fysik AI" hidden>
-        </label>
-        <label class="physique-angle-card" data-angle="back">
-          <input id="physiqueLeftPhotoInput" type="file" accept="image/*" capture="environment">
-          <span class="physique-angle-index">04</span>
-          <span class="physique-angle-copy"><strong>Ryg</strong><small>Hele kroppen bagfra i samme lys</small></span>
-          <span class="physique-angle-state">Tilføj foto</span>
-          <img id="physiqueLeftPreview" class="physique-angle-preview" alt="Rygfoto til fysik AI" hidden>
-        </label>
-      </div>
-      <div class="physique-scan-readiness"><i></i><span id="physiqueScanReadiness">0/3 VINKLER KLAR</span></div>
-      <div class="physique-actions">
-        <button id="physiqueAnalyzeBtn" type="button">Start AI body scan</button>
-      </div>
-      <p class="physique-photo-guidance">Ens lys, afstand og afslappet holdning giver den bedste sammenligning. AI vurderer kun synlige muskelgrupper.</p>
-    </div>
-    <div class="physique-ai-card physique-result-card">
-      <div class="score-ring">
-        <strong id="physiqueScore">0</strong>
-        <small>/100</small>
-      </div>
-      <h3 id="physiqueGrade">Venter på scan</h3>
-      <p id="physiqueSummary">Indtast dine mål eller upload et billede for at få en vurdering.</p>
-      <ul id="physiqueInsights" class="physique-insights"></ul>
-      <p id="physiqueAiStatus" class="physique-ai-status">BODY SCAN STANDBY</p>
+
+  <div class="aio-hero">
+    <div class="aio-hero-grid">
+      <div class="aio-hero-text"><div class="aio-crown" id="physiqueAiStatus">BODY SCAN STANDBY</div><h2 id="physiqueGrade">Venter på scan</h2><p id="physiqueSummary">Indtast dine mål eller upload et billede for at få en vurdering.</p><span class="aio-tag" id="physiqueTag">AI COACH • KLAR TIL SCAN</span></div>
+      <div class="aio-score"><div class="aio-score-text"><b id="physiqueScore">0</b><span>/100 · FYSIK SCORE</span></div></div>
+      <div class="aio-body-model"><img class="aio-silhouette" src="assets/anatomy-hologram.jpg" alt="Anatomisk kropsmodel"><div class="aio-orbit"></div></div>
     </div>
   </div>
+
+  <section class="aio-section aio-grid">
+    <div class="aio-card"><div class="aio-title"><h3>▥ Oversigt vurdering</h3><span class="aio-muted">Seneste scan</span></div><div class="aio-ratings">
+      <div class="aio-rating"><span>Muskelmasse</span><div class="aio-track"><i id="physiqueRatingMuscleBar"></i></div><b id="physiqueRatingMuscle">0/100</b></div>
+      <div class="aio-rating"><span>Symmetri</span><div class="aio-track"><i id="physiqueRatingSymmetryBar"></i></div><b id="physiqueRatingSymmetry">0/100</b></div>
+      <div class="aio-rating"><span>Definition</span><div class="aio-track"><i id="physiqueRatingDefinitionBar"></i></div><b id="physiqueRatingDefinition">0/100</b></div>
+      <div class="aio-rating"><span>Proportioner</span><div class="aio-track"><i id="physiqueRatingProportionsBar"></i></div><b id="physiqueRatingProportions">0/100</b></div>
+      <div class="aio-rating"><span>Samlet balance</span><div class="aio-track"><i id="physiqueRatingBalanceBar"></i></div><b id="physiqueRatingBalance">0/100</b></div>
+    </div></div>
+    <div class="aio-card aio-legend"><div class="aio-title"><h3>🏆 Hvad betyder din score?</h3></div><div><strong>GULD · 80–100</strong><span>Ekstraordinær fysik</span></div><div><strong style="color:#ddd">SØLV · 60–79</strong><span>Over gennemsnittet</span></div><div><strong style="color:#d98b32">BRONZE · 40–59</strong><span>Fortsæt arbejdet</span></div><div><strong style="color:#999">BEGYNDER · 0–39</strong><span>Byg fundamentet</span></div></div>
+  </section>
+
+  <section class="aio-section"><div class="aio-title"><h3>◈ Detaljeret Body Scan</h3><span class="aio-muted">Upload dine 4 vinkler</span></div>
+    <div class="aio-views">
+      <label class="physique-angle-card aio-view" data-angle="front">
+        <input id="physiquePhotoInput" type="file" accept="image/*" capture="environment">
+        <h4>FRONT</h4>
+        <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiquePreview" alt="Frontfoto til fysik AI" hidden></div>
+        <small>Bryst · Skuldre · Arme · Mave</small>
+        <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
+      </label>
+      <label class="physique-angle-card aio-view" data-angle="right">
+        <input id="physiqueRightPhotoInput" type="file" accept="image/*" capture="environment">
+        <h4>HØJRE SIDE</h4>
+        <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiqueRightPreview" alt="Højre sidefoto til fysik AI" hidden></div>
+        <small>Skuldre · Bryst · Arm · Core</small>
+        <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
+      </label>
+      <label class="physique-angle-card aio-view" data-angle="left">
+        <input id="physiqueLeftSidePhotoInput" type="file" accept="image/*" capture="environment">
+        <h4>VENSTRE SIDE</h4>
+        <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiqueLeftSidePreview" alt="Venstre sidefoto til fysik AI" hidden></div>
+        <small>Skuldre · Bryst · Arm · Core</small>
+        <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
+      </label>
+      <label class="physique-angle-card aio-view" data-angle="back">
+        <input id="physiqueLeftPhotoInput" type="file" accept="image/*" capture="environment">
+        <h4>RYG</h4>
+        <div class="aio-pose"><span class="aio-pose-placeholder">+</span><img id="physiqueLeftPreview" alt="Rygfoto til fysik AI" hidden></div>
+        <small>Ryg · Skuldre · Lænd · Arme</small>
+        <div class="aio-detail"><span>Status</span><b class="physique-angle-state">Tilføj foto</b></div>
+      </label>
+    </div>
+    <div class="physique-scan-readiness"><i></i><span id="physiqueScanReadiness">0/3 VINKLER KLAR</span></div>
+    <div class="physique-actions"><button id="physiqueAnalyzeBtn" type="button">Start AI body scan</button></div>
+    <p class="physique-photo-guidance">Ens lys, afstand og afslappet holdning giver den bedste sammenligning. AI vurderer kun synlige muskelgrupper.</p>
+  </section>
+
+  <section class="aio-section aio-lower">
+    <div class="aio-card"><div class="aio-title"><h3>▦ Målinger</h3><span class="aio-muted">Dine mål</span></div><div class="aio-stats">
+      <div class="aio-stat"><span>Højde (cm)</span><input id="physiqueHeight" type="number" min="120" max="230" value="178"></div>
+      <div class="aio-stat"><span>Vægt (kg)</span><input id="physiqueWeight" type="number" min="30" max="200" step="0.1" value="75"></div>
+      <div class="aio-stat"><span>Talje (cm)</span><input id="physiqueWaist" type="number" min="40" max="150" value="82"></div>
+      <div class="aio-stat"><span>Skulder (cm)</span><input id="physiqueShoulders" type="number" min="30" max="200" value="48"></div>
+      <div class="aio-stat"><span>Bryst (cm)</span><input id="physiqueChest" type="number" min="40" max="200" value="95"></div>
+      <div class="aio-stat"><span>Arm (cm)</span><input id="physiqueArm" type="number" min="15" max="80" value="36"></div>
+    </div></div>
+    <div class="aio-card"><div class="aio-title"><h3>◉ AI Indsigter</h3><span class="aio-muted">Baseret på dine mål</span></div><ul id="physiqueInsights" class="physique-insights"></ul></div>
+    <div class="aio-card aio-ai"><div class="aio-title"><h3>🤖 AI Coach analyse</h3></div><div class="aio-muted">Din fysik er i udvikling — her er dine prioriteter.</div><ol id="physiquePriorities"><li>Kør en AI-scan for at se dine prioriteter.</li></ol><button type="button" id="physiqueSeePlan" class="aio-cta">Se din personlige plan →</button></div>
+  </section>
+
+  <div class="aio-streak"><div><div class="aio-muted">🔥 KONSISTENS SKABER RESULTATER</div><b id="physiqueStreakText">Indtast dine mål for at se din næste milepæl.</b></div><div class="aio-big" id="physiqueStreakBig">0/100<br><span class="aio-muted" id="physiqueStreakTier">BEGYNDER</span></div></div>
+
   <div id="physiqueMuscleAnalysis" class="physique-muscle-analysis" hidden>
     <section class="physique-analysis-block physique-strength-block">
       <div class="physique-analysis-heading"><span>01</span><div><small>STRENGTH MAP</small><h3>Stærkeste muskelgrupper</h3></div></div>
       <ul id="physiqueStrengths"></ul>
     </section>
-    <section class="physique-analysis-block physique-priority-block">
-      <div class="physique-analysis-heading"><span>02</span><div><small>PRIORITY MAP</small><h3>Muskelgrupper der skal bygges</h3></div></div>
-      <ul id="physiquePriorities"></ul>
-    </section>
     <section class="physique-analysis-block physique-plan-block">
-      <div class="physique-analysis-heading"><span>03</span><div><small>AI PROGRAM</small><h3>Øvelser, sæt og reps</h3></div></div>
+      <div class="physique-analysis-heading"><span>02</span><div><small>AI PROGRAM</small><h3>Øvelser, sæt og reps</h3></div></div>
       <div class="physique-plan-head"><span>Øvelse</span><span>Fokus</span><span>Sæt × reps</span><span>Pause</span><span>Pr. uge</span></div>
       <div id="physiqueExercisePlan" class="physique-exercise-plan"></div>
     </section>
     <section class="physique-analysis-block physique-history-block">
-      <div class="physique-analysis-heading"><span>04</span><div><small>UGE FOR UGE</small><h3>Fremgang i svage muskelgrupper</h3></div></div>
+      <div class="physique-analysis-heading"><span>03</span><div><small>UGE FOR UGE</small><h3>Fremgang i svage muskelgrupper</h3></div></div>
       <p id="physiqueProgressStatus" class="physique-progress-status"></p>
       <ul id="physiqueProgressFindings"></ul>
     </section>
     <p id="physiqueAnalysisNote" class="physique-analysis-note"></p>
   </div>
-  <section class="physique-gold-report" aria-live="polite">
-    <div class="physique-gold-report-title"><span class="physique-gold-crown" aria-hidden="true">♛</span><div><p class="eyebrow">AI FYSIK VURDERING</p><h2>GULD OVERKROP</h2><p>Din samlede vurdering ud fra dine mål, målinger og seneste analyse.</p></div></div>
-    <div class="physique-gold-report-grid">
-      <article class="physique-gold-score"><div class="physique-gold-score-ring"><strong id="physiqueGoldScore">0</strong><small>/100</small></div><div><span>DIN FYSIK SCORE</span><h3 id="physiqueGoldGrade">Venter på data</h3><p id="physiqueGoldSummary">Indtast dine mål for at få din personlige vurdering.</p></div></article>
-      <article class="physique-gold-metrics"><span>OVERORDNET VURDERING</span><div id="physiqueGoldMetricList"></div></article>
-    </div>
-    <div class="physique-gold-lower-grid"><article><span>✦ FOKUSOMRÅDER</span><h3 id="physiqueGoldFocusTitle">Venter på AI-analyse</h3><ul id="physiqueGoldFocusList"></ul></article><article><span>DIN SENESTE SCAN</span><div class="physique-gold-photo-grid"><img id="physiqueGoldPhotoFront" alt="Seneste frontfoto" hidden><img id="physiqueGoldPhotoRight" alt="Seneste højre sidefoto" hidden><img id="physiqueGoldPhotoLeft" alt="Seneste venstre sidefoto" hidden><img id="physiqueGoldPhotoBack" alt="Seneste rygfoto" hidden></div></article></div>
-  </section>
 `;
 trainingProgressPanel.after(physiqueAiPanel);
 const physiqueCoachPanel = document.createElement('section');
@@ -2573,10 +2561,13 @@ physiqueAiPanel.append(physiqueCoachPanel);
 const physiqueCompleteReport = document.createElement('section');
 physiqueCompleteReport.className = 'physique-complete-report';
 physiqueCompleteReport.innerHTML = '<div class="physique-complete-head"><div><p class="eyebrow">BODY SCAN ✨</p><h2>Din komplette fysikanalyse</h2><p>Drevet af AI og samlet ét sted.</p></div><button type="button" id="physiqueCompleteNewScan">＋ Ny scan</button></div><div class="physique-complete-hero"><div><span>♛ GULD OVERKROP</span><h2>Guld overkrop</h2><p>Din æstetiske vurdering ud fra dine mål, målinger og seneste analyse. Fortsæt med fokus på bryst, skuldre, ryg og arme for at nå næste niveau.</p><b>AI COACH • SOLID PROGRESSION</b></div><strong>60<small>/100 · FYSIK SCORE</small></strong><span class="physique-complete-silhouette">♟</span></div><div class="physique-complete-grid"><article><h3>▥ Oversigt vurdering</h3><small>Seneste scan</small><div class="physique-complete-ratings"><span>Muskelmasse <b>68/100</b></span><span>Symmetri <b>87/100</b></span><span>Definition <b>69/100</b></span><span>Proportioner <b>64/100</b></span><span>Samlet balance <b>83/100</b></span></div></article><article><h3>🏆 Hvad betyder din score?</h3><p><b>GULD · 80–100</b> Ekstraordinær fysik</p><p><b>SØLV · 60–79</b> Over gennemsnittet</p><p><b>BRONZE · 40–59</b> Fortsæt arbejdet</p><p><b>BEGYNDER · 0–39</b> Byg fundamentet</p></article></div><article class="physique-complete-angles"><h3>◈ Detaljeret Body Scan</h3><small>Tryk på en vinkel for detaljer</small><div><button type="button" data-complete-view="Front"><b>FRONT</b><span>♟</span><small>Bryst · Skuldre · Arme · Mave</small><strong>72/100</strong></button><button type="button" data-complete-view="Højre side"><b>HØJRE SIDE</b><span>◑</span><small>Skuldre · Bryst · Arm · Core</small><strong>74/100</strong></button><button type="button" data-complete-view="Venstre side"><b>VENSTRE SIDE</b><span>◒</span><small>Skuldre · Bryst · Arm · Core</small><strong>73/100</strong></button><button type="button" data-complete-view="Ryg"><b>RYG</b><span>♟</span><small>Ryg · Skuldre · Lænd · Arme</small><strong>70/100</strong></button></div></article><div class="physique-complete-lower"><article><h3>▦ Målinger <small>Seneste</small></h3><div><span>Højde <b>182 cm</b></span><span>Vægt <b>82,4 kg</b><em>−0,4 kg</em></span><span>Fedt <b>12,1%</b><em>−0,6%</em></span><span>Muskelmasse <b>68,3 kg</b><em>+0,8 kg</em></span><span>Talje <b>78 cm</b><em>−1 cm</em></span><span>Bryst <b>104 cm</b><em>+1 cm</em></span></div></article><article><h3>↗ Progression over tid <small>3M · 6M · 1ÅR</small></h3><div class="physique-complete-chart"><i></i><i></i></div><div><span>Vægt <b>+1,2 kg</b><em>3 måneder</em></span><span>Fedtprocent <b>−1,8%</b><em>3 måneder</em></span><span>Muskelmasse <b>+1,6 kg</b><em>3 måneder</em></span></div></article></div><article class="physique-complete-coach"><h3>🤖 AI Coach analyse</h3><p>Din fysik er i stærk udvikling — her er dine prioriteter.</p><ol><li><b>Bryst øvre del</b><small>Fokus på incline press og flyes</small></li><li><b>Side skuldre</b><small>Mere volumen og isolation</small></li><li><b>Arme</b><small>Triceps og biceps — detaljer</small></li><li><b>Ryg tykkelse</b><small>Rows og deadlifts</small></li></ol><button type="button" id="physiqueCompletePlan">Se din personlige plan →</button></article><div class="physique-complete-streak"><span>🔥 KONSISTENS SKABER RESULTATER<br><b>Du er kun 20 point fra næste niveau.</b></span><strong>80/100<small>PLATIN OVERKROP</small></strong></div></section>';
-physiqueAiPanel.append(physiqueCompleteReport);
-physiqueCompleteReport.querySelector('#physiqueCompleteNewScan').addEventListener('click', () => physiqueAiPanel.querySelector('#physiqueAnalyzeBtn')?.click());
-physiqueCompleteReport.querySelectorAll('[data-complete-view]').forEach((button) => button.addEventListener('click', () => showToast(`${button.dataset.completeView} detaljer åbnes efter næste scan`)));
-physiqueCompleteReport.querySelector('#physiqueCompletePlan').addEventListener('click', () => physiqueCoachPanel.querySelector('input')?.focus());
+const completeHeroLabel = physiqueCompleteReport.querySelector('.physique-complete-hero > div > span');
+if (completeHeroLabel) completeHeroLabel.textContent = 'GULD OVERKROP';
+const completeSilhouette = physiqueCompleteReport.querySelector('.physique-complete-silhouette');
+if (completeSilhouette) completeSilhouette.innerHTML = '<img src="assets/anatomy-hologram.jpg" alt="Anatomisk kropsmodel">';
+physiqueCompleteReport.querySelectorAll('[data-complete-view="Front"] > span, [data-complete-view="Ryg"] > span').forEach((preview) => {
+  preview.innerHTML = '<img src="assets/anatomy-hologram.jpg" alt="">';
+});
 const embeddedCoachInput = physiqueCoachPanel.querySelector('input');
 const embeddedCoachForm = physiqueCoachPanel.querySelector('form');
 embeddedCoachForm.addEventListener('submit', (event) => {
@@ -2593,19 +2584,16 @@ physiqueCoachPanel.querySelectorAll('[data-coach-question]').forEach((button) =>
   embeddedCoachInput.value = button.dataset.coachQuestion;
   embeddedCoachInput.focus();
 }));
-const physiqueGoldReport = physiqueAiPanel.querySelector('.physique-gold-report');
-const physiqueScanGrid = physiqueAiPanel.querySelector('.physique-ai-grid');
-if (physiqueGoldReport && physiqueScanGrid) physiqueScanGrid.before(physiqueGoldReport);
 const physiqueProgressPanel = document.querySelector('#proProgress');
 if (physiqueProgressPanel) {
   physiqueProgressPanel.dataset.appPage = 'progress';
   physiqueProgressPanel.hidden = true;
   document.querySelector('.content')?.insertBefore(physiqueProgressPanel, physiqueAiPanel);
 }
-physiqueAiPanel.querySelector('#physiqueBackButton').addEventListener('click', () => window.showAppPage?.('overview'));
-physiqueAiPanel.querySelector('#physiqueGoldModeButton').addEventListener('click', () => {
-  physiqueAiPanel.querySelector('.physique-gold-report')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+physiqueAiPanel.querySelector('#aiNewScan').addEventListener('click', () => {
+  physiqueAiPanel.querySelector('.aio-views')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
+physiqueAiPanel.querySelector('#physiqueSeePlan').addEventListener('click', () => physiqueCoachPanel.querySelector('input')?.focus());
 physiqueAiPanel.querySelectorAll('[data-open-pro]').forEach((button) => button.addEventListener('click', openProAccess));
 updateBillingUi();
 
@@ -2637,12 +2625,6 @@ const physiqueExercisePlan = physiqueAiPanel.querySelector('#physiqueExercisePla
 const physiqueProgressStatus = physiqueAiPanel.querySelector('#physiqueProgressStatus');
 const physiqueProgressFindings = physiqueAiPanel.querySelector('#physiqueProgressFindings');
 const physiqueAnalysisNote = physiqueAiPanel.querySelector('#physiqueAnalysisNote');
-const physiqueGoldScoreEl = physiqueAiPanel.querySelector('#physiqueGoldScore');
-const physiqueGoldGradeEl = physiqueAiPanel.querySelector('#physiqueGoldGrade');
-const physiqueGoldSummaryEl = physiqueAiPanel.querySelector('#physiqueGoldSummary');
-const physiqueGoldMetricList = physiqueAiPanel.querySelector('#physiqueGoldMetricList');
-const physiqueGoldFocusTitle = physiqueAiPanel.querySelector('#physiqueGoldFocusTitle');
-const physiqueGoldFocusList = physiqueAiPanel.querySelector('#physiqueGoldFocusList');
 
 function clampPhysiqueValue(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -2685,28 +2667,34 @@ function getPhysiqueSummary(profile, score) {
   return `${bodyType} BMI ${bmi.toFixed(1)} · talje/højde ${waistHeightRatio.toFixed(2)} · score ${score}/100.`;
 }
 
-function renderPhysiqueGoldReport(profile, score, grade, summary, analysis = null) {
-  if (!physiqueGoldScoreEl) return;
+function renderAioOverview(profile, score, grade) {
   const metricValue = (value) => Math.round(clampPhysiqueValue(value || 0, 0, 100));
   const symmetry = profile.shoulders && profile.waist ? metricValue(100 - Math.abs(0.6 - profile.shoulders / profile.waist) * 180) : score;
   const definition = profile.height && profile.waist ? metricValue(100 - Math.max(0, profile.waist / profile.height - 0.42) * 260) : score;
   const proportions = profile.waist && profile.chest ? metricValue(70 + (profile.chest / profile.waist - 1) * 100) : score;
   const balance = metricValue((score + symmetry + definition + proportions) / 4);
-  physiqueGoldScoreEl.textContent = String(score);
-  physiqueGoldGradeEl.textContent = grade;
-  physiqueGoldSummaryEl.textContent = summary;
-  const metrics = [['Muskelmasse', score], ['Symmetri', symmetry], ['Definition', definition], ['Proportioner', proportions], ['Samlet balance', balance]];
-  physiqueGoldMetricList.innerHTML = metrics.map(([label, value]) => `<div class="physique-gold-metric"><div><span>${label}</span><b>${value}/100</b></div><i><em style="width:${value}%"></em></i></div>`).join('');
-  const priorities = analysis?.priorities || [];
-  physiqueGoldFocusTitle.textContent = priorities.length ? `${priorities.length} primære fokusområder` : 'Klar til AI-analyse';
-  physiqueGoldFocusList.innerHTML = priorities.slice(0, 4).map((item) => `<li>${item.muscle}${item.reason ? ` <small>${item.reason}</small>` : ''}</li>`).join('');
-  const photos = getPhysiquePhotos();
-  ['front', 'right', 'left', 'back'].forEach((name) => {
-    const image = physiqueAiPanel.querySelector(`#physiqueGoldPhoto${name[0].toUpperCase()}${name.slice(1)}`);
-    const photo = photos.find((item) => item.name === name);
-    image.src = photo?.data || '';
-    image.hidden = !photo?.data;
+  const ratings = [
+    ['physiqueRatingMuscle', score],
+    ['physiqueRatingSymmetry', symmetry],
+    ['physiqueRatingDefinition', definition],
+    ['physiqueRatingProportions', proportions],
+    ['physiqueRatingBalance', balance]
+  ];
+  ratings.forEach(([id, value]) => {
+    const valueEl = physiqueAiPanel.querySelector(`#${id}`);
+    const barEl = physiqueAiPanel.querySelector(`#${id}Bar`);
+    if (valueEl) valueEl.textContent = `${value}/100`;
+    if (barEl) barEl.style.width = `${value}%`;
   });
+  const tagEl = physiqueAiPanel.querySelector('#physiqueTag');
+  if (tagEl) tagEl.textContent = `AI COACH • ${grade.toUpperCase()}`;
+  const tier = score >= 80 ? { name: 'GULD', next: 100 } : score >= 60 ? { name: 'SØLV', next: 80 } : score >= 40 ? { name: 'BRONZE', next: 60 } : { name: 'BEGYNDER', next: 40 };
+  const streakTextEl = physiqueAiPanel.querySelector('#physiqueStreakText');
+  const streakBigEl = physiqueAiPanel.querySelector('#physiqueStreakBig');
+  const streakTierEl = physiqueAiPanel.querySelector('#physiqueStreakTier');
+  if (streakTextEl) streakTextEl.textContent = score >= 100 ? 'Du har nået topscoren!' : `Du er kun ${tier.next - score} point fra næste niveau.`;
+  if (streakTierEl) streakTierEl.textContent = tier.name;
+  if (streakBigEl?.firstChild) streakBigEl.firstChild.textContent = `${score}/100`;
 }
 
 function getPhysiqueProfile() {
@@ -2741,8 +2729,7 @@ function renderPhysiqueAssessment() {
   const nextStep = score >= 75 ? 'Fortsæt med progressive belastninger og bevare den nuværende fedtprocent.' : score >= 55 ? 'Fokuser på skulder- og brystudvikling samt en mere præcis talje.' : 'Prioriter styrke, taljeproportioner og kontinuerlig vægtøgning i kvalitet.';
   insights.push(nextStep);
   physiqueInsightsEl.innerHTML = insights.map((item) => `<li>${item}</li>`).join('');
-  const savedAnalysis = JSON.parse(localStorage.getItem('formlyPhysiqueMuscleAnalysis') || 'null');
-  renderPhysiqueGoldReport(profile, score, grade, summary, savedAnalysis);
+  renderAioOverview(profile, score, grade);
   localStorage.setItem('formlyPhysiqueAi', JSON.stringify({ ...profile, score, grade, summary, updatedAt: new Date().toISOString() }));
 }
 
@@ -4825,7 +4812,7 @@ function goToProHomeTarget(target) {
   if (!target) return;
   const pageMap = {
     '#food': 'food', '.coach-panel': 'coach', '#weight': 'weight', '#profile': 'profile',
-    '#physique-ai': 'physique', '#workout': 'training', '#library': 'library', '#progress': 'progress',
+    '#physique-ai': 'physique', '#workout': 'training', '#library': 'training', '#progress': 'progress',
     '.training-progress-panel': 'progress', '#pro': 'pro', '#top': 'overview'
   };
   const targetPage = pageMap[target];
@@ -4866,7 +4853,7 @@ function renderProHome() {
   const physiquePhotoButton = proHome.querySelector('#proHomePhysiquePhoto');
   if (physiquePhotoButton && !physiquePhotoButton.dataset.wired) {
     physiquePhotoButton.dataset.wired = '1';
-    physiquePhotoButton.addEventListener('click', () => selectDashboardView('physique'));
+    physiquePhotoButton.addEventListener('click', () => window.showAppPage?.('physique'));
   }
   const quickToggle = proHome.querySelector('#proHomeQuickToggle');
   if (quickToggle && !quickToggle.dataset.wired) {
@@ -5251,7 +5238,7 @@ function renderProProgress() {
   const masterProgress = goalWeight && latestWeight ? Math.max(0, Math.min(100, Math.round((completedGoalDistance / totalGoalDistance) * 100))) : 0;
   document.querySelector('#proProgressMasterPercent')?.replaceChildren(document.createTextNode(`${masterProgress}%`));
   const masterRing = document.querySelector('#proProgressMasterRing');
-  if (masterRing) { masterRing.textContent = `${masterProgress}%`; masterRing.style.setProperty('--master-percent', `${masterProgress}%`); }
+  if (masterRing) { masterRing.innerHTML = `<strong>${masterProgress}%</strong>`; masterRing.style.setProperty('--master-percent', `${masterProgress}%`); }
   document.querySelector('#proProgressMasterBar')?.style.setProperty('width', `${masterProgress}%`);
   const masterRemaining = document.querySelector('#proProgressMasterRemaining');
   if (masterRemaining) masterRemaining.innerHTML = goalWeight ? `${weightDifference > 0 ? '-' : '+'}${formatWeight(Math.abs(weightDifference))} kg<br><small>tilbage</small>` : '- kg<br><small>tilbage</small>';
@@ -5330,7 +5317,7 @@ startButton.addEventListener('click', () => {
     localStorage.setItem('formlyActiveWorkoutSession', String(activeWorkoutSession));
   }
   syncWeekProgressState(selectedProgramWeek);
-  window.showAppPage?.('library');
+  window.showAppPage?.('training');
   showToast(`Session ${activeWorkoutSession} er klar på dashboardet`);
 });
 sessionComplete.addEventListener('click', () => {
@@ -5613,7 +5600,7 @@ function renderFood() {
   updateMacroCard('protein', protein, goals.protein);
   updateMacroCard('carbs', carbs, goals.carbs);
   updateMacroCard('fat', fat, goals.fat);
-  const mealIcons = { 'Morgenmad': '☀', 'Frokost': '☀', 'Aftensmad': '◐', 'Snack': '♟' };
+  const mealIcons = { 'Morgenmad': '☀', 'Frokost': '☀', 'Aftensmad': '◐', 'Snack': '🍎' };
   const mealOrder = ['Morgenmad', 'Frokost', 'Aftensmad', 'Snack'];
   const indexedEntries = foodEntries.map((entry, index) => ({ ...entry, index })).filter((entry) => entry.date === viewedDateKey);
   foodList.innerHTML = dayEntries.length ? mealOrder.map((meal) => {
@@ -6629,14 +6616,13 @@ if (document.readyState === 'loading') {
 
 const appPageTargets = {
   overview: ['#proHome'],
-  training: ['#workout', '.training-overview-categories'],
+  training: ['#workout', '.training-overview-categories', '#library'],
   food: ['#food'],
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
   progress: ['#progress', '#proProgress'],
   physique: ['#physique-ai'],
-  library: ['#library'],
   pro: ['#proAccessDialog']
 };
 const appContent = document.querySelector('.content');
@@ -6721,7 +6707,7 @@ if (appContent) {
     });
   });
 
-  const initialPage = window.location.hash.slice(1);
+  const initialPage = window.location.hash.slice(1) === 'library' ? 'training' : window.location.hash.slice(1);
   const homePage = resolveLandingPage();
   showAppPage(appPageTargets[initialPage] ? initialPage : homePage, false);
   window.showAppPage = showAppPage;
@@ -6739,7 +6725,7 @@ if (appContent) {
     if (target.includes('profile')) return 'profile';
     if (target.includes('physique-ai')) return 'physique';
     if (target.includes('workout')) return 'training';
-    if (target.includes('library')) return 'library';
+    if (target.includes('library')) return 'training';
     if (target.includes('progress')) return 'progress';
     if (target.includes('pro')) return 'pro';
     return 'overview';
@@ -6771,7 +6757,7 @@ if (appContent) {
 }
 
 document.querySelectorAll('[data-category-target="#library"]').forEach((button) => {
-  button.addEventListener('click', () => window.showAppPage?.('library'));
+  button.addEventListener('click', () => window.showAppPage?.('training'));
 });
 
 const exerciseListForObserver = document.querySelector('#exerciseList');

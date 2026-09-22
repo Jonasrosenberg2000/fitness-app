@@ -17,7 +17,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles%20sss.css?v=20260904-master-progression-3">
+	<link rel="stylesheet" href="styles%20sss.css?v=20260922-no-chess-2">
 </head>
 <body>
 	<div class="app-shell">
@@ -34,7 +34,6 @@
 				<a class="nav-link" href="#profile" data-app-page-target="profile"><b aria-hidden="true">◌</b><span>Kcal-beregner</span></a>
 				<a class="nav-link" href="#weight" data-app-page-target="weight"><b aria-hidden="true">◒</b><span>Kropsvægt</span></a>
 				<a class="nav-link" href="#progress" data-app-page-target="progress"><b aria-hidden="true">↗</b><span>Din progression</span></a>
-				<a class="nav-link" href="#library" data-app-page-target="library"><b aria-hidden="true">▦</b><span>Øvelser</span></a>
 				<a class="nav-link nav-link-pro" href="#pro" data-app-page-target="pro"><b aria-hidden="true">PRO</b><span>Pro · 40 % første år</span></a>
 			</nav>
 			<div class="sidebar-bottom"><div class="profile-card" id="sidebarProfileCard"><span id="sidebarInitial">+</span><span class="profile-card-fields"><input id="sidebarNameInput" type="text" placeholder="Dit navn" maxlength="40" aria-label="Dit navn"><small>Min profil</small></span></div></div>
@@ -95,53 +94,6 @@
 					<button type="button" id="proHomeInsightLink" class="pro-home-text-link" data-category-target="#physique-ai">Se analyse <span aria-hidden="true">→</span></button>
 					<span class="pro-home-body-model" aria-hidden="true">🫀</span>
 				</article>
-
-				<section class="premium-dashboard-section aio-body-scan" data-dashboard-section="physique">
-					<div class="aio-scan-header">
-						<div><h1>AI Body Scan ✨</h1><div class="aio-scan-sub">Din komplette fysikanalyse — drevet af AI</div></div>
-						<div class="aio-scan-actions"><button type="button" class="aio-btn">Scan historik</button><button type="button" class="aio-btn aio-btn-primary" id="aiNewScan">＋ Ny scan</button></div>
-					</div>
-
-					<div class="aio-hero">
-						<div class="aio-hero-grid">
-							<div class="aio-hero-text"><div class="aio-crown">♛ GULD OVERKROP</div><h2>Guld overkrop</h2><p>Din æstetiske vurdering ud fra dine mål, målinger og seneste analyse. Fortsæt med fokus på bryst, skuldre, ryg og arme for at nå næste niveau.</p><span class="aio-tag">AI COACH • SOLID PROGRESSION</span></div>
-							<div class="aio-score"><div class="aio-score-text"><b id="aiScore">60</b><span>/100 · FYSIK SCORE</span></div></div>
-							<div class="aio-body-model"><div class="aio-silhouette">♟</div><div class="aio-orbit"></div></div>
-						</div>
-					</div>
-
-					<section class="aio-section aio-grid">
-						<div class="aio-card"><div class="aio-title"><h3>▥ Oversigt vurdering</h3><span class="aio-muted">Seneste scan</span></div><div class="aio-ratings">
-							<div class="aio-rating"><span>Muskelmasse</span><div class="aio-track"><i style="width:68%"></i></div><b>68/100</b></div>
-							<div class="aio-rating"><span>Symmetri</span><div class="aio-track"><i style="width:87%"></i></div><b>87/100</b></div>
-							<div class="aio-rating"><span>Definition</span><div class="aio-track"><i style="width:69%"></i></div><b>69/100</b></div>
-							<div class="aio-rating"><span>Proportioner</span><div class="aio-track"><i style="width:64%"></i></div><b>64/100</b></div>
-							<div class="aio-rating"><span>Samlet balance</span><div class="aio-track"><i style="width:83%"></i></div><b>83/100</b></div>
-						</div></div>
-						<div class="aio-card aio-legend"><div class="aio-title"><h3>🏆 Hvad betyder din score?</h3></div><div><strong>GULD · 80–100</strong><span>Ekstraordinær fysik</span></div><div><strong style="color:#ddd">SØLV · 60–79</strong><span>Over gennemsnittet</span></div><div><strong style="color:#d98b32">BRONZE · 40–59</strong><span>Fortsæt arbejdet</span></div><div><strong style="color:#999">BEGYNDER · 0–39</strong><span>Byg fundamentet</span></div></div>
-					</section>
-
-					<section class="aio-section"><div class="aio-title"><h3>◈ Detaljeret Body Scan</h3><span class="aio-muted">Tryk på en vinkel for detaljer</span></div>
-						<div class="aio-views">
-							<div class="aio-card aio-view" onclick="showView('Front')"><h4>FRONT</h4><div class="aio-pose">♟</div><small>Bryst · Skuldre · Arme · Mave</small><div class="aio-detail"><span>Fysik score</span><b>72/100</b></div></div>
-							<div class="aio-card aio-view" onclick="showView('Højre side')"><h4>HØJRE SIDE</h4><div class="aio-pose">◑</div><small>Skuldre · Bryst · Arm · Core</small><div class="aio-detail"><span>Fysik score</span><b>74/100</b></div></div>
-							<div class="aio-card aio-view" onclick="showView('Venstre side')"><h4>VENSTRE SIDE</h4><div class="aio-pose">◒</div><small>Skuldre · Bryst · Arm · Core</small><div class="aio-detail"><span>Fysik score</span><b>73/100</b></div></div>
-							<div class="aio-card aio-view" onclick="showView('Ryg')"><h4>RYG</h4><div class="aio-pose">♟</div><small>Ryg · Skuldre · Lænd · Arme</small><div class="aio-detail"><span>Fysik score</span><b>70/100</b></div></div>
-						</div>
-					</section>
-
-					<section class="aio-section aio-lower">
-						<div class="aio-card"><div class="aio-title"><h3>▦ Målinger</h3><span class="aio-muted">Seneste</span></div><div class="aio-stats">
-							<div class="aio-stat"><span>Højde</span><b>182 cm</b></div><div class="aio-stat"><span>Vægt</span><b>82,4 kg</b><em>−0,4 kg</em></div><div class="aio-stat"><span>Fedt</span><b>12,1%</b><em>−0,6%</em></div><div class="aio-stat"><span>Muskelmasse</span><b>68,3 kg</b><em>+0,8 kg</em></div><div class="aio-stat"><span>Talje</span><b>78 cm</b><em>−1 cm</em></div><div class="aio-stat"><span>Bryst</span><b>104 cm</b><em>+1 cm</em></div>
-						</div></div>
-						<div class="aio-card"><div class="aio-title"><h3>↗ Progression over tid</h3><span class="aio-muted">3M · 6M · 1ÅR</span></div><div class="aio-chart">
-							<svg viewBox="0 0 500 170" preserveAspectRatio="none"><path d="M0 92 L45 82 L90 88 L135 72 L180 78 L225 62 L270 68 L315 51 L360 57 L405 42 L450 48 L500 35"/><path class="aio-c" d="M0 115 L45 110 L90 118 L135 103 L180 108 L225 96 L270 101 L315 88 L360 93 L405 80 L450 85 L500 72"/></svg>
-						</div><div class="aio-stats"><div class="aio-stat"><span>Vægt</span><b>+1,2 kg</b><em>3 måneder</em></div><div class="aio-stat"><span>Fedtprocent</span><b>−1,8%</b><em>3 måneder</em></div><div class="aio-stat"><span>Muskelmasse</span><b>+1,6 kg</b><em>3 måneder</em></div></div></div>
-						<div class="aio-card aio-ai"><div class="aio-title"><h3>🤖 AI Coach analyse</h3></div><div class="aio-muted">Din fysik er i stærk udvikling — her er dine prioriteter.</div><ol><li><b>Bryst øvre del</b><br><span class="aio-muted">Fokus på incline press og flyes</span></li><li><b>Side skuldre</b><br><span class="aio-muted">Mere volumen og isolation</span></li><li><b>Arme</b><br><span class="aio-muted">Triceps og biceps — detaljer</span></li><li><b>Ryg tykkelse</b><br><span class="aio-muted">Rows og deadlifts</span></li></ol><button class="aio-cta" onclick="alert('Personlig AI-plan åbnes')">Se din personlige plan →</button></div>
-					</section>
-
-					<div class="aio-streak"><div><div class="aio-muted">🔥 KONSISTENS SKABER RESULTATER</div><b>Du er kun 20 point fra næste niveau.</b></div><div class="aio-big">80/100<br><span class="aio-muted">PLATIN OVERKROP</span></div></div>
-				</section>
 
 				<section class="pro-home-quick-access">
 					<div class="pro-home-section-heading"><h2>HURTIG ADGANG</h2></div>
@@ -229,22 +181,54 @@
 
 			<section class="profile-card profile-section"><div class="section-heading"><div><p class="eyebrow">DIN PROFIL</p><h2>Kcal-mål</h2></div><button id="calculateGoals" type="button">Beregn mål</button></div><div class="form-grid"><label>Navn<input id="profileName" type="text" placeholder="Dit navn" maxlength="40"></label><label>Vægt (kg)<input id="profileWeight" type="number" value="70"></label><label>Vægtmål (kg)<input id="profileWeightGoal" type="number" step="0.1" placeholder="Fx 75"></label><label>Højde (cm)<input id="profileHeight" type="number" value="175"></label><label>Alder<input id="profileAge" type="number" value="30"></label><label>Køn<select id="profileSex"><option value="male">Mand</option><option value="female">Kvinde</option></select></label><label>Steps<input id="exactStepsInput" type="number" value="6000"></label><input id="stepsInput" type="range" min="0" max="20000" value="6000"><label>Vedligeholdelse<input id="maintenanceInput" type="number" value="2000"></label><label>Træning om ugen<select id="trainingWeekSelect"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></label><label>Intensitet<select id="intensitySelect"><option value="low">Lavt alene</option><option value="moderate">Moderat alene</option><option value="moderateHigh">Moderat-Stor (blandet)</option><option value="high">Højt alene</option><option value="failure">Failure</option></select></label></div><div id="goalTabs"><button type="button" data-goal="cut" class="active">Cut</button><button type="button" data-goal="maintain">Vedligehold</button><button type="button" data-goal="bulk">Bulk</button></div><h3 id="goalCalories">2.000 <small>kcal</small></h3><p id="goalChange"></p><p id="goalPros"></p><p id="goalCons"></p><p id="profileSummary"></p><span id="stepsValue">6.000</span><span id="stepKcalResult">0 <small>kcal</small></span><button id="syncHealth" type="button">Synkroniser sundhed</button><span id="healthStatus"></span><span id="healthSteps"></span></section>
 
-			<section id="proProgress" class="pro-progress" hidden>
+			<section id="proProgress" class="pro-progress pro-progress-wide" hidden>
 				<header class="pro-progress-reference-top"><div class="pro-progress-reference-brand"><span>A</span><span>I</span><span>O</span> Fitness</div><div class="pro-progress-reference-pro">ALLE FUNKTIONER</div></header>
-				<h1 class="pro-progress-page-title">Din <span>progression fra uge til uge</span></h1>
-				<p class="pro-progress-page-subtitle">Følg din rejse. Én uge ad gangen. Ét mål ad gangen.</p>
-				<div class="pro-progress-summary-cards">
-					<article><small>Nuværende vægt</small><strong id="proProgressCurrentWeight">- kg</strong><span>♙ Seneste måling</span></article>
-					<article class="is-purple"><small>Målvægt</small><strong id="proProgressGoalWeight">- kg</strong><span id="proProgressGoalDelta">Vægtmål fra din profil</span></article>
-					<article><small>Til mål</small><strong id="proProgressToGoal">- kg</strong><span>Vægt tilbage</span></article>
-					<article><small>Uger tilbage</small><strong id="proProgressWeeksLeft">-</strong><span id="proProgressDaysLeft">Baseret på din trend</span></article>
-					<article class="is-red"><small>Status</small><strong id="proProgressGoalStatus">-</strong><span>Din aktuelle retning</span></article>
+				<div class="pro-progress-hero">
+					<p class="pro-progress-kicker">Din rejse</p>
+					<h1 class="pro-progress-page-title">Din <span>progression fra uge til uge</span></h1>
+					<p class="pro-progress-page-subtitle">Følg din rejse. Én uge ad gangen. Ét mål ad gangen.</p>
+					<div class="pro-progress-hero-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+					<div class="pro-progress-hero-quote">🔥 Consistency<br>Builds Results</div>
 				</div>
-				<div class="pro-progress-tabs">
-					<button type="button" data-range="week">Uge</button>
-					<button type="button" data-range="month" class="active">Måned</button>
-					<button type="button" data-range="quarter">3M</button>
-					<button type="button" data-range="year">År</button>
+				<div class="pro-progress-summary-cards">
+					<article class="is-cyan"><span class="pro-progress-card-icon" aria-hidden="true">▣</span><small>Nuværende vægt</small><strong id="proProgressCurrentWeight">- kg</strong><span>Seneste måling</span></article>
+					<article class="is-purple"><span class="pro-progress-card-icon" aria-hidden="true">◉</span><small>Målvægt</small><strong id="proProgressGoalWeight">- kg</strong><span id="proProgressGoalDelta">Vægtmål fra din profil</span></article>
+					<article class="is-green"><span class="pro-progress-card-icon" aria-hidden="true">↗</span><small>Til mål</small><strong id="proProgressToGoal">- kg</strong><span>Vægt tilbage</span></article>
+					<article class="is-blue"><span class="pro-progress-card-icon" aria-hidden="true">▣</span><small>Uger tilbage</small><strong id="proProgressWeeksLeft">-</strong><span id="proProgressDaysLeft">Baseret på din trend</span></article>
+				</div>
+				<article class="pro-progress-chart-card">
+					<div class="pro-progress-chart-head">
+						<span class="pro-progress-label">VÆGTUDVIKLING</span>
+						<div class="pro-progress-tabs">
+							<button type="button" data-range="week">Uge</button>
+							<button type="button" data-range="month" class="active">Måned</button>
+							<button type="button" data-range="quarter">3M</button>
+							<button type="button" data-range="year">År</button>
+						</div>
+					</div>
+					<div class="pro-progress-chart-wrap">
+						<div class="pro-progress-chart-main">
+							<div class="pro-progress-chart"><svg id="proProgressChartSvg" viewBox="0 0 600 165" preserveAspectRatio="none"></svg></div>
+							<div class="pro-progress-axis" id="proProgressAxis"></div>
+						</div>
+						<div class="pro-progress-current"><strong id="proProgressWeight">0,0 kg</strong><span id="proProgressWeightDelta"></span><small>siden start</small></div>
+					</div>
+				</article>
+				<div class="pro-progress-twocol">
+					<article class="pro-progress-master-progress">
+						<div class="pro-progress-section-title"><span class="pro-progress-label">FREMGANG</span><span aria-hidden="true">›</span></div>
+						<div class="pro-progress-master-body">
+							<div class="pro-progress-master-ring" id="proProgressMasterRing">0%</div>
+							<div class="pro-progress-master-info"><strong id="proProgressMasterPercent">0%</strong><small>af vejen til målet</small><div class="pro-progress-master-kg" id="proProgressMasterRemaining">- kg<br><small>tilbage</small></div></div>
+						</div>
+						<p class="pro-progress-master-message-text" id="proProgressMasterMessage">Registrér din vægt for at se din fremgang.</p>
+						<div class="pro-progress-master-track"><i id="proProgressMasterBar"></i></div>
+					</article>
+					<section class="pro-progress-master-history"><div class="pro-progress-master-title"><h2>⌁　UGEHISTORIK</h2><span>Seneste målinger først ›</span></div><div class="pro-progress-history-scroll"><table><thead><tr><th>UGE</th><th>DATO</th><th>VÆGT (KG)</th><th>ÆNDRING</th><th>NOTE</th></tr></thead><tbody id="proProgressMasterHistory"></tbody></table></div><button type="button" class="pro-progress-master-all" id="proProgressMasterAll">Vis alle data　⌄</button></section>
+				</div>
+				<div class="pro-progress-bottom-row">
+					<article class="pro-progress-status"><span class="pro-progress-card-icon" aria-hidden="true">🔥</span><small>Status</small><strong id="proProgressGoalStatus">-</strong><span>Din aktuelle retning</span></article>
+					<article class="pro-progress-tip"><span class="pro-progress-card-icon" aria-hidden="true">🏆</span><div><h3>PRO TIP</h3><p id="proProgressMasterTip">Registrér ugentlige målinger for at følge din udvikling.</p></div></article>
 				</div>
 				<article class="pro-progress-score">
 					<div>
@@ -254,14 +238,6 @@
 					</div>
 					<div class="pro-progress-ring" id="proProgressScoreRing"><div class="pro-progress-arrow" aria-hidden="true">↗</div></div>
 				</article>
-				<article class="pro-progress-chart-card">
-					<div class="pro-progress-chart-head"><span class="pro-progress-label">VÆGTUDVIKLING</span><span class="pro-progress-select">kg</span></div>
-					<div class="pro-progress-weight"><strong id="proProgressWeight">0,0 kg</strong><small id="proProgressWeightDelta"></small></div>
-					<div class="pro-progress-chart"><svg id="proProgressChartSvg" viewBox="0 0 600 165" preserveAspectRatio="none"></svg></div>
-					<div class="pro-progress-axis" id="proProgressAxis"></div>
-				</article>
-				<article class="pro-progress-master-progress"><div><small>FREMGANG</small><strong id="proProgressMasterPercent">0%</strong><span>af vejen til målet</span></div><div class="pro-progress-master-ring" id="proProgressMasterRing">0%</div><div class="pro-progress-master-message"><p id="proProgressMasterMessage">Registrér din vægt for at se din fremgang.</p><div><i id="proProgressMasterBar"></i></div></div><strong id="proProgressMasterRemaining">- kg<br><small>tilbage</small></strong></article>
-				<section class="pro-progress-master-history"><div class="pro-progress-master-title"><h2>⌁　UGEHISTORIK</h2><span>Seneste målinger først</span></div><div class="pro-progress-history-scroll"><table><thead><tr><th>UGE</th><th>DATO</th><th>VÆGT (KG)</th><th>ÆNDRING</th><th>NOTE</th></tr></thead><tbody id="proProgressMasterHistory"></tbody></table></div><button type="button" class="pro-progress-master-all" id="proProgressMasterAll">Vis alle data　⌄</button></section>
 				<article class="pro-progress-strength">
 					<div class="pro-progress-section-title"><span class="pro-progress-label">STYRKEUDVIKLING</span><button type="button" class="pro-progress-link" data-category-target="#library">Se alle</button></div>
 					<div id="proProgressStrengthRows"></div>
@@ -272,7 +248,6 @@
 				<article class="pro-progress-photos-card">
 					<div class="pro-progress-photos" id="proProgressPhotos"></div>
 				</article>
-				<article class="pro-progress-master-tip"><span>🏆</span><div><h3>PRO TIP</h3><p id="proProgressMasterTip">Registrér ugentlige målinger for at følge din udvikling.</p></div><strong>↗</strong></article>
 			</section>
 			<section id="progress"><div class="section-heading"><div><p class="eyebrow">FREMSKRIDT</p><h2>Din udvikling</h2></div><div id="progressViews"><button type="button" class="active" data-view="week">Uge</button><button type="button" data-view="day">Dag</button></div></div><div class="stats-grid"><article class="stat-card">VOLUMEN<strong id="volumeStat">0 kg</strong></article><article class="stat-card">BEDSTE 1RM<strong id="bestOrmStat">0,0 kg</strong></article><article class="stat-card">REPS<strong id="repsStat">0</strong></article><article class="stat-card">STATUS<strong id="progressStat">+0%</strong></article></div><div id="weekHistory"></div></section>
 			<section id="library" class="aio-library"><div class="aio-lib-hero">
@@ -287,7 +262,7 @@
 							<div class="aio-lib-stat-pill">🤖 AI klar</div>
 						</div>
 					</div>
-					<div class="aio-lib-art">♟</div>
+					<div class="aio-lib-art">🏋️</div>
 				</div>
 			</div>
 
@@ -479,7 +454,7 @@
 		<button type="button" data-category-target="#profile"><span aria-hidden="true">◌</span>Profile</button>
 	</nav>
 	<div id="toast" role="status"></div>
-	<script src="app.js?v=20260905-progression-status-2"></script>
+	<script src="app.js?v=20260922-no-chess-2"></script>
 	<script type="module" src="physique-3d.js?v=20260830-physique-progress-15"></script>
 	<script>
 		(() => {
