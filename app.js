@@ -36,66 +36,6 @@ const authState = {
   notice: ''
 };
 
-const installAppButton = document.createElement('button');
-installAppButton.type = 'button';
-installAppButton.id = 'installAppButton';
-installAppButton.textContent = 'Installer app';
-installAppButton.hidden = true;
-installAppButton.className = 'install-app-button';
-
-document.querySelector('.topbar')?.appendChild(installAppButton);
-
-const networkStatus = document.createElement('div');
-networkStatus.id = 'networkStatus';
-networkStatus.className = 'network-status';
-networkStatus.textContent = 'Online';
-networkStatus.setAttribute('aria-live', 'polite');
-document.querySelector('.topbar')?.appendChild(networkStatus);
-
-function updateNetworkStatus() {
-  if (!networkStatus) return;
-  const online = navigator.onLine;
-  networkStatus.textContent = online ? 'Online · lokalt og cloud' : 'Offline · lokal mode';
-  networkStatus.dataset.status = online ? 'online' : 'offline';
-}
-
-window.addEventListener('online', () => {
-  updateNetworkStatus();
-  showToast('Forbindelsen er tilbage');
-});
-window.addEventListener('offline', () => {
-  updateNetworkStatus();
-  showToast('Du er offline. Appen arbejder lokalt.');
-});
-window.addEventListener('beforeinstallprompt', (event) => {
-  event.preventDefault();
-  deferredInstallPrompt = event;
-  installAppButton.hidden = false;
-});
-
-window.addEventListener('appinstalled', () => {
-  installAppButton.hidden = true;
-  deferredInstallPrompt = null;
-  showToast('Appen er installeret');
-});
-
-installAppButton.addEventListener('click', async () => {
-  if (!deferredInstallPrompt) {
-    showToast('Installeringsprompt er ikke tilgængeligt i denne browser');
-    return;
-  }
-
-  deferredInstallPrompt.prompt();
-  const choice = await deferredInstallPrompt.userChoice;
-  if (choice.outcome === 'accepted') {
-    showToast('Appen er nu klar til installation');
-  } else {
-    showToast('Installation blev afbrudt');
-  }
-  deferredInstallPrompt = null;
-  installAppButton.hidden = true;
-});
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((registration) => {
     let updateReloadStarted = false;
@@ -189,7 +129,7 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
 const savedLiveReloadHash = sessionStorage.getItem('formlyLiveReloadHash');
 if (savedLiveReloadHash) {
   sessionStorage.removeItem('formlyLiveReloadHash');
-  if (window.location.hash !== savedLiveReloadHash) history.replaceState({}, '', savedLiveReloadHash);
+  if (window.location.hash === '#top' && savedLiveReloadHash !== '#top') history.replaceState({}, '', savedLiveReloadHash);
 }
 
 // Keeps the top-right date live (weekday, day, month, year), rolling over automatically at midnight/new year.
@@ -696,7 +636,7 @@ coachPanel.innerHTML = `
       </details>
     </aside>
   </div>`;
-document.querySelector('.welcome').after(coachPanel);
+document.querySelector('.topbar')?.after(coachPanel);
 
 const proAccessButton = document.createElement('button');
 proAccessButton.type = 'button';
@@ -1506,7 +1446,7 @@ dailyFocusCard.className = 'daily-focus-card';
 dailyFocusCard.innerHTML = `
   <div class="daily-focus-header">
     <p class="eyebrow">DAGLIG FOKUS</p>
-    <h3>3 mål for i dag</h3>
+    <h3>2 mål for i dag</h3>
   </div>
   <div class="daily-focus-grid">
     <div class="daily-focus-item">
@@ -1516,10 +1456,6 @@ dailyFocusCard.innerHTML = `
     <div class="daily-focus-item">
       <span>Protein</span>
       <strong id="dailyFocusProtein">0 g</strong>
-    </div>
-    <div class="daily-focus-item">
-      <span>Træning</span>
-      <strong id="dailyFocusWorkout">0/3</strong>
     </div>
   </div>
 `;
@@ -1549,8 +1485,7 @@ dailyQuickActions.querySelectorAll('[data-quick-action]').forEach((button) => {
 function updateDailyFocus() {
   const focusSteps = document.querySelector('#dailyFocusSteps');
   const focusProtein = document.querySelector('#dailyFocusProtein');
-  const focusWorkout = document.querySelector('#dailyFocusWorkout');
-  if (!focusSteps || !focusProtein || !focusWorkout) return;
+  if (!focusSteps || !focusProtein) return;
 
   const stepTarget = Number(stepsInput?.value || 0);
   const proteinTarget = Number(profileWeight.value || 0) * 1.8;
@@ -1561,7 +1496,6 @@ function updateDailyFocus() {
 
   focusSteps.textContent = `${Number(stepTarget).toLocaleString('da-DK')} steps`;
   focusProtein.textContent = `${Math.round(foodProtein).toLocaleString('da-DK')} / ${Math.round(proteinTarget).toLocaleString('da-DK')} g`;
-  focusWorkout.textContent = `${Math.min(plannedWorkouts, 3)}/3`;
 }
 
 function normalizeCoachEndpoint(rawValue) {
@@ -1720,9 +1654,7 @@ trainingOverviewCategories.querySelector('.overview-categories-heading .eyebrow'
 trainingOverviewCategories.querySelector('.overview-categories-heading h2').textContent = 'Vælg en funktion';
 const workoutSection = document.querySelector('#workout');
 const exerciseLibrarySection = document.querySelector('#library');
-if (workoutSection) {
-  workoutSection.after(overviewCategories);
-}
+overviewCategories.remove();
 const featureHelpItems = [
   { name: 'Træning', access: 'Gratis', page: 'training', text: 'Se dagens træning, byg dit øvelsesbibliotek og registrér sæt, reps og vægt.' },
   { name: 'Mad & kcal', access: 'Gratis', page: 'food', text: 'Registrér måltider og følg kalorier, protein, kulhydrat og fedt.' },
@@ -4180,6 +4112,8 @@ programTitle.parentElement.append(imageCredit);
 exerciseOptions.forEach((option) => {
   if (newExerciseSelect) newExerciseSelect.insertAdjacentHTML('beforeend', `<option value="${option}">${option}</option>`);
   if (exerciseOptionsList) exerciseOptionsList.insertAdjacentHTML('beforeend', `<option value="${option}"></option>`);
+  document.querySelector('#aioNewExerciseSelect')?.insertAdjacentHTML('beforeend', `<option value="${option}">${option}</option>`);
+  document.querySelector('#aioExerciseOptions')?.insertAdjacentHTML('beforeend', `<option value="${option}"></option>`);
 });
 const exerciseList = document.querySelector('#exerciseList') || document.createElement('div');
 if (exerciseCount) exerciseCount.textContent = `${exerciseList.querySelectorAll('.exercise-row').length}/30 øvelser`;
@@ -4830,11 +4764,15 @@ function showToast(message) {
 }
 
 function renderWorkoutOverview() {
-  const rows = [...document.querySelectorAll('#exerciseList .exercise-row')];
-  const nextExerciseRow = rows.find((row) => !row.classList.contains('completed')) || rows[0];
+  const libraryCards = [...document.querySelectorAll('#aioExerciseList .aio-lib-exercise')];
+  const rows = libraryCards.length ? libraryCards : [...document.querySelectorAll('#exerciseList .exercise-row')];
+  const isLibraryExerciseDone = (row) => libraryCards.length
+    ? localStorage.getItem(`formlyAioExerciseDone:${normalizeExerciseNameForComparison(row.dataset.name || '')}`) === 'true'
+    : row.classList.contains('completed');
+  const nextExerciseRow = rows.find((row) => !isLibraryExerciseDone(row)) || rows[0];
   const nextExerciseName = nextExerciseRow?.querySelector('h3')?.textContent?.trim() || 'Din første øvelse';
   const sessionEntries = workoutLog.filter((entry) => Number(entry.session || 1) === activeWorkoutSession);
-  const completedExercises = rows.filter((row) => row.classList.contains('completed')).length;
+  const completedExercises = rows.filter((row) => isLibraryExerciseDone(row)).length;
   const isSessionComplete = localStorage.getItem(`formlyWorkoutSessionComplete:${activeWorkoutSession}`) === 'true';
   const loggedSets = sessionEntries.reduce((total, entry) => total + getExerciseSetCount(entry), 0);
   const sessionVolume = sessionEntries.reduce((total, entry) => total + getExerciseVolume(entry), 0);
@@ -6709,6 +6647,42 @@ function aioUpdateExerciseCount() {
   if (progressEl) progressEl.textContent = loggedCount + ' / 30 registreret';
 }
 
+function aioWireExerciseAdder() {
+  const select = document.querySelector('#aioNewExerciseSelect');
+  const addButton = document.querySelector('#aioAddExercise');
+  const list = document.querySelector('#aioExerciseList');
+  if (!select || !addButton || !list || addButton.dataset.bound) return;
+  addButton.dataset.bound = 'true';
+  addButton.addEventListener('click', () => {
+    const name = select.value || document.querySelector('#aioCustomExerciseName')?.value.trim();
+    if (!name || [...list.querySelectorAll('.aio-lib-exercise')].some((card) => card.dataset.name === name)) return;
+    const template = list.querySelector('.aio-lib-exercise');
+    if (!template) return;
+    const card = template.cloneNode(true);
+    const category = getExerciseCategory(name);
+    card.dataset.name = name;
+    card.dataset.cat = category;
+    card.dataset.weight = '20';
+    card.dataset.reps = '10';
+    card.querySelector('.aio-lib-number').textContent = String(list.children.length + 1).padStart(2, '0');
+    card.querySelector('.aio-lib-badge').textContent = category.toUpperCase();
+    card.querySelectorAll('h3, .aio-lib-field input').forEach((input) => {
+      if (input.matches('h3')) input.textContent = name;
+      else if (input.type !== 'number') input.value = name;
+    });
+    card.querySelector('.aio-weightInput').value = '20';
+    card.querySelector('.aio-repsInput').value = '10';
+    card.querySelectorAll('.aio-lib-quick b')[0].textContent = '20 kg';
+    card.querySelectorAll('.aio-lib-quick b')[1].textContent = '10 reps';
+    card.querySelectorAll('.aio-lib-quick b')[2].textContent = '3';
+    list.append(card);
+    aioInitializeExerciseLibrary();
+    select.value = '';
+    document.querySelector('#aioCustomExerciseName').value = '';
+    aioUpdateExerciseCount();
+  });
+}
+
 function aioInitializeExerciseLibrary() {
   const modal = document.getElementById('aioMediaModal');
   if (modal) {
@@ -6819,6 +6793,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   aioInitializeExerciseLibrary();
+  aioWireExerciseAdder();
 });
 exerciseRows.forEach((row) => {
   row.dataset.bound = '';
@@ -6839,17 +6814,19 @@ if (document.readyState === 'loading') {
 
 const appPageTargets = {
   overview: ['#proHome'],
-  training: ['#workout', '.training-overview-categories', '#library'],
+  training: ['#workout', '.workout-flow', '#library', '.training-progress-panel'],
   food: ['#food'],
   coach: ['.coach-panel'],
   profile: ['.profile-section'],
   weight: ['#weight'],
   progress: ['#proProgress'],
-  physique: ['#physique-ai'],
-  pro: ['#proAccessDialog']
+  physique: ['#physique-ai']
 };
 const appContent = document.querySelector('.content');
 document.querySelector('.sidebar-bottom')?.remove();
+proAccessButton.remove();
+proAccessDialog.remove();
+document.querySelectorAll('.nav-link-pro, [data-open-pro]').forEach((control) => control.remove());
 const appPageElements = new Map();
 
 if (appContent) {
@@ -6898,6 +6875,12 @@ if (appContent) {
     if (proHomePanel) {
       if (selectedPage === 'overview') proHomePanel.style.removeProperty('display');
       else proHomePanel.style.setProperty('display', 'none', 'important');
+    }
+    const legacyTrainingProgress = document.querySelector('.training-progress-panel');
+    if (legacyTrainingProgress) {
+      legacyTrainingProgress.hidden = selectedPage !== 'training';
+      if (selectedPage === 'training') legacyTrainingProgress.style.removeProperty('display');
+      else legacyTrainingProgress.style.setProperty('display', 'none', 'important');
     }
     if (physiqueProgressPanel) {
       if (selectedPage === 'progress') physiqueProgressPanel.style.removeProperty('display');

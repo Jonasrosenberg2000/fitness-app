@@ -4093,6 +4093,18 @@ body .app-shell .profile-result-panel {
 	display: none !important;
 }
 
+.content.app-pages-mode[data-active-app-page="training"] {
+	height: auto;
+	min-height: 100vh;
+	overflow-y: auto;
+}
+
+.content.app-pages-mode[data-active-app-page="training"] > [data-app-page="training"] {
+	height: auto;
+	max-height: none;
+	overflow: visible;
+}
+
 .content.app-pages-mode > [data-app-page]:not([hidden]) {
 	display: block !important;
 	box-sizing: border-box;
@@ -4323,6 +4335,16 @@ body.app-single-page::before {
 	grid-template-columns: minmax(0, 1fr);
 	gap: 8px;
 	overflow: visible;
+}
+
+.content.app-pages-mode[data-active-app-page="overview"] > .welcome,
+.content.app-pages-mode[data-active-app-page="overview"] > .daily-quick-actions,
+.content.app-pages-mode[data-active-app-page="overview"] > .daily-focus-card,
+.content.app-pages-mode[data-active-app-page="overview"] > .coach-panel,
+.content.app-pages-mode[data-active-app-page="overview"] > .overview-categories,
+.content.app-pages-mode[data-active-app-page="overview"] > .workout-flow,
+.content.app-pages-mode[data-active-app-page="overview"] > .backup-bar {
+	display: none !important;
 }
 
 /* Træning is its own page now; the free-tier "hide hero-grid for Pro" rule must not blank it out. */
@@ -6481,7 +6503,16 @@ body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="ove
 body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .daily-focus-card,
 body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .coach-panel,
 body.has-pro-access .app-shell .content.app-pages-mode[data-active-app-page="overview"] .overview-categories {
-	display: block !important;
+	display: none !important;
+}
+
+.content.app-pages-mode[data-active-app-page="overview"] > .topbar,
+.content.app-pages-mode[data-active-app-page="overview"] .premium-home-tabs,
+.content.app-pages-mode[data-active-app-page="overview"] .pro-home-workout-card,
+.content.app-pages-mode[data-active-app-page="overview"] .pro-home-stat-grid,
+.content.app-pages-mode[data-active-app-page="overview"] .pro-home-kcal-card,
+.content.app-pages-mode[data-active-app-page="overview"] .pro-home-insight-card {
+	display: none !important;
 }
 
 html body.has-pro-access .app-shell #progress,
@@ -15605,6 +15636,19 @@ body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="ov
 	min-height: 100vh;
 	max-height: none !important;
 	overflow-y: auto !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="training"] {
+	height: auto !important;
+	min-height: 100vh !important;
+	max-height: none !important;
+	overflow-y: auto !important;
+}
+
+body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="training"] > [data-app-page="training"] {
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
 }
 
 body.app-single-page .app-shell .content.app-pages-mode[data-active-app-page="overview"] > [data-app-page]:not([hidden]) {
