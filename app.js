@@ -286,10 +286,9 @@ function getUserName() {
 function updateGreeting() {
   const greetingEl = document.querySelector('#greetingText');
   if (!greetingEl) return;
-  const hour = new Date().getHours();
-  const greeting = hour < 10 ? 'Godmorgen' : hour < 12 ? 'God formiddag' : hour < 18 ? 'God eftermiddag' : 'God aften';
+  const greeting = 'Godmorgen';
   const name = getUserName();
-  greetingEl.textContent = name ? `${greeting}, ${name}` : greeting;
+  greetingEl.textContent = name ? `${greeting}, ${name}` : 'Godmorgen.';
 }
 updateGreeting();
 window.setInterval(updateGreeting, 15 * 60 * 1000);
