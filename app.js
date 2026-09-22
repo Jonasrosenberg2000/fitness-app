@@ -6882,7 +6882,7 @@ if (appContent) {
   const resolveLandingPage = () => (hasFullAppAccess() ? 'overview' : 'pro');
 
   const showAppPage = (pageName, updateHash = true) => {
-    const normalizedPage = pageName === 'overview' || (APP_OPEN_ACCESS && pageName === 'pro') ? resolveLandingPage() : pageName;
+    const normalizedPage = pageName === 'overview' ? resolveLandingPage() : pageName;
     const selectedPage = appPageTargets[normalizedPage] ? normalizedPage : resolveLandingPage();
     const visiblePage = selectedPage === 'pro' ? 'pro' : selectedPage;
     const renderedPage = selectedPage === 'overview' || selectedPage === 'pro' ? selectedPage : visiblePage;
